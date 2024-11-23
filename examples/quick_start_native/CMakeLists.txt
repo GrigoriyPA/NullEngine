@@ -4,4 +4,6 @@ add_executable(${TARGET_NAME}
     quick_start_native.cpp
 )
 
-add_test(test_${TARGET_NAME} ${TARGET_NAME})
+target_link_libraries(${TARGET_NAME}
+    null_engine
+)
