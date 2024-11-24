@@ -1,9 +1,12 @@
-set(TARGET_NAME quick_start_native_example)
+set(TARGET_NAME quick-start-native-example)
 
 add_executable(${TARGET_NAME}
     quick_start_native.cpp
 )
 
+include_directories(${PROJECT_SOURCE_DIR}/contrib/SFML/include)
+
 target_link_libraries(${TARGET_NAME}
-    null_engine
+    null-engine
+    sfml-graphics
 )

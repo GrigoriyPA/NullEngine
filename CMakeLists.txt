@@ -1,9 +1,8 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.24)
 
-set(PROJECT_NAME null_engine)
-
+set(PROJECT_NAME null-engine)
 set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -Wimplicit-fallthrough -g")
+set(CMAKE_BUILD_TYPE Debug)
 
 project(${PROJECT_NAME})
 
@@ -11,13 +10,16 @@ add_library(${PROJECT_NAME} STATIC
     include/null_engine/null_engine.hpp
 )
 
-include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
+set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+
+include_directories(${PROJECT_SOURCE_DIR}/include)
 
 target_link_libraries(${PROJECT_NAME}
-    null_engine_implementation
+    null-engine-implementation
 )
 
 enable_testing()
 
+add_subdirectory(contrib)
 add_subdirectory(src/null_engine)
 add_subdirectory(examples)
