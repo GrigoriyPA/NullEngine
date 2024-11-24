@@ -15,11 +15,12 @@ set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
 target_link_libraries(${PROJECT_NAME}
-    null-engine-implementation
+    null-engine-native
 )
 
 enable_testing()
 
 add_subdirectory(contrib)
+add_subdirectory(util)
 add_subdirectory(src/null_engine)
 add_subdirectory(examples)

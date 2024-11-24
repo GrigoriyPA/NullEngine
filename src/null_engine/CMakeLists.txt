@@ -1,5 +1,4 @@
-set(TARGET_NAME null-engine-implementation)
+include_directories(${PROJECT_SOURCE_DIR}/src)
+include_directories(${PROJECT_SOURCE_DIR}/util)
 
-add_library(${TARGET_NAME}
-    null_engine.cpp
-)
+add_subdirectory(native)
