@@ -15,6 +15,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
 target_link_libraries(${PROJECT_NAME}
+    null-engine-drawable-objects
     null-engine-generic
     null-engine-native
 )

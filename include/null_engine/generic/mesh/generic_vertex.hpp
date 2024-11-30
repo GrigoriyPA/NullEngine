@@ -2,11 +2,11 @@
 
 #include <null_engine/util/geometry/vector_3d.hpp>
 
-namespace null_engine::native {
+namespace null_engine::generic {
 
 //
 // One vertex of complex shape,
-// Contains properties which can be interpolated
+// Contains properties such as color, texture coords
 //
 class Vertex {
 public:
@@ -23,4 +23,4 @@ private:
     util::Vec3 color_;
 };
 
-}  // namespace null_engine::native
+}  // namespace null_engine::generic

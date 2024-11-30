@@ -10,34 +10,51 @@
 namespace null_engine::generic {
 
 //
+// Rendering unit, contains camera, randerer and set of consumers.
+// Same renderer may be reused in different cameras
+//
+class CameraView {
+public:
+    CameraView(Camera::Ptr camera, Renderer::Ptr renderer);
+
+    Camera& GetCamera() const;
+    Renderer& GetRenderer() const;
+    const std::vector<RenderingConsumer::Ptr>& GetConsumers() const;
+
+    CameraView& AddConsumer(RenderingConsumer::Ptr rendering_consumer);
+
+private:
+    Camera::Ptr camera_;
+    Renderer::Ptr renderer_;
+    std::vector<RenderingConsumer::Ptr> rendering_consumers_;
+};
+
+//
 // Graphic engine scene, contains all objects / lights / cameras
 // After adding an object his structure freezing and cannot be changed
 // Objects can be modified only by changing dynamics transforms
 //
 class Scene {
-    struct RenderCamera {
-        Camera camera;
-        Renderer::Ptr renderer;
-        RenderingConsumer::Ptr rendering_consumer;
-    };
-
 public:
     Scene() = default;
 
     Scene& SetDefaultRenderer(Renderer::Ptr default_renderer);
-    Scene& SetDefaultRenderingConsumer(RenderingConsumer::Ptr default_rendering_consumer);
 
     Scene& AddObject(MeshObject::Ptr object);
 
-    Scene& AddCamera(Camera camera);  // Requires default renderer / consumer
-    Scene& AddCamera(Camera camera, Renderer::Ptr renderer, RenderingConsumer::Ptr rendering_consumer);
+    CameraView& AddCamera(Camera::Ptr camera);  // Requires default renderer
+    CameraView& AddCamera(Camera::Ptr camera, Renderer::Ptr renderer);
+    Scene& AddCamera(CameraView camera_view);
+
+public:
+    // Render one frame and pass it to rendering consumers
+    void Render() const;
 
 private:
     Renderer::Ptr default_renderer_ = nullptr;
-    RenderingConsumer::Ptr default_rendering_consumer_ = nullptr;
 
     std::vector<MeshObject::Ptr> objects_;
-    std::vector<RenderCamera> cameras_;
+    std::vector<CameraView> views_;
 };
 
 }  // namespace null_engine::generic

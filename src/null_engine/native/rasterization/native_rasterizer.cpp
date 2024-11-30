@@ -1,4 +1,5 @@
-#include "native_rasterizer.hpp"
+#include <null_engine/native/rasterization/native_rasterizer.hpp>
+
 #include <cstdint>
 #include <utility>
 
@@ -12,7 +13,7 @@ Rasterizer::Rasterizer(RasterizerContext& context)
     , pixel_width_(2.0 / static_cast<util::FloatType>(context_.view_width)) {
 }
 
-void Rasterizer::DrawPoint(Vertex point) {
+void Rasterizer::DrawPoint(generic::Vertex point) {
     const auto [x, y] = ProjectPoint(point);
 
     if (x < 0 || context_.view_width <= x || y < 0 || context_.view_height < y) {
@@ -26,13 +27,15 @@ void Rasterizer::DrawPoint(Vertex point) {
     UpdateViewPixel(x, y, point);
 }
 
-std::pair<int64_t, int64_t> Rasterizer::ProjectPoint(const Vertex& point) const {
+std::pair<int64_t, int64_t> Rasterizer::ProjectPoint(const generic::Vertex& point) const {
     const auto position = point.GetPosition();
-    return std::make_pair(static_cast<int64_t>((position.GetX() + 1.0) / pixel_width_),
-                          static_cast<int64_t>((1.0 - position.GetY()) / pixel_width_));
+    return std::make_pair(
+        static_cast<int64_t>((position.GetX() + 1.0) / pixel_width_),
+        static_cast<int64_t>((1.0 - position.GetY()) / pixel_width_)
+    );
 }
 
-bool Rasterizer::CheckPointDepth(int64_t x, int64_t y, const Vertex& point) const {
+bool Rasterizer::CheckPointDepth(int64_t x, int64_t y, const generic::Vertex& point) const {
     const auto z = point.GetPosition().GetZ();
     if (z <= -1.0 || 1.0 <= z) {
         return false;
@@ -40,7 +43,7 @@ bool Rasterizer::CheckPointDepth(int64_t x, int64_t y, const Vertex& point) cons
     return context_.depth_buffer[y * context_.view_width + x] < z;
 }
 
-void Rasterizer::UpdateViewPixel(int64_t x, int64_t y, const Vertex& point) {
+void Rasterizer::UpdateViewPixel(int64_t x, int64_t y, const generic::Vertex& point) {
     const auto point_offset = y * context_.view_width + x;
     context_.depth_buffer[point_offset] = point.GetPosition().GetZ();
 
@@ -55,15 +58,16 @@ namespace tests {
 
 //// Test functions
 
-void DrawPoints(native::Rasterizer& rasterizer, uint64_t number_points, util::Vec3 offset, util::Vec3 size,
-                util::Vec3 color) {
+void DrawPoints(
+    native::Rasterizer& rasterizer, uint64_t number_points, util::Vec3 offset, util::Vec3 size, util::Vec3 color
+) {
     util::Vec3 step = size / static_cast<util::FloatType>(number_points);
     for (uint64_t i = 0; i < number_points; ++i) {
         for (uint64_t j = 0; j < number_points; ++j) {
             const util::Vec3 point =
                 offset + step * util::Vec3(static_cast<util::FloatType>(i), static_cast<util::FloatType>(j));
 
-            rasterizer.DrawPoint(native::Vertex(point, color));
+            rasterizer.DrawPoint(generic::Vertex(point, color));
         }
     }
 }

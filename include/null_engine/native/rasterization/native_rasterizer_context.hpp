@@ -12,12 +12,15 @@ namespace null_engine::native {
 //
 struct RasterizerContext {
 public:
-    RasterizerContext(int64_t view_width, int64_t view_height);
+    RasterizerContext(uint64_t view_width, uint64_t view_height);
+
+    // Reset context and prepare for rendering next frame
+    void Rewind();
 
 public:
     // Size in pixels
-    int64_t view_width;
-    int64_t view_height;
+    uint64_t view_width;
+    uint64_t view_height;
 
     // Output color buffer with size 4 * view_width * view_height
     // (4 color coordinates - R, G, B, A)

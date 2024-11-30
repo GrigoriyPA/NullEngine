@@ -9,3 +9,5 @@ DerivePointerAlignment: true
 SortIncludes: false
 PackConstructorInitializers: Never
 BreakConstructorInitializers: BeforeComma
+EmptyLineBeforeAccessModifier: LogicalBlock
+AlignAfterOpenBracket: BlockIndent

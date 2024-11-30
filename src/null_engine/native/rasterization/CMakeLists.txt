@@ -6,5 +6,7 @@ add_library(${TARGET_NAME}
 )
 
 target_link_libraries(${TARGET_NAME}
-    null-engine-native-common
+    null-engine-generic-mesh
+
+    null-engine-util-geometry
 )

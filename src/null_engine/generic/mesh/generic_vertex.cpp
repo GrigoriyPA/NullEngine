@@ -1,6 +1,6 @@
-#include <null_engine/native/common/native_vertex.hpp>
+#include <null_engine/generic/mesh/generic_vertex.hpp>
 
-namespace null_engine::native {
+namespace null_engine::generic {
 
 //// Vertex
 
@@ -27,4 +27,4 @@ util::Vec3 Vertex::GetColor() const {
     return color_;
 }
 
-}  // namespace null_engine::native
+}  // namespace null_engine::generic

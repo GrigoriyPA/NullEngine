@@ -2,10 +2,10 @@
 
 #include "native_rasterizer_context.hpp"
 
+#include <null_engine/generic/mesh/generic_vertex.hpp>
+
 #include <null_engine/util/geometry/constants.hpp>
 #include <null_engine/util/geometry/vector_3d.hpp>
-
-#include <null_engine/native/common/native_vertex.hpp>
 
 namespace null_engine::native {
 
@@ -17,17 +17,17 @@ class Rasterizer {
 public:
     explicit Rasterizer(RasterizerContext& context);
 
-    void DrawPoint(Vertex point);
+    void DrawPoint(generic::Vertex point);
 
 private:
     // Returns point coordinates on view
-    std::pair<int64_t, int64_t> ProjectPoint(const Vertex& point) const;
+    std::pair<int64_t, int64_t> ProjectPoint(const generic::Vertex& point) const;
 
     // Perform depth test
-    bool CheckPointDepth(int64_t x, int64_t y, const Vertex& point) const;
+    bool CheckPointDepth(int64_t x, int64_t y, const generic::Vertex& point) const;
 
     // Update color and depth buffers
-    void UpdateViewPixel(int64_t x, int64_t y, const Vertex& point);
+    void UpdateViewPixel(int64_t x, int64_t y, const generic::Vertex& point);
 
 private:
     RasterizerContext& context_;
@@ -37,8 +37,10 @@ private:
 
 namespace tests {
 
-void DrawPoints(native::Rasterizer& rasterizer, uint64_t number_points, util::Vec3 offset = util::Vec3(-0.5, -0.5),
-                util::Vec3 size = util::Vec3(1.0, 1.0), util::Vec3 color = util::Vec3(1.0));
+void DrawPoints(
+    Rasterizer& rasterizer, uint64_t number_points, util::Vec3 offset = util::Vec3(-0.5, -0.5),
+    util::Vec3 size = util::Vec3(1.0, 1.0), util::Vec3 color = util::Vec3(1.0)
+);
 
 }  // namespace tests
 

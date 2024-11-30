@@ -1,11 +1,16 @@
 #pragma once
 
+#include <memory>
+
 namespace null_engine::generic {
 
 //
-// Camera holds information about position in scene space,
+// Сommon camera interface, holds information about position in scene space,
 // view direction and other projection settings
 //
-class Camera {};
+class Camera {
+public:
+    using Ptr = std::shared_ptr<Camera>;
+};
 
 }  // namespace null_engine::generic

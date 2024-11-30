@@ -1,3 +1,4 @@
+include_directories(${PROJECT_SOURCE_DIR}/contrib/SFML/include)
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
 add_subdirectory(drawable_objects)

@@ -5,9 +5,13 @@ add_library(${TARGET_NAME}
 )
 
 target_link_libraries(${TARGET_NAME}
-    null-engine-native-common
+    null-engine-generic-camera
+    null-engine-generic-mesh
+    null-engine-generic-renderer
+
     null-engine-native-rasterization
+
+    null-engine-util-generic
 )
 
-add_subdirectory(common)
 add_subdirectory(rasterization)
