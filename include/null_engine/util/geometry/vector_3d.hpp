@@ -16,10 +16,12 @@ public:
     FloatType& X();
     FloatType& Y();
     FloatType& Z();
+    FloatType& H();
 
     FloatType GetX() const;
     FloatType GetY() const;
     FloatType GetZ() const;
+    FloatType GetH() const;
 
     Vec3& operator+=(FloatType offset);
     Vec3 operator+(FloatType offset) const;
@@ -48,6 +50,7 @@ private:
     FloatType x_;
     FloatType y_;
     FloatType z_;
+    FloatType h_;  // Homogeneous coordinate
 };
 
 Vec3 operator+(FloatType offset, const Vec3& vector);

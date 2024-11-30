@@ -5,5 +5,5 @@ add_library(${TARGET_NAME}
 )
 
 target_link_libraries(${TARGET_NAME}
-    util-geometry
+    null-engine-util-geometry
 )

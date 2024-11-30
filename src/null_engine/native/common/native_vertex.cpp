@@ -1,4 +1,4 @@
-#include "native_vertex.hpp"
+#include <null_engine/native/common/native_vertex.hpp>
 
 namespace null_engine::native {
 
@@ -7,6 +7,16 @@ namespace null_engine::native {
 Vertex::Vertex(util::Vec3 position, util::Vec3 color)
     : position_(position)
     , color_(color) {
+}
+
+Vertex& Vertex::SetPosition(util::Vec3 position) {
+    position_ = position;
+    return *this;
+}
+
+Vertex& Vertex::SetColor(util::Vec3 color) {
+    color_ = color;
+    return *this;
 }
 
 util::Vec3 Vertex::GetPosition() const {

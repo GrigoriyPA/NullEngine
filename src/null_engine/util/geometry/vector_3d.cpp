@@ -1,4 +1,4 @@
-#include "vector_3d.hpp"
+#include <null_engine/util/geometry/vector_3d.hpp>
 
 #include <algorithm>
 
@@ -9,19 +9,22 @@ namespace null_engine::util {
 Vec3::Vec3(FloatType size)
     : x_(size)
     , y_(size)
-    , z_(size) {
+    , z_(size)
+    , h_(1.0) {
 }
 
 Vec3::Vec3(FloatType x, FloatType y)
     : x_(x)
     , y_(y)
-    , z_(0.0) {
+    , z_(0.0)
+    , h_(1.0) {
 }
 
 Vec3::Vec3(FloatType x, FloatType y, FloatType z)
     : x_(x)
     , y_(y)
-    , z_(z) {
+    , z_(z)
+    , h_(1.0) {
 }
 
 FloatType& Vec3::X() {
@@ -36,6 +39,10 @@ FloatType& Vec3::Z() {
     return z_;
 }
 
+FloatType& Vec3::H() {
+    return h_;
+}
+
 FloatType Vec3::GetX() const {
     return x_;
 }
@@ -46,6 +53,10 @@ FloatType Vec3::GetY() const {
 
 FloatType Vec3::GetZ() const {
     return z_;
+}
+
+FloatType Vec3::GetH() const {
+    return h_;
 }
 
 Vec3& Vec3::operator+=(FloatType offset) {

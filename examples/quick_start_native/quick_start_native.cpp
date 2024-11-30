@@ -1,7 +1,7 @@
 #include <null_engine/native/rasterization/native_rasterizer.hpp>
 #include <null_engine/native/rasterization/native_rasterizer_context.hpp>
 
-#include <geometry/vector_3d.hpp>
+#include <null_engine/util/geometry/vector_3d.hpp>
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Sprite.hpp>

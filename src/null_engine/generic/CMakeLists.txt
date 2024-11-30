@@ -1,0 +1,15 @@
+set(TARGET_NAME null-engine-generic)
+
+add_library(${TARGET_NAME}
+    generic_scene.cpp
+)
+
+target_link_libraries(${TARGET_NAME}
+    null-engine-generic-camera
+    null-engine-generic-mesh
+    null-engine-generic-renderer
+)
+
+add_subdirectory(camera)
+add_subdirectory(mesh)
+add_subdirectory(renderer)

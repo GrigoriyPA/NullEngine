@@ -1,6 +1,6 @@
 #pragma once
 
-#include <geometry/vector_3d.hpp>
+#include <null_engine/util/geometry/vector_3d.hpp>
 
 namespace null_engine::native {
 
@@ -11,6 +11,9 @@ namespace null_engine::native {
 class Vertex {
 public:
     Vertex(util::Vec3 position, util::Vec3 color);
+
+    Vertex& SetPosition(util::Vec3 position);
+    Vertex& SetColor(util::Vec3 color);
 
     util::Vec3 GetPosition() const;
     util::Vec3 GetColor() const;
