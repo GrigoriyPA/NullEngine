@@ -6,6 +6,7 @@
 #include <null_engine/native/rasterization/native_rasterizer_context.hpp>
 
 #include <null_engine/util/generic/templates.hpp>
+#include <null_engine/util/geometry/transformation.hpp>
 
 namespace null_engine::native {
 
@@ -37,7 +38,10 @@ public:
     void SaveRenderingResults(generic::RenderingConsumer& consumer) const override;
 
 private:
+    // Current context
+    util::Transform ndc_transform_;
     RasterizerContext rasterizer_context_;
+
     Rasterizer rasterizer_;
 };
 

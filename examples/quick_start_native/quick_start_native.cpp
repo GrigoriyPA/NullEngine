@@ -24,17 +24,18 @@ constexpr uint64_t kViewHeight = 500;
 generic::Scene InitScene(sf::Texture& output_texture) {
     auto scene =
         generic::Scene()
-            .AddObject(
-                drawable::tests::CreatePointsSet(300, util::Vec3(-0.5, -0.5), util::Vec3(1.0, 1.0), util::Vec3(1.0))
-            )
             .AddObject(drawable::tests::CreatePointsSet(
-                300, util::Vec3(0.0, 0.0, -0.5), util::Vec3(1.0, 1.0), util::Vec3(1.0, 0.0)
+                300, util::Vec3(-0.5, -0.5, 1.0), util::Vec3(1.0, 1.0), util::Vec3(1.0)
+            ))
+            .AddObject(drawable::tests::CreatePointsSet(
+                300, util::Vec3(0.0, 0.0, 0.5), util::Vec3(1.0, 1.0), util::Vec3(1.0, 0.0)
             ))
             .SetDefaultRenderer(
                 native::Renderer::Make(native::RendererSettings{.view_width = kViewWidth, .view_height = kViewHeight})
             );
 
-    scene.AddCamera(generic::DirectCamera::Make()).AddConsumer(generic::TextureRenderingConsumer::Make(output_texture));
+    scene.AddCamera(generic::DirectCamera::Make(2.0, 2.0, 2.0))
+        .AddConsumer(generic::TextureRenderingConsumer::Make(output_texture));
 
     return scene;
 }

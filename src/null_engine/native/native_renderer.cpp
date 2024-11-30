@@ -12,13 +12,19 @@ Renderer::Renderer(const RendererSettings& settings)
 }
 
 void Renderer::SetCamera(const generic::Camera& camera) {
+    ndc_transform_ = camera.GetNdcTransform();
     rasterizer_context_.Rewind();
 }
 
 void Renderer::RenderObject(const generic::MeshObject& object) {
     const auto& vertices = object.GetVertices();
     for (uint64_t index : object.GetIndices()) {
-        rasterizer_.DrawPoint(vertices[index]);
+        // Perform NDC transform
+        auto vertx = vertices[index];
+        vertx.SetPosition(ndc_transform_.Apply(vertx.GetPosition()));
+
+        // Resterize transformed point
+        rasterizer_.DrawPoint(vertx);
     }
 }
 
