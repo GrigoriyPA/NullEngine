@@ -1,10 +1,10 @@
 #pragma once
 
-#include "fonts.hpp"
 #include "interface_object.hpp"
 
 #include <null_engine/util/generic/templates.hpp>
 #include <null_engine/util/geometry/constants.hpp>
+#include <null_engine/util/interface/helpers/fonts.hpp>
 
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/Drawable.hpp>

@@ -3,6 +3,8 @@
 #include <null_engine/util/geometry/constants.hpp>
 
 #include <SFML/Graphics/Drawable.hpp>
+#include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Window/Event.hpp>
 
 #include <memory>
 
@@ -18,7 +20,11 @@ public:
 public:
     // Update object state by given time delta.
     // Called before each drowing
-    virtual void Update(FloatType delta_time) = 0;
+    virtual void Update(FloatType delta_time);
+
+    virtual void OnEvent(const sf::Event& event);
+
+    void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 };
 
 }  // namespace null_engine::util

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "interface_object.hpp"
+#include <null_engine/util/interface/objects/interface_object.hpp>
 
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/System/Clock.hpp>
@@ -22,6 +22,9 @@ public:
     // Update state of all interface objects.
     // Should be called before each draw
     void Update();
+
+    // Pass event to whole interface parts
+    void HandleEvent(const sf::Event& event);
 
 protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;

@@ -1,8 +1,9 @@
 #include <null_engine/util/geometry/vector_3d.hpp>
 
+#include <null_engine/util/geometry/helpers.hpp>
+
 #include <algorithm>
 #include <cmath>
-#include "null_engine/util/geometry/constants.hpp"
 
 namespace null_engine::util {
 

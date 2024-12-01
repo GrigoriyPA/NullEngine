@@ -8,7 +8,7 @@ include_directories(${PROJECT_SOURCE_DIR}/contrib/SFML/include)
 
 target_link_libraries(${TARGET_NAME}
     null-engine
-    null-engine-util-interface
+    null-engine-testlib
 )
 
 add_dependencies(${TARGET_NAME} null-engine-example-copy-assets)

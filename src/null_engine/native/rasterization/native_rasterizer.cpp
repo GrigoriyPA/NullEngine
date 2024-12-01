@@ -16,7 +16,7 @@ Rasterizer::Rasterizer(RasterizerContext& context)
 void Rasterizer::DrawPoint(generic::Vertex point) {
     const auto [x, y] = ProjectPoint(point);
 
-    if (x < 0 || context_.view_width <= x || y < 0 || context_.view_height < y) {
+    if (x < 0 || context_.view_width <= x || y < 0 || context_.view_height <= y) {
         return;
     }
 
@@ -40,7 +40,7 @@ bool Rasterizer::CheckPointDepth(int64_t x, int64_t y, const generic::Vertex& po
     if (z <= -1.0 || 1.0 <= z) {
         return false;
     }
-    return context_.depth_buffer[y * context_.view_width + x] < z;
+    return context_.depth_buffer[y * context_.view_width + x] > z;
 }
 
 void Rasterizer::UpdateViewPixel(int64_t x, int64_t y, const generic::Vertex& point) {

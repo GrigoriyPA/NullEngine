@@ -1,6 +1,6 @@
-#include <null_engine/util/interface/fps_counter.hpp>
+#include <null_engine/util/interface/objects/fps_counter.hpp>
 
-#include <null_engine/util/interface/constants.hpp>
+#include <null_engine/util/interface/helpers/constants.hpp>
 
 #include <SFML/Graphics/RenderTarget.hpp>
 

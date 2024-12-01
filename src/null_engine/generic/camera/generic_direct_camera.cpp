@@ -15,7 +15,7 @@ DirectCamera::DirectCamera(util::FloatType width, util::FloatType height, util::
 }
 
 util::Transform DirectCamera::GetNdcTransform() const {
-    return camera_transform_.ComposedAfter(ndc_transform_);
+    return GetCameraTransform().ComposeAfter(ndc_transform_);
 }
 
 }  // namespace null_engine::generic

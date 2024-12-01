@@ -145,7 +145,7 @@ Transform Transform::Rotation(Vec3 axis, FloatType angle) {
 
     const FloatType x = axis.GetX();
     const FloatType y = axis.GetY();
-    const FloatType z = axis.GetY();
+    const FloatType z = axis.GetZ();
     const FloatType c = cos(angle);
     const FloatType s = sin(angle);
 

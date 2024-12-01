@@ -20,6 +20,12 @@ void InterfaceHolder::Update() {
     }
 }
 
+void InterfaceHolder::HandleEvent(const sf::Event& event) {
+    for (const auto& object : objects_) {
+        object->OnEvent(event);
+    }
+}
+
 void InterfaceHolder::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     for (const auto& object : objects_) {
         target.draw(*object, states);
