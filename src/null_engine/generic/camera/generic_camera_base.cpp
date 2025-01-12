@@ -12,6 +12,30 @@ CameraBase::CameraBase()
     , horizon_(1.0, 0.0, 0.0) {
 }
 
+util::Vec3 CameraBase::GetPosition() const {
+    return position_;
+}
+
+util::Vec3 CameraBase::GetDirection() const {
+    return direction_.Normalized();
+}
+
+util::Vec3 CameraBase::GetHorizon() const {
+    return horizon_.Normalized();
+}
+
+util::Vec3 CameraBase::GetVertical() const {
+    return horizon_.VectorProd(direction_).Normalize();
+}
+
+util::Transform CameraBase::GetCameraTransform() const {
+    const auto vertical = horizon_.VectorProd(direction_);
+
+    return util::Transform::Basis(horizon_, vertical, direction_)
+        .Transpose()
+        .ComposeBefore(util::Transform::Translation(-position_));
+}
+
 CameraBase& CameraBase::SetPosition(util::Vec3 position) {
     position_ = position;
 
@@ -32,30 +56,6 @@ CameraBase& CameraBase::SetOrientation(util::Vec3 direction, util::Vec3 horizon)
     horizon_ = horizon;
 
     return *this;
-}
-
-util::Transform CameraBase::GetCameraTransform() const {
-    const auto vertical = horizon_.VectorProd(direction_);
-
-    return util::Transform::Basis(horizon_, vertical, direction_)
-        .Transpose()
-        .ComposeBefore(util::Transform::Translation(-position_));
-}
-
-util::Vec3 CameraBase::GetPosition() const {
-    return position_;
-}
-
-util::Vec3 CameraBase::GetDirection() const {
-    return direction_.Normalized();
-}
-
-util::Vec3 CameraBase::GetHorizon() const {
-    return horizon_.Normalized();
-}
-
-util::Vec3 CameraBase::GetVertical() const {
-    return horizon_.VectorProd(direction_).Normalize();
 }
 
 void CameraBase::Move(util::Vec3 translation) {

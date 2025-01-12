@@ -5,15 +5,18 @@
 namespace null_engine::generic {
 
 SimpleCameraControl::SimpleCameraControl(
-    MovableCamera::Ptr camera, util::WindowPtr window, const SimpleCameraControlSettings& settings
+    folly::Poly<IMovableCamera&> camera, sf::RenderWindow& window, util::TimerProviderRef timer,
+    util::EventsProviderRef events, const SimpleCameraControlSettings& settings
 )
     : settings_(settings)
     , camera_(camera)
     , window_(window)
-    , window_width_(static_cast<int32_t>(window_->getSize().x))
-    , window_height_(static_cast<int32_t>(window_->getSize().y))
+    , window_width_(static_cast<int32_t>(window_.getSize().x))
+    , window_height_(static_cast<int32_t>(window_.getSize().y))
     , mouse_position_(sf::Mouse::getPosition()) {
-    window->setMouseCursorVisible(false);
+    timer->Subscribe(*this);
+    events->Subscribe(*this);
+    window_.setMouseCursorVisible(false);
     CenteringMouse();
 }
 
@@ -75,7 +78,7 @@ void SimpleCameraControl::OnEvent(const sf::Event& event) {
 }
 
 void SimpleCameraControl::CenteringMouse() const {
-    sf::Mouse::setPosition(sf::Vector2i(window_width_ / 2, window_height_ / 2), *window_);
+    sf::Mouse::setPosition(sf::Vector2i(window_width_ / 2, window_height_ / 2), window_);
 }
 
 }  // namespace null_engine::generic

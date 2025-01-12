@@ -1,26 +1,12 @@
 #include "interface_holder.hpp"
 
 #include <SFML/Graphics/RenderTarget.hpp>
-#include <null_engine/util/geometry/constants.hpp>
 
 namespace null_engine::util {
 
-InterfaceHolder& InterfaceHolder::AddObject(InterfaceObject::Ptr object) {
+InterfaceHolder& InterfaceHolder::AddObject(std::unique_ptr<sf::Drawable> object) {
     objects_.emplace_back(std::move(object));
     return *this;
-}
-
-void InterfaceHolder::Update() {
-    FloatType delta_time = static_cast<FloatType>(timer_.restart().asSeconds());
-    for (const auto& object : objects_) {
-        object->Update(delta_time);
-    }
-}
-
-void InterfaceHolder::HandleEvent(const sf::Event& event) {
-    for (const auto& object : objects_) {
-        object->OnEvent(event);
-    }
 }
 
 void InterfaceHolder::draw(sf::RenderTarget& target, sf::RenderStates states) const {

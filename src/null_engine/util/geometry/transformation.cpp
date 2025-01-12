@@ -1,9 +1,9 @@
 #include "transformation.hpp"
 
+#include <fmt/core.h>
+
 #include <null_engine/util/generic/validation.hpp>
 #include <null_engine/util/geometry/constants.hpp>
-#include <sstream>
-#include <utility>
 
 namespace null_engine::util {
 
@@ -17,15 +17,16 @@ Transform::Transform() {
 
 Transform::Transform(std::initializer_list<std::initializer_list<FloatType>> init) {
     Ensure(
-        init.size() == kSize, std::stringstream() << "Unexpected initializer list size " << init.size()
-                                                  << " for transform it should be equal " << kSize
+        init.size() == kSize,
+        fmt::format("Unexpected initializer list size {} for transform it should be equal {}", init.size(), kSize)
     );
 
     for (uint32_t i = 0; const auto& init_row : init) {
         Ensure(
-            init_row.size() == kSize, std::stringstream()
-                                          << "Unexpected initializer list row " << i << " size " << init.size()
-                                          << " for transform it should be equal " << kSize
+            init_row.size() == kSize,
+            fmt::format(
+                "Unexpected initializer list row {} size {} for transform it should be equal {}", i, init.size(), kSize
+            )
         );
 
         for (uint32_t j = 0; FloatType init_element : init_row) {
@@ -37,8 +38,7 @@ Transform::Transform(std::initializer_list<std::initializer_list<FloatType>> ini
 
 FloatType Transform::GetElement(uint32_t i, uint32_t j) const {
     Ensure(
-        i < kSize && j < kSize,
-        std::stringstream() << "Invalid index (" << i << ", " << j << ") for transform it should be at most " << kSize
+        i < kSize && j < kSize, fmt::format("Invalid index ({}, {}) for transform it should be at most {}", i, j, kSize)
     );
 
     return matrix_[i][j];

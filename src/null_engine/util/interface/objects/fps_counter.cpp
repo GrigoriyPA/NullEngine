@@ -1,17 +1,20 @@
 #include "fps_counter.hpp"
 
+#include <fmt/core.h>
+
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <null_engine/util/interface/helpers/constants.hpp>
-#include <sstream>
 
 namespace null_engine::util {
 
-FPSCounter::FPSCounter(FloatType update_period, FontPtr font)
+FPSCounter::FPSCounter(FloatType update_period, const sf::Font& font, TimerProviderRef timer)
     : update_period_(update_period)
     , font_(font)
     , spent_time_(0.0)
     , number_flips_(0) {
-    text_.setFont(*font);
+    timer->Subscribe(*this);
+
+    text_.setFont(font);
     text_.setFillColor(kDefaultTextColor);
     text_.setCharacterSize(kDefaultFontSize);
 
@@ -49,11 +52,7 @@ void FPSCounter::draw(sf::RenderTarget& target, sf::RenderStates states) const {
 }
 
 void FPSCounter::SetFPS(FloatType fps) {
-    std::stringstream fps_string;
-    fps_string.precision(3);
-    fps_string << "FPS: " << fps;
-
-    text_.setString(fps_string.str());
+    text_.setString(fmt::format("FPS: {:.3f}", fps));
 }
 
 }  // namespace null_engine::util

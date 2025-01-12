@@ -1,32 +1,22 @@
 #pragma once
 
 #include <SFML/Graphics/Drawable.hpp>
-#include <SFML/System/Clock.hpp>
-#include <null_engine/util/interface/objects/interface_object.hpp>
+#include <memory>
 #include <vector>
 
 namespace null_engine::util {
 
-//
-// Holder for all interface objects, provides time measuring
-//
 class InterfaceHolder : public sf::Drawable {
 public:
     InterfaceHolder() = default;
 
-    InterfaceHolder& AddObject(InterfaceObject::Ptr object);
-
-public:
-    void Update();
-
-    void HandleEvent(const sf::Event& event);
+    InterfaceHolder& AddObject(std::unique_ptr<sf::Drawable> object);
 
 protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
 private:
-    std::vector<InterfaceObject::Ptr> objects_;
-    sf::Clock timer_;
+    std::vector<std::unique_ptr<sf::Drawable>> objects_;
 };
 
 }  // namespace null_engine::util

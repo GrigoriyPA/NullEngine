@@ -7,27 +7,26 @@
 #include <null_engine/util/generic/templates.hpp>
 #include <null_engine/util/geometry/constants.hpp>
 #include <null_engine/util/interface/helpers/fonts.hpp>
+#include <null_engine/util/interface/helpers/timer.hpp>
 
-#include "interface_object.hpp"
+#include "SFML/Graphics/Font.hpp"
 
 namespace null_engine::util {
 
-//
-// Show average FPS for given update period
-//
-class FPSCounter : public InterfaceObject, public SharedConstructable<FPSCounter> {
+class FPSCounter : public sf::Drawable, public UniqueConstructable<FPSCounter> {
 public:
     using Ptr = std::shared_ptr<FPSCounter>;
 
 public:
-    FPSCounter(FloatType update_period, FontPtr font);
+    FPSCounter(FloatType update_period, const sf::Font& font, TimerProviderRef timer);
 
     FPSCounter& SetPosition(sf::Vector2f position);
+
     FPSCounter& SetFontSize(uint32_t font_size);
+
     FPSCounter& SetTextColor(sf::Color color);
 
-public:
-    void Update(FloatType delta_time) override;
+    void Update(FloatType delta_time);
 
 protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
@@ -37,7 +36,7 @@ private:
 
 private:
     const FloatType update_period_;
-    const FontPtr font_;
+    const sf::Font& font_;
 
     sf::Text text_;
     FloatType spent_time_ = 0.0;

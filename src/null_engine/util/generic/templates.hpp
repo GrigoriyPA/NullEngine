@@ -5,11 +5,11 @@
 namespace null_engine::util {
 
 template <typename Derived>
-class SharedConstructable {
+class UniqueConstructable {
 public:
     template <typename... Args>
-    static std::shared_ptr<Derived> Make(Args&&... args) {
-        return std::make_shared<Derived>(std::forward<Args>(args)...);
+    static std::unique_ptr<Derived> Make(Args&&... args) {
+        return std::make_unique<Derived>(std::forward<Args>(args)...);
     }
 };
 

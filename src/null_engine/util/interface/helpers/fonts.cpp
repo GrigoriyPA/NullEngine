@@ -2,10 +2,9 @@
 
 namespace null_engine::util {
 
-FontPtr LoadFont(const std::string& file) {
-    auto font = std::make_shared<sf::Font>();
-
-    font->loadFromFile(file);
+sf::Font LoadFont(const std::string& file) {
+    sf::Font font;
+    font.loadFromFile(file);
 
     return font;
 }

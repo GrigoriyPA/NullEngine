@@ -6,9 +6,6 @@
 
 namespace null_engine::util {
 
-//
-// Simple 3D vector with basic operations support
-//
 class Vec3 {
 public:
     Vec3();
@@ -49,11 +46,15 @@ public:
     Vec3 operator/(Vec3 other) const;
 
     FloatType Length() const;
+
     [[nodiscard]] Vec3 Normalized() const;
+
     Vec3& Normalize();
 
     FloatType ScalarProd(Vec3 other) const;
+
     Vec3 VectorProd(Vec3 other) const;
+
     Vec3 Horizon() const;
 
     Vec3& Clamp(FloatType min_value, FloatType max_value);

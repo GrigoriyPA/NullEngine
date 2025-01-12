@@ -1,66 +1,101 @@
+#include <folly/Poly.h>
+
+#include <SFML/Graphics/Font.hpp>
+#include <SFML/Graphics/RenderWindow.hpp>
 #include <iostream>
 #include <null_engine/drawable_objects/common/vertices_object.hpp>
 #include <null_engine/generic/camera/generic_camera_control.hpp>
 #include <null_engine/generic/camera/generic_direct_camera.hpp>
+#include <null_engine/generic/generic_scene.hpp>
+#include <null_engine/generic/generic_scene_renderer.hpp>
 #include <null_engine/generic/renderer/generic_texture_consumer.hpp>
 #include <null_engine/native/native_renderer.hpp>
-#include <null_engine/testlib/testlib_base_application.hpp>
+#include <null_engine/tests/tests_helpers.hpp>
+#include <null_engine/util/interface/helpers/events.hpp>
+#include <null_engine/util/interface/helpers/timer.hpp>
+#include <null_engine/util/interface/interface_holder.hpp>
 #include <null_engine/util/interface/objects/fps_counter.hpp>
 
 namespace null_engine::example {
 
-class QuickStartNativeApplicaton : public testlib::BaseApplication {
+class QuickStartNativeApplicaton {
     static constexpr uint64_t kViewWidth = 1000;
     static constexpr uint64_t kViewHeight = 1000;
 
-protected:
-    util::WindowPtr CreateWindow() override {
-        return std::make_shared<sf::RenderWindow>(sf::VideoMode(kViewWidth, kViewHeight), "Native quick start example");
+public:
+    QuickStartNativeApplicaton()
+        : font_(util::LoadFont("../../assets/fonts/arial.ttf"))
+        , window_(sf::VideoMode(kViewWidth, kViewHeight), "Native quick start example")
+        , rendering_consumer_(kViewWidth, kViewHeight)
+        , scene_()
+        , scene_renderer_(
+              native::Renderer(native::RendererSettings{.view_width = kViewWidth, .view_height = kViewHeight}),
+              rendering_consumer_
+          )
+        , camera_(10.0, 10.0, 10.0)
+        , events_provider_(util::CreateEventsProvider())
+        , timer_provider_(util::CreateTimerProvider())
+        , camera_controller_(camera_, window_, timer_provider_, events_provider_)
+        , interface_() {
+        FillScene();
+        FillInterface();
     }
 
-    generic::Scene CreateScene() override {
-        // Add scene objects
+    void Run() {
+        while (window_.isOpen()) {
+            for (sf::Event event; window_.pollEvent(event);) {
+                if (event.type == sf::Event::Closed ||
+                    (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::Escape)) {
+                    window_.close();
+                    return;
+                }
 
-        auto scene = generic::Scene()
-                         .AddObject(drawable::tests::CreatePointsSet(
-                             200, util::Vec3(-0.5, -0.5, 5.0), util::Vec3(1.0, 1.0), util::Vec3(1.0)
-                         ))
-                         .AddObject(drawable::tests::CreatePointsSet(
-                             200, util::Vec3(0.0, 0.0, 4.5), util::Vec3(1.0, 1.0), util::Vec3(1.0, 0.0, 0.0)
-                         ))
-                         .SetDefaultRenderer(native::Renderer::Make(
-                             native::RendererSettings{.view_width = kViewWidth, .view_height = kViewHeight}
-                         ));
+                events_provider_.DispatchEvent(event);
+            }
 
-        // Add scene cameras
+            timer_provider_.RefreshClients();
+            window_.clear();
 
-        camera_consumer_ = generic::WindowRenderingConsumer::Make(kViewWidth, kViewHeight);
-        camera_ = generic::DirectCamera::Make(10.0, 10.0, 10.0);
+            scene_renderer_.Render(scene_, camera_);
+            window_.draw(rendering_consumer_);
+            window_.draw(interface_);
 
-        scene.AddCamera(camera_).AddConsumer(camera_consumer_);
-
-        return scene;
-    }
-
-    util::InterfaceHolder CreateInterface() override {
-        auto interface = util::InterfaceHolder()
-                             .AddObject(camera_consumer_)
-                             .AddObject(generic::SimpleCameraControl::Make(camera_, GetWindow()))
-                             .AddObject(util::FPSCounter::Make(0.5, util::LoadFont("../../assets/fonts/arial.ttf")));
-
-        return interface;
+            window_.display();
+        }
     }
 
 private:
-    generic::MovableCamera::Ptr camera_;
-    generic::WindowRenderingConsumer::Ptr camera_consumer_;
+    void FillScene() {
+        scene_
+            .AddObject(tests::CreatePointsSet(200, util::Vec3(-0.5, -0.5, 5.0), util::Vec3(1.0, 1.0), util::Vec3(1.0)))
+            .AddObject(
+                tests::CreatePointsSet(200, util::Vec3(0.0, 0.0, 4.5), util::Vec3(1.0, 1.0), util::Vec3(1.0, 0.0, 0.0))
+            );
+    }
+
+    void FillInterface() {
+        interface_.AddObject(util::FPSCounter::Make(0.5, font_, timer_provider_));
+    }
+
+private:
+    sf::Font font_;
+    sf::RenderWindow window_;
+    generic::WindowRenderingConsumer rendering_consumer_;
+    generic::Scene scene_;
+    generic::SceneRenderer scene_renderer_;
+    generic::DirectCamera camera_;
+    folly::Poly<util::IEventsProvider> events_provider_;
+    folly::Poly<util::ITimerProvider> timer_provider_;
+    generic::SimpleCameraControl camera_controller_;
+    util::InterfaceHolder interface_;
 };
 
 }  // namespace null_engine::example
 
 int main() {
     try {
-        null_engine::example::QuickStartNativeApplicaton().Run();
+        null_engine::example::QuickStartNativeApplicaton application;
+        application.Run();
     } catch (const std::exception& error) {
         std::cerr << "Got unexpected exception:\n" << error.what();
     } catch (...) {

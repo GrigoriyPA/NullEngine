@@ -6,9 +6,6 @@
 
 namespace null_engine::native {
 
-//
-// Rasterization context which contains draw and depth buffers
-//
 struct RasterizerContext {
 public:
     RasterizerContext(uint64_t view_width, uint64_t view_height);

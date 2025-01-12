@@ -5,13 +5,11 @@ add_library(${TARGET_NAME}
 )
 
 target_link_libraries(${TARGET_NAME}
-    sfml-graphics
-    sfml-system
-
     null-engine-util-geometry
-
     null-engine-util-interface-helpers
     null-engine-util-interface-objects
+    sfml-graphics
+    sfml-system
 )
 
 add_subdirectory(helpers)

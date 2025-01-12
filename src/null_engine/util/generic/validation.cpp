@@ -3,7 +3,6 @@
 #include <fmt/core.h>
 
 #include <source_location>
-#include <sstream>
 #include <stdexcept>
 #include <string>
 
@@ -34,10 +33,6 @@ void Ensure(bool condition, const std::string& message, std::source_location loc
     if (!condition) {
         throw RuntimeError(message, location);
     }
-}
-
-void Ensure(bool condition, const std::stringstream& message, std::source_location location) {
-    Ensure(condition, message.str(), location);
 }
 
 }  // namespace null_engine::util

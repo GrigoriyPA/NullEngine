@@ -1,22 +1,22 @@
 #include "native_renderer.hpp"
 
 #include <cstdint>
+#include <null_engine/native/rasterization/native_rasterizer_context.hpp>
 
 namespace null_engine::native {
 
 Renderer::Renderer(const RendererSettings& settings)
-    : rasterizer_context_(settings.view_width, settings.view_height)
-    , rasterizer_(rasterizer_context_) {
+    : rasterizer_(RasterizerContext(settings.view_width, settings.view_height)) {
 }
 
-void Renderer::SetCamera(const generic::Camera& camera) {
-    ndc_transform_ = camera.GetNdcTransform();
-    rasterizer_context_.Rewind();
+void Renderer::SetCamera(folly::Poly<const generic::ICamera&> camera) {
+    ndc_transform_ = camera->GetNdcTransform();
+    rasterizer_.GetContext().Rewind();
 }
 
-void Renderer::RenderObject(const generic::MeshObject& object) {
-    const auto& vertices = object.GetVertices();
-    for (uint64_t index : object.GetIndices()) {
+void Renderer::RenderObject(folly::Poly<const generic::IMeshObject&> object) {
+    const auto& vertices = object->GetVertices();
+    for (uint64_t index : object->GetIndices()) {
         auto vertx = vertices[index];
         vertx.SetPosition(ndc_transform_.Apply(vertx.GetPosition()));
 
@@ -24,8 +24,8 @@ void Renderer::RenderObject(const generic::MeshObject& object) {
     }
 }
 
-void Renderer::SaveRenderingResults(generic::RenderingConsumer& consumer) const {
-    consumer.OnRenderedTexture(rasterizer_context_.colors_buffer);
+void Renderer::SaveRenderingResults(folly::Poly<generic::IRenderingConsumer&> consumer) const {
+    consumer->OnRenderedTexture(rasterizer_.GetContext().colors_buffer);
 }
 
 }  // namespace null_engine::native

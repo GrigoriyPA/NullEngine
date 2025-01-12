@@ -8,13 +8,13 @@
 
 namespace null_engine::native {
 
-//
-// Rasterizer can draw points / lines / triangles in current buffers,
-// All coordinates expected in box [-1, 1] for each dimension
-//
 class Rasterizer {
 public:
-    explicit Rasterizer(RasterizerContext& context);
+    explicit Rasterizer(RasterizerContext context);
+
+    const RasterizerContext& GetContext() const;
+
+    RasterizerContext& GetContext();
 
     void DrawPoint(generic::Vertex point);
 
@@ -26,18 +26,9 @@ private:
     void UpdateViewPixel(int64_t x, int64_t y, const generic::Vertex& point);
 
 private:
-    RasterizerContext& context_;
+    RasterizerContext context_;
     const util::FloatType pixel_height_;
     const util::FloatType pixel_width_;
 };
-
-namespace tests {
-
-void DrawPoints(
-    Rasterizer& rasterizer, uint64_t number_points, util::Vec3 offset = util::Vec3(-0.5, -0.5),
-    util::Vec3 size = util::Vec3(1.0, 1.0), util::Vec3 color = util::Vec3(1.0)
-);
-
-}  // namespace tests
 
 }  // namespace null_engine::native

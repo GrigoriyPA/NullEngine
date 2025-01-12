@@ -1,21 +1,14 @@
 #pragma once
 
-#include <null_engine/util/generic/templates.hpp>
+#include <SFML/Graphics/RenderWindow.hpp>
 #include <null_engine/util/geometry/constants.hpp>
-#include <null_engine/util/interface/helpers/window.hpp>
-#include <null_engine/util/interface/objects/interface_object.hpp>
+#include <null_engine/util/interface/helpers/events.hpp>
+#include <null_engine/util/interface/helpers/timer.hpp>
 
-#include "generic_camera.hpp"
+#include "generic_camera_interface.hpp"
 
 namespace null_engine::generic {
 
-//
-// Settings for camera control:
-// -> sensitivity -- mouse sensitivity (pixel speed to angle speed for pitch, yaw)
-// -> move_speed -- speed relative to scene coordinates
-// -> rotation_speed -- camera roll speed in radians per second
-// -> speed_ratio -- camera acceleration ratio
-//
 struct SimpleCameraControlSettings {
     util::FloatType sensitivity = 0.001;
     util::FloatType move_speed = 3.0;
@@ -23,32 +16,25 @@ struct SimpleCameraControlSettings {
     util::FloatType speed_ratio = 2.0;
 };
 
-//
-// Object which perform camera control by SFML events.
-// -> 'W', 'A', 'S', 'D', 'LeftAlt', 'Space' -- to move camera
-// -> 'LeftShift' -- to accelerate camera
-//
-class SimpleCameraControl : public util::InterfaceObject, public util::SharedConstructable<SimpleCameraControl> {
+class SimpleCameraControl {
 public:
-    using Ptr = std::shared_ptr<SimpleCameraControl>;
-
-public:
-    explicit SimpleCameraControl(
-        MovableCamera::Ptr camera, util::WindowPtr window, const SimpleCameraControlSettings& settings = {}
+    SimpleCameraControl(
+        folly::Poly<IMovableCamera&> camera, sf::RenderWindow& window, util::TimerProviderRef timer,
+        util::EventsProviderRef events, const SimpleCameraControlSettings& settings = {}
     );
 
-public:
-    void Update(util::FloatType delta_time) override;
-    void OnEvent(const sf::Event& event) override;
+    void Update(util::FloatType delta_time);
+
+    void OnEvent(const sf::Event& event);
 
 private:
     void CenteringMouse() const;
 
 private:
     const SimpleCameraControlSettings settings_;
-    const MovableCamera::Ptr camera_;
+    const folly::Poly<IMovableCamera&> camera_;
 
-    const util::WindowPtr window_;
+    sf::RenderWindow& window_;
     const int32_t window_width_;
     const int32_t window_height_;
 

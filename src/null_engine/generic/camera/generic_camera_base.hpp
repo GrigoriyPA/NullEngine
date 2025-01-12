@@ -3,39 +3,32 @@
 #include <null_engine/util/geometry/transformation.hpp>
 #include <null_engine/util/geometry/vector_3d.hpp>
 
-#include "generic_camera.hpp"
-
 namespace null_engine::generic {
 
-//
-// Base camera class which holds position and orientation.
-// In initial state:
-// -> position = (0, 0, 0)
-// -> direction = (0, 0, 1)
-// -> horizon = (1, 0, 0)
-//
-class CameraBase : public MovableCamera {
+class CameraBase {
 public:
     CameraBase();
 
-    CameraBase& SetPosition(util::Vec3 position);
-    CameraBase& SetDirection(util::Vec3 direction);
+    util::Vec3 GetPosition() const;
 
-    // Direction and horizon should be orthogonal
-    CameraBase& SetOrientation(util::Vec3 direction, util::Vec3 horizon);
+    util::Vec3 GetDirection() const;
+
+    util::Vec3 GetHorizon() const;
+
+    util::Vec3 GetVertical() const;
 
     // Transform from scene space to camera space
     util::Transform GetCameraTransform() const;
 
-public:
-    util::Vec3 GetPosition() const override;
+    CameraBase& SetPosition(util::Vec3 position);
 
-    util::Vec3 GetDirection() const override;
-    util::Vec3 GetHorizon() const override;
-    util::Vec3 GetVertical() const override;
+    CameraBase& SetDirection(util::Vec3 direction);
 
-    void Move(util::Vec3 translation) override;
-    void Rotate(util::Vec3 axis, util::FloatType angle) override;
+    CameraBase& SetOrientation(util::Vec3 direction, util::Vec3 horizon);
+
+    void Move(util::Vec3 translation);
+
+    void Rotate(util::Vec3 axis, util::FloatType angle);
 
 private:
     util::Vec3 position_;

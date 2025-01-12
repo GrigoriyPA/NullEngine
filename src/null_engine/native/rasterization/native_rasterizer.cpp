@@ -5,10 +5,18 @@
 
 namespace null_engine::native {
 
-Rasterizer::Rasterizer(RasterizerContext& context)
+Rasterizer::Rasterizer(RasterizerContext context)
     : context_(context)
     , pixel_height_(2.0 / static_cast<util::FloatType>(context_.view_height))
     , pixel_width_(2.0 / static_cast<util::FloatType>(context_.view_width)) {
+}
+
+const RasterizerContext& Rasterizer::GetContext() const {
+    return context_;
+}
+
+RasterizerContext& Rasterizer::GetContext() {
+    return context_;
 }
 
 void Rasterizer::DrawPoint(generic::Vertex point) {
@@ -51,23 +59,5 @@ void Rasterizer::UpdateViewPixel(int64_t x, int64_t y, const generic::Vertex& po
     context_.colors_buffer[4 * point_offset + 2] = static_cast<uint8_t>(color.GetZ());
     context_.colors_buffer[4 * point_offset + 3] = 255;
 }
-
-namespace tests {
-
-void DrawPoints(
-    native::Rasterizer& rasterizer, uint64_t number_points, util::Vec3 offset, util::Vec3 size, util::Vec3 color
-) {
-    util::Vec3 step = size / static_cast<util::FloatType>(number_points);
-    for (uint64_t i = 0; i < number_points; ++i) {
-        for (uint64_t j = 0; j < number_points; ++j) {
-            const util::Vec3 point =
-                offset + step * util::Vec3(static_cast<util::FloatType>(i), static_cast<util::FloatType>(j));
-
-            rasterizer.DrawPoint(generic::Vertex(point, color));
-        }
-    }
-}
-
-}  // namespace tests
 
 }  // namespace null_engine::native
