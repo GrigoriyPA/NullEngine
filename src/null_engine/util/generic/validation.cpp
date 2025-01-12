@@ -1,5 +1,7 @@
 #include "validation.hpp"
 
+#include <fmt/core.h>
+
 #include <source_location>
 #include <sstream>
 #include <stdexcept>
@@ -12,10 +14,10 @@ namespace null_engine::util {
 RuntimeError::RuntimeError(const std::string& message, std::source_location location)
     : runtime_error(message)
     , location_(location)
-    , error_((std::stringstream() << "NullEngine runtime error: " << message << "\nOccurred in file "
-                                  << location_.file_name() << ", in function" << location_.file_name() << " on line "
-                                  << location_.line())
-                 .str()) {
+    , error_(fmt::format(
+          "NullEngine runtime error: {}\nOccurred in file {}, in function {} on line {}", message,
+          location_.file_name(), location_.file_name(), location_.line()
+      )) {
 }
 
 std::string RuntimeError::GetMessage() const {
