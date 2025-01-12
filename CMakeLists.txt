@@ -2,10 +2,11 @@ cmake_minimum_required(VERSION 3.24)
 
 set(PROJECT_NAME null-engine)
 set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_BUILD_TYPE Debug)
 
 project(${PROJECT_NAME})
-
+    
 add_library(${PROJECT_NAME} STATIC
     src/null_engine/null_engine.hpp
 )
