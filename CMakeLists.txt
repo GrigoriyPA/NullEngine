@@ -7,12 +7,12 @@ set(CMAKE_BUILD_TYPE Debug)
 project(${PROJECT_NAME})
 
 add_library(${PROJECT_NAME} STATIC
-    include/null_engine/null_engine.hpp
+    src/null_engine/null_engine.hpp
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 
-include_directories(${PROJECT_SOURCE_DIR}/include)
+include_directories(${PROJECT_SOURCE_DIR}/src)
 
 target_link_libraries(${PROJECT_NAME}
     null-engine-drawable-objects
