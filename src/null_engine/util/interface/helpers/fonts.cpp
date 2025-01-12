@@ -1,8 +1,6 @@
-#include <null_engine/util/interface/helpers/fonts.hpp>
+#include "fonts.hpp"
 
 namespace null_engine::util {
-
-//// Fonts functions
 
 FontPtr LoadFont(const std::string& file) {
     auto font = std::make_shared<sf::Font>();

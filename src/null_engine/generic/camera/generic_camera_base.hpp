@@ -1,9 +1,9 @@
 #pragma once
 
-#include "generic_camera.hpp"
-
 #include <null_engine/util/geometry/transformation.hpp>
 #include <null_engine/util/geometry/vector_3d.hpp>
+
+#include "generic_camera.hpp"
 
 namespace null_engine::generic {
 

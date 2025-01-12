@@ -1,10 +1,8 @@
-#include <null_engine/native/native_renderer.hpp>
+#include "native_renderer.hpp"
 
 #include <cstdint>
 
 namespace null_engine::native {
-
-//// Renderer
 
 Renderer::Renderer(const RendererSettings& settings)
     : rasterizer_context_(settings.view_width, settings.view_height)

@@ -1,8 +1,6 @@
-#include <null_engine/util/interface/objects/interface_object.hpp>
+#include "interface_object.hpp"
 
 namespace null_engine::util {
-
-//// InterfaceObject
 
 void InterfaceObject::Update(FloatType delta_time) {
 }

@@ -1,11 +1,9 @@
-#include <null_engine/generic/camera/generic_direct_camera.hpp>
+#include "generic_direct_camera.hpp"
 
 #include <null_engine/util/geometry/transformation.hpp>
 #include <null_engine/util/geometry/vector_3d.hpp>
 
 namespace null_engine::generic {
-
-//// DirectCamera
 
 DirectCamera::DirectCamera(util::FloatType width, util::FloatType height, util::FloatType depth)
     : width_(width)

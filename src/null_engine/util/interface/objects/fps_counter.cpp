@@ -1,14 +1,10 @@
-#include <null_engine/util/interface/objects/fps_counter.hpp>
-
-#include <null_engine/util/interface/helpers/constants.hpp>
+#include "fps_counter.hpp"
 
 #include <SFML/Graphics/RenderTarget.hpp>
-
+#include <null_engine/util/interface/helpers/constants.hpp>
 #include <sstream>
 
 namespace null_engine::util {
-
-//// FPSCounter
 
 FPSCounter::FPSCounter(FloatType update_period, FontPtr font)
     : update_period_(update_period)

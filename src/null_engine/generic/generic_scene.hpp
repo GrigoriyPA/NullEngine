@@ -4,7 +4,6 @@
 #include <null_engine/generic/mesh/generic_mesh.hpp>
 #include <null_engine/generic/renderer/generic_renderer.hpp>
 #include <null_engine/generic/renderer/generic_rendering_consumer.hpp>
-
 #include <vector>
 
 namespace null_engine::generic {

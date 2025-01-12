@@ -1,13 +1,10 @@
-#include <null_engine/util/geometry/vector_3d.hpp>
-
-#include <null_engine/util/geometry/helpers.hpp>
+#include "vector_3d.hpp"
 
 #include <algorithm>
 #include <cmath>
+#include <null_engine/util/geometry/helpers.hpp>
 
 namespace null_engine::util {
-
-//// Vec3
 
 Vec3::Vec3()
     : x_(0.0)
@@ -208,8 +205,6 @@ Vec3& Vec3::Clamp(FloatType min_value, FloatType max_value) {
     z_ = std::min(max_value, std::max(min_value, z_));
     return *this;
 }
-
-//// Vec3 external operators
 
 Vec3 operator+(FloatType offset, const Vec3& vector) {
     return vector + offset;

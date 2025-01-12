@@ -1,10 +1,8 @@
-#include <null_engine/generic/camera/generic_camera_control.hpp>
+#include "generic_camera_control.hpp"
 
 #include <null_engine/util/geometry/constants.hpp>
 
 namespace null_engine::generic {
-
-//// SimpleCameraControl
 
 SimpleCameraControl::SimpleCameraControl(
     MovableCamera::Ptr camera, util::WindowPtr window, const SimpleCameraControlSettings& settings

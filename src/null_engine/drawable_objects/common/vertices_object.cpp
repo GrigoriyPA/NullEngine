@@ -1,15 +1,11 @@
-#include <null_engine/drawable_objects/common/vertices_object.hpp>
+#include "vertices_object.hpp"
 
 #include <null_engine/generic/mesh/generic_vertex.hpp>
-
 #include <null_engine/util/generic/validation.hpp>
 #include <null_engine/util/geometry/vector_3d.hpp>
-
 #include <sstream>
 
 namespace null_engine::drawable {
-
-//// VerticesObject
 
 VerticesObject::VerticesObject(uint64_t number_vertices)
     : vertices_(number_vertices, generic::Vertex(util::Vec3(0.0), util::Vec3(1.0)))
@@ -83,8 +79,6 @@ const std::vector<uint64_t>& VerticesObject::GetIndices() const {
 }
 
 namespace tests {
-
-//// Test functions
 
 VerticesObject::Ptr CreatePointsSet(uint64_t number_points, util::Vec3 offset, util::Vec3 size, util::Vec3 color) {
     auto object = VerticesObject::Make(number_points * number_points);

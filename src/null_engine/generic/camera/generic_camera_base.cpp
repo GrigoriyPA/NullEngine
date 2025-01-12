@@ -1,12 +1,10 @@
-#include <null_engine/generic/camera/generic_camera_base.hpp>
+#include "generic_camera_base.hpp"
 
 #include <null_engine/util/generic/validation.hpp>
 #include <null_engine/util/geometry/helpers.hpp>
 #include <null_engine/util/geometry/transformation.hpp>
 
 namespace null_engine::generic {
-
-//// CameraBase
 
 CameraBase::CameraBase()
     : position_()

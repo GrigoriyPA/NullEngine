@@ -1,10 +1,8 @@
-#include <null_engine/generic/generic_scene.hpp>
+#include "generic_scene.hpp"
 
 #include <null_engine/util/generic/validation.hpp>
 
 namespace null_engine::generic {
-
-//// CameraView
 
 CameraView::CameraView(Camera::Ptr camera, Renderer::Ptr renderer)
     : camera_(camera)
@@ -27,8 +25,6 @@ CameraView& CameraView::AddConsumer(RenderingConsumer::Ptr rendering_consumer) {
     rendering_consumers_.emplace_back(std::move(rendering_consumer));
     return *this;
 }
-
-//// Scene
 
 Scene& Scene::SetDefaultRenderer(Renderer::Ptr default_renderer) {
     default_renderer_ = std::move(default_renderer);

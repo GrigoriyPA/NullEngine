@@ -1,12 +1,9 @@
-#include <null_engine/util/interface/interface_holder.hpp>
-
-#include <null_engine/util/geometry/constants.hpp>
+#include "interface_holder.hpp"
 
 #include <SFML/Graphics/RenderTarget.hpp>
+#include <null_engine/util/geometry/constants.hpp>
 
 namespace null_engine::util {
-
-//// InterfaceHolder
 
 InterfaceHolder& InterfaceHolder::AddObject(InterfaceObject::Ptr object) {
     objects_.emplace_back(std::move(object));

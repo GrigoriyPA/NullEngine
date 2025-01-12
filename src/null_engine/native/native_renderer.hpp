@@ -1,10 +1,8 @@
 #pragma once
 
 #include <null_engine/generic/renderer/generic_renderer.hpp>
-
 #include <null_engine/native/rasterization/native_rasterizer.hpp>
 #include <null_engine/native/rasterization/native_rasterizer_context.hpp>
-
 #include <null_engine/util/generic/templates.hpp>
 #include <null_engine/util/geometry/transformation.hpp>
 

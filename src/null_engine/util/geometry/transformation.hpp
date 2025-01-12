@@ -1,10 +1,10 @@
 #pragma once
 
-#include "constants.hpp"
-#include "vector_3d.hpp"
-
 #include <cstdint>
 #include <initializer_list>
+
+#include "constants.hpp"
+#include "vector_3d.hpp"
 
 namespace null_engine::util {
 

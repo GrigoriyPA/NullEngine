@@ -6,7 +6,6 @@ AllowShortFunctionsOnASingleLine: false
 AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
 DerivePointerAlignment: true
-SortIncludes: false
 PackConstructorInitializers: Never
 BreakConstructorInitializers: BeforeComma
 EmptyLineBeforeAccessModifier: LogicalBlock

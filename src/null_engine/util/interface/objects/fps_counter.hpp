@@ -1,15 +1,14 @@
 #pragma once
 
-#include "interface_object.hpp"
-
-#include <null_engine/util/generic/templates.hpp>
-#include <null_engine/util/geometry/constants.hpp>
-#include <null_engine/util/interface/helpers/fonts.hpp>
-
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/Text.hpp>
 #include <SFML/System/Vector2.hpp>
+#include <null_engine/util/generic/templates.hpp>
+#include <null_engine/util/geometry/constants.hpp>
+#include <null_engine/util/interface/helpers/fonts.hpp>
+
+#include "interface_object.hpp"
 
 namespace null_engine::util {
 

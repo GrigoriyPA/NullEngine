@@ -1,10 +1,10 @@
 #pragma once
 
-#include "generic_vertex.hpp"
-
 #include <cstdint>
 #include <memory>
 #include <vector>
+
+#include "generic_vertex.hpp"
 
 namespace null_engine::generic {
 

@@ -1,10 +1,10 @@
 #pragma once
 
-#include "generic_camera_base.hpp"
-
 #include <null_engine/util/generic/templates.hpp>
 #include <null_engine/util/geometry/constants.hpp>
 #include <null_engine/util/geometry/transformation.hpp>
+
+#include "generic_camera_base.hpp"
 
 namespace null_engine::generic {
 

@@ -1,8 +1,6 @@
-#include <null_engine/generic/mesh/generic_vertex.hpp>
+#include "generic_vertex.hpp"
 
 namespace null_engine::generic {
-
-//// Vertex
 
 Vertex::Vertex(util::Vec3 position, util::Vec3 color)
     : position_(position)

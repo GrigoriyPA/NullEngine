@@ -1,8 +1,6 @@
-#include <null_engine/testlib/testlib_base_application.hpp>
+#include "testlib_base_application.hpp"
 
 namespace null_engine::testlib {
-
-//// BaseApplication
 
 util::WindowPtr BaseApplication::GetWindow() const {
     return window_;

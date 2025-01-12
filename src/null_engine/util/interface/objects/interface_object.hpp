@@ -1,12 +1,10 @@
 #pragma once
 
-#include <null_engine/util/geometry/constants.hpp>
-
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Window/Event.hpp>
-
 #include <memory>
+#include <null_engine/util/geometry/constants.hpp>
 
 namespace null_engine::util {
 

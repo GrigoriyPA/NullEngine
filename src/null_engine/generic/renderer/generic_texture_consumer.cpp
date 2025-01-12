@@ -1,10 +1,8 @@
-#include <null_engine/generic/renderer/generic_texture_consumer.hpp>
+#include "generic_texture_consumer.hpp"
 
 #include <null_engine/util/generic/validation.hpp>
 
 namespace null_engine::generic {
-
-//// TextureRenderingConsumerBase
 
 TextureRenderingConsumerBase::TextureRenderingConsumerBase(sf::Texture& texture)
     : texture_(texture) {
@@ -13,8 +11,6 @@ TextureRenderingConsumerBase::TextureRenderingConsumerBase(sf::Texture& texture)
 void TextureRenderingConsumerBase::OnRenderedTexture(const std::vector<uint8_t>& texture) {
     texture_.update(texture.data());
 }
-
-//// WindowRenderingConsumer
 
 WindowRenderingConsumer::WindowRenderingConsumer(uint64_t width, uint64_t height)
     : Base(texture_) {

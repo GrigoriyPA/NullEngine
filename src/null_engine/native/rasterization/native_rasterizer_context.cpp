@@ -1,8 +1,6 @@
-#include <null_engine/native/rasterization/native_rasterizer_context.hpp>
+#include "native_rasterizer_context.hpp"
 
 namespace null_engine::native {
-
-//// RasterizerContext
 
 RasterizerContext::RasterizerContext(uint64_t view_width, uint64_t view_height)
     : view_width(view_width)

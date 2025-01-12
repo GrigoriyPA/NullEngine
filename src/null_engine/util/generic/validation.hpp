@@ -26,10 +26,12 @@ private:
 };
 
 // Throws RuntimeError if condition is not true
-void Ensure(bool condition, const std::string& message,
-            std::source_location location = std::source_location::current());
+void Ensure(
+    bool condition, const std::string& message, std::source_location location = std::source_location::current()
+);
 
-void Ensure(bool condition, const std::stringstream& message,
-            std::source_location location = std::source_location::current());
+void Ensure(
+    bool condition, const std::stringstream& message, std::source_location location = std::source_location::current()
+);
 
 }  // namespace null_engine::util

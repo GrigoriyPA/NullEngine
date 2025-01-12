@@ -1,12 +1,11 @@
 #pragma once
 
-#include "generic_rendering_consumer.hpp"
-
+#include <SFML/Graphics/Sprite.hpp>
+#include <SFML/Graphics/Texture.hpp>
 #include <null_engine/util/generic/templates.hpp>
 #include <null_engine/util/interface/objects/interface_object.hpp>
 
-#include <SFML/Graphics/Texture.hpp>
-#include <SFML/Graphics/Sprite.hpp>
+#include "generic_rendering_consumer.hpp"
 
 namespace null_engine::generic {
 

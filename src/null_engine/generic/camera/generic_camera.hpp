@@ -1,9 +1,8 @@
 #pragma once
 
-#include <null_engine/util/geometry/vector_3d.hpp>
-#include <null_engine/util/geometry/transformation.hpp>
-
 #include <memory>
+#include <null_engine/util/geometry/transformation.hpp>
+#include <null_engine/util/geometry/vector_3d.hpp>
 
 namespace null_engine::generic {
 

@@ -1,11 +1,10 @@
 #pragma once
 
-#include "native_rasterizer_context.hpp"
-
 #include <null_engine/generic/mesh/generic_vertex.hpp>
-
 #include <null_engine/util/geometry/constants.hpp>
 #include <null_engine/util/geometry/vector_3d.hpp>
+
+#include "native_rasterizer_context.hpp"
 
 namespace null_engine::native {
 

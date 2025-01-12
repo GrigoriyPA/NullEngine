@@ -9,8 +9,6 @@
 
 namespace null_engine::util {
 
-//// NERuntimeError
-
 RuntimeError::RuntimeError(const std::string& message, std::source_location location)
     : runtime_error(message)
     , location_(location)

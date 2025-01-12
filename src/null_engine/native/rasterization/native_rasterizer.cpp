@@ -1,11 +1,9 @@
-#include <null_engine/native/rasterization/native_rasterizer.hpp>
+#include "native_rasterizer.hpp"
 
 #include <cstdint>
 #include <utility>
 
 namespace null_engine::native {
-
-//// Rasterizer
 
 Rasterizer::Rasterizer(RasterizerContext& context)
     : context_(context)
@@ -55,8 +53,6 @@ void Rasterizer::UpdateViewPixel(int64_t x, int64_t y, const generic::Vertex& po
 }
 
 namespace tests {
-
-//// Test functions
 
 void DrawPoints(
     native::Rasterizer& rasterizer, uint64_t number_points, util::Vec3 offset, util::Vec3 size, util::Vec3 color

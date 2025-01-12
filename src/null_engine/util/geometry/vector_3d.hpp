@@ -1,8 +1,8 @@
 #pragma once
 
-#include "constants.hpp"
-
 #include <ostream>
+
+#include "constants.hpp"
 
 namespace null_engine::util {
 

@@ -1,11 +1,10 @@
 #pragma once
 
-#include "generic_rendering_consumer.hpp"
-
+#include <memory>
 #include <null_engine/generic/camera/generic_camera.hpp>
 #include <null_engine/generic/mesh/generic_mesh.hpp>
 
-#include <memory>
+#include "generic_rendering_consumer.hpp"
 
 namespace null_engine::generic {
 

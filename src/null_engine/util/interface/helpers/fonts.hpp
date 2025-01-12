@@ -1,7 +1,6 @@
 #pragma once
 
 #include <SFML/Graphics/Font.hpp>
-
 #include <memory>
 #include <string>
 

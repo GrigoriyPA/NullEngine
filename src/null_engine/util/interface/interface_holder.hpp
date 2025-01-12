@@ -1,10 +1,8 @@
 #pragma once
 
-#include <null_engine/util/interface/objects/interface_object.hpp>
-
 #include <SFML/Graphics/Drawable.hpp>
 #include <SFML/System/Clock.hpp>
-
+#include <null_engine/util/interface/objects/interface_object.hpp>
 #include <vector>
 
 namespace null_engine::util {

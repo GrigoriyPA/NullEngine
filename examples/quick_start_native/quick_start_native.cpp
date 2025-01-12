@@ -1,16 +1,11 @@
+#include <iostream>
 #include <null_engine/drawable_objects/common/vertices_object.hpp>
-
 #include <null_engine/generic/camera/generic_camera_control.hpp>
 #include <null_engine/generic/camera/generic_direct_camera.hpp>
 #include <null_engine/generic/renderer/generic_texture_consumer.hpp>
-
 #include <null_engine/native/native_renderer.hpp>
-
 #include <null_engine/testlib/testlib_base_application.hpp>
-
 #include <null_engine/util/interface/objects/fps_counter.hpp>
-
-#include <iostream>
 
 namespace null_engine::example {
 

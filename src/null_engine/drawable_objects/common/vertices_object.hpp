@@ -1,12 +1,10 @@
 #pragma once
 
+#include <cstdint>
 #include <null_engine/generic/mesh/generic_mesh.hpp>
 #include <null_engine/generic/mesh/generic_vertex.hpp>
-
 #include <null_engine/util/generic/templates.hpp>
 #include <null_engine/util/geometry/vector_3d.hpp>
-
-#include <cstdint>
 #include <vector>
 
 namespace null_engine::drawable {

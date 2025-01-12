@@ -1,8 +1,7 @@
 #pragma once
 
-#include <null_engine/util/geometry/constants.hpp>
-
 #include <cstdint>
+#include <null_engine/util/geometry/constants.hpp>
 #include <vector>
 
 namespace null_engine::native {

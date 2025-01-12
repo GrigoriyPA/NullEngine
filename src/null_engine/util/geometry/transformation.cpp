@@ -1,14 +1,11 @@
-#include <null_engine/util/geometry/transformation.hpp>
+#include "transformation.hpp"
 
 #include <null_engine/util/generic/validation.hpp>
 #include <null_engine/util/geometry/constants.hpp>
-
 #include <sstream>
 #include <utility>
 
 namespace null_engine::util {
-
-//// Transform
 
 Transform::Transform() {
     Fill(0.0);
@@ -170,8 +167,6 @@ Transform Transform::BoxProjection(FloatType width, FloatType height, FloatType 
     return Transform::Scale(2.0 / width, 2.0 / height, 2.0 / depth)
         .ComposeAfter(Transform::Translation(Vec3(0.0, 0.0, -1.0)));
 }
-
-//// Transform external operators
 
 std::ostream& operator<<(std::ostream& out, const Transform& transform) {
     for (uint32_t i = 0; i < Transform::kSize; ++i) {
