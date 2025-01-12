@@ -30,8 +30,6 @@ char const* RuntimeError::what() const {
     return error_.c_str();
 }
 
-/// Validation functions
-
 void Ensure(bool condition, const std::string& message, std::source_location location) {
     if (!condition) {
         throw RuntimeError(message, location);

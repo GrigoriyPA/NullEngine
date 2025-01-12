@@ -51,14 +51,12 @@ void Scene::Render() const {
 
     for (const auto& view : views_) {
         auto& renderer = view.GetRenderer();
-        renderer.SetCamera(view.GetCamera());  // Reset rendering context
+        renderer.SetCamera(view.GetCamera());
 
-        // Draw all objects
         for (const auto& object : objects_) {
             renderer.RenderObject(*object);
         }
 
-        // Pass rendered data to consumers
         for (const auto& consumer : view.GetConsumers()) {
             renderer.SaveRenderingResults(*consumer);
         }

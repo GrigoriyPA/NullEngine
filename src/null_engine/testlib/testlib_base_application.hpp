@@ -12,7 +12,7 @@ public:
 
     util::WindowPtr GetWindow() const;
 
-    void Run();  // Start event loop
+    void Run();
 
 protected:
     virtual void SetUp();

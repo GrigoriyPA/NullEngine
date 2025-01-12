@@ -16,14 +16,12 @@ public:
     using Ptr = std::shared_ptr<DirectCamera>;
 
 public:
-    // Box size should be strictly positive
     DirectCamera(util::FloatType width, util::FloatType height, util::FloatType depth);
 
 public:
     util::Transform GetNdcTransform() const override;
 
 private:
-    // View box size relative to scene coordinates
     util::FloatType width_ = 0.0;
     util::FloatType height_ = 0.0;
     util::FloatType depth_ = 0.0;

@@ -35,10 +35,10 @@ public:
     util::Vec3 GetVertical() const override;
 
     void Move(util::Vec3 translation) override;
-    void Rotate(util::Vec3 axis, util::FloatType angle) override;  // angle in radians
+    void Rotate(util::Vec3 axis, util::FloatType angle) override;
 
 private:
-    util::Vec3 position_;  // Position in scene space
+    util::Vec3 position_;
     util::Vec3 direction_;
     util::Vec3 horizon_;
 };

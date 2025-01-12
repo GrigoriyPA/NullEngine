@@ -192,7 +192,6 @@ Vec3 Vec3::VectorProd(Vec3 other) const {
 
 Vec3 Vec3::Horizon() const {
     if (Equal(x_, 0.0) && Equal(z_, 0.0)) {
-        // Special case for vertical vectors
         return Vec3(1.0, 0.0, 0.0);
     }
 

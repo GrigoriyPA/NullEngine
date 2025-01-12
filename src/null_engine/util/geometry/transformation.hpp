@@ -16,7 +16,7 @@ public:
     static constexpr uint32_t kSize = 4;
 
 public:
-    Transform();  // Identity transform
+    Transform();
     Transform(std::initializer_list<std::initializer_list<FloatType>> init);
 
     FloatType GetElement(uint32_t i, uint32_t j) const;
@@ -25,14 +25,12 @@ public:
     Transform& Transpose();
     [[nodiscard]] Transform Transposed() const;
 
-    // Add new transform to current transform
     Transform& ComposeBefore(const Transform& other);
     [[nodiscard]] Transform ComposedBefore(const Transform& other) const;
 
     Transform& ComposeAfter(const Transform& other);
     [[nodiscard]] Transform ComposedAfter(const Transform& other) const;
 
-    // Apply transformation to vector
     Vec3 Apply(Vec3 vector) const;
 
 public:
@@ -43,7 +41,7 @@ public:
     static Transform Translation(Vec3 translation);
     static Transform Translation(FloatType translation_x, FloatType translation_y, FloatType translation_z);
 
-    static Transform Rotation(Vec3 axis, FloatType angle);  // angle in radians
+    static Transform Rotation(Vec3 axis, FloatType angle);
 
     // Transformation from specified basis
     static Transform Basis(Vec3 x, Vec3 y, Vec3 z);

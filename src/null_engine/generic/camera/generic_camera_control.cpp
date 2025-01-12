@@ -18,7 +18,6 @@ SimpleCameraControl::SimpleCameraControl(
 }
 
 void SimpleCameraControl::Update(util::FloatType delta_time) {
-    // Roll rotation
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::E)) {
         camera_->Rotate(camera_->GetDirection(), -settings_.rotation_speed * delta_time);
     }
@@ -26,12 +25,10 @@ void SimpleCameraControl::Update(util::FloatType delta_time) {
         camera_->Rotate(camera_->GetDirection(), settings_.rotation_speed * delta_time);
     }
 
-    // Camera acceleration
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) {
         delta_time *= settings_.speed_ratio;
     }
 
-    // Camera forward moving
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
         camera_->Move(settings_.move_speed * delta_time * camera_->GetDirection());
     }
@@ -39,7 +36,6 @@ void SimpleCameraControl::Update(util::FloatType delta_time) {
         camera_->Move(-settings_.move_speed * delta_time * camera_->GetDirection());
     }
 
-    // Camera horizon moving
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
         camera_->Move(settings_.move_speed * delta_time * camera_->GetHorizon());
     }
@@ -47,7 +43,6 @@ void SimpleCameraControl::Update(util::FloatType delta_time) {
         camera_->Move(-settings_.move_speed * delta_time * camera_->GetHorizon());
     }
 
-    // Camera vertical moving
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) {
         camera_->Move(settings_.move_speed * delta_time * camera_->GetVertical());
     }
@@ -62,18 +57,15 @@ void SimpleCameraControl::OnEvent(const sf::Event& event) {
     }
 
     if (!initialized_) {
-        // Skip first mouse event due to mouse centering
         initialized_ = true;
         return;
     }
 
-    // Yaw rotation
     camera_->Rotate(
         camera_->GetVertical(),
         static_cast<util::FloatType>(event.mouseMove.x - window_width_ / 2) * settings_.sensitivity
     );
 
-    // Pitch rotation
     camera_->Rotate(
         camera_->GetHorizon(),
         static_cast<util::FloatType>(event.mouseMove.y - window_height_ / 2) * settings_.sensitivity

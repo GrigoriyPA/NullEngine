@@ -35,10 +35,10 @@ CameraBase& CameraBase::SetOrientation(util::Vec3 direction, util::Vec3 horizon)
 }
 
 util::Transform CameraBase::GetCameraTransform() const {
-    const auto vertical = horizon_.VectorProd(direction_);  // Right hand vertical
+    const auto vertical = horizon_.VectorProd(direction_);
 
     return util::Transform::Basis(horizon_, vertical, direction_)
-        .Transpose()  // Inverse basis matrix
+        .Transpose()
         .ComposeBefore(util::Transform::Translation(-position_));
 }
 

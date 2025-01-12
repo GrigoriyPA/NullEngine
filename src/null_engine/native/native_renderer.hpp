@@ -36,7 +36,6 @@ public:
     void SaveRenderingResults(generic::RenderingConsumer& consumer) const override;
 
 private:
-    // Current context
     util::Transform ndc_transform_;
     RasterizerContext rasterizer_context_;
 

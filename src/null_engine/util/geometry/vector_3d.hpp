@@ -11,7 +11,7 @@ namespace null_engine::util {
 //
 class Vec3 {
 public:
-    Vec3();  // Zero vector
+    Vec3();
     explicit Vec3(FloatType size);
     Vec3(FloatType x, FloatType y);
     Vec3(FloatType x, FloatType y, FloatType z);
@@ -52,9 +52,9 @@ public:
     [[nodiscard]] Vec3 Normalized() const;
     Vec3& Normalize();
 
-    FloatType ScalarProd(Vec3 other) const;  // Scalar production between vectors
-    Vec3 VectorProd(Vec3 other) const;       // Right hand vector production
-    Vec3 Horizon() const;                    // Right hand orthogonal vector with zero Y
+    FloatType ScalarProd(Vec3 other) const;
+    Vec3 VectorProd(Vec3 other) const;
+    Vec3 Horizon() const;
 
     Vec3& Clamp(FloatType min_value, FloatType max_value);
 
@@ -62,7 +62,7 @@ private:
     FloatType x_;
     FloatType y_;
     FloatType z_;
-    FloatType h_;  // Homogeneous coordinate
+    FloatType h_;
 };
 
 Vec3 operator+(FloatType offset, const Vec3& vector);

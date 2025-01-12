@@ -40,7 +40,7 @@ public:
     virtual void Move(util::Vec3 translation) = 0;
 
     // Rotete camera relative to a camera position
-    virtual void Rotate(util::Vec3 axis, util::FloatType angle) = 0;  // angle in radians
+    virtual void Rotate(util::Vec3 axis, util::FloatType angle) = 0;
 };
 
 }  // namespace null_engine::generic

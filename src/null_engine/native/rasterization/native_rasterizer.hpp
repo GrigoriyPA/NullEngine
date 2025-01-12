@@ -19,13 +19,10 @@ public:
     void DrawPoint(generic::Vertex point);
 
 private:
-    // Returns point coordinates on view
     std::pair<int64_t, int64_t> ProjectPoint(const generic::Vertex& point) const;
 
-    // Perform depth test
     bool CheckPointDepth(int64_t x, int64_t y, const generic::Vertex& point) const;
 
-    // Update color and depth buffers
     void UpdateViewPixel(int64_t x, int64_t y, const generic::Vertex& point);
 
 private:

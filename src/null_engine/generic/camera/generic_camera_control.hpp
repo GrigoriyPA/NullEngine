@@ -53,7 +53,7 @@ private:
     const int32_t window_height_;
 
     sf::Vector2i mouse_position_;
-    bool initialized_ = false;  // Skip first mouse event due to mouse centering
+    bool initialized_ = false;
 };
 
 }  // namespace null_engine::generic

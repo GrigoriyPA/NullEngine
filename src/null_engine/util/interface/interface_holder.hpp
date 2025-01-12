@@ -17,11 +17,8 @@ public:
     InterfaceHolder& AddObject(InterfaceObject::Ptr object);
 
 public:
-    // Update state of all interface objects.
-    // Should be called before each draw
     void Update();
 
-    // Pass event to whole interface parts
     void HandleEvent(const sf::Event& event);
 
 protected:

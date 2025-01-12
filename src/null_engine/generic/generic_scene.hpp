@@ -41,12 +41,11 @@ public:
 
     Scene& AddObject(MeshObject::Ptr object);
 
-    CameraView& AddCamera(Camera::Ptr camera);  // Requires default renderer
+    CameraView& AddCamera(Camera::Ptr camera);
     CameraView& AddCamera(Camera::Ptr camera, Renderer::Ptr renderer);
     Scene& AddCamera(CameraView camera_view);
 
 public:
-    // Render one frame and pass it to rendering consumers
     void Render() const;
 
 private:

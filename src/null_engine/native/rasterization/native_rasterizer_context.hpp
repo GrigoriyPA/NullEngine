@@ -13,7 +13,6 @@ struct RasterizerContext {
 public:
     RasterizerContext(uint64_t view_width, uint64_t view_height);
 
-    // Reset context and prepare for rendering next frame
     void Rewind();
 
 public:

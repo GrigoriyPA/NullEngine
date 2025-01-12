@@ -16,8 +16,6 @@ public:
     using Ptr = std::shared_ptr<InterfaceObject>;
 
 public:
-    // Update object state by given time delta.
-    // Called before each drowing
     virtual void Update(FloatType delta_time);
 
     virtual void OnEvent(const sf::Event& event);

@@ -36,7 +36,7 @@ public:
 
 private:
     std::vector<generic::Vertex> vertices_;
-    std::vector<uint64_t> indices_;  // Indices in vertex array
+    std::vector<uint64_t> indices_;
 };
 
 namespace tests {

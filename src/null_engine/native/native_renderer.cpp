@@ -17,11 +17,9 @@ void Renderer::SetCamera(const generic::Camera& camera) {
 void Renderer::RenderObject(const generic::MeshObject& object) {
     const auto& vertices = object.GetVertices();
     for (uint64_t index : object.GetIndices()) {
-        // Perform NDC transform
         auto vertx = vertices[index];
         vertx.SetPosition(ndc_transform_.Apply(vertx.GetPosition()));
 
-        // Resterize transformed point
         rasterizer_.DrawPoint(vertx);
     }
 }
