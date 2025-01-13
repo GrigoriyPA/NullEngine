@@ -27,15 +27,16 @@ struct Providers {
 };
 
 generic::Scene CreateScene() {
-    static constexpr uint64_t kNumberPoints = 200;
-
     generic::Scene scene;
 
-    scene
-        .AddObject(
-            tests::CreatePointsSet(kNumberPoints, util::Vec3(-0.5, -0.5, 5.0), util::Vec3(1.0, 1.0), tests::kWhite)
-        )
-        .AddObject(tests::CreatePointsSet(kNumberPoints, util::Vec3(0.0, 0.0, 4.5), util::Vec3(1.0, 1.0), tests::kRed));
+    const uint64_t number_points = 200;
+    const util::Vec3 square_size(1.0, 1.0);
+    const util::Vec3 first_square_pos(-0.5, -0.5, 5.0);
+
+    scene.AddObject(tests::CreatePointsSet(number_points, first_square_pos, square_size, tests::kWhite));
+
+    const util::Vec3 second_square_pos(0.0, 0.0, 4.5);
+    scene.AddObject(tests::CreatePointsSet(number_points, second_square_pos, square_size, tests::kRed));
 
     return scene;
 }
@@ -43,15 +44,15 @@ generic::Scene CreateScene() {
 util::InterfaceHolder CreateInterface(const sf::Font& font, Providers& providers) {
     util::InterfaceHolder interface;
 
-    interface.AddObject(util::FPSCounter(0.5, font, providers.timer));
+    const util::FloatType update_period = 0.5;
+    interface.AddObject(util::FPSCounter(update_period, font, providers.timer));
 
     return interface;
 }
 
 Camera CreateCamera() {
-    static constexpr util::FloatType kCameraBoxSize = 10.0;
-
-    return generic::DirectCamera(kCameraBoxSize, kCameraBoxSize, kCameraBoxSize);
+    const util::FloatType camera_box_size = 10.0;
+    return generic::DirectCamera(camera_box_size, camera_box_size, camera_box_size);
 }
 
 }  // anonymous namespace
