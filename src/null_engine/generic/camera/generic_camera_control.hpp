@@ -34,13 +34,10 @@ private:
 private:
     const SimpleCameraControlSettings settings_;
     const folly::Poly<IMovableCamera&> camera_;
-
     sf::RenderWindow& window_;
     const int32_t window_width_;
     const int32_t window_height_;
-
     sf::Vector2i mouse_position_;
-    bool initialized_ = false;
 };
 
 }  // namespace null_engine::generic

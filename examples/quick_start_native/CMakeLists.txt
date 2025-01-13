@@ -1,6 +1,7 @@
 set(TARGET_NAME null-engine-example-quick-start-native)
 
 add_executable(${TARGET_NAME}
+    quick_start_application.cpp
     quick_start_native.cpp
 )
 

@@ -59,11 +59,6 @@ void SimpleCameraControl::OnEvent(const sf::Event& event) {
         return;
     }
 
-    if (!initialized_) {
-        initialized_ = true;
-        return;
-    }
-
     camera_->Rotate(
         camera_->GetVertical(),
         static_cast<util::FloatType>(event.mouseMove.x - window_width_ / 2) * settings_.sensitivity
