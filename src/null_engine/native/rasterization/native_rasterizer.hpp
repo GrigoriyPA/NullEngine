@@ -18,10 +18,12 @@ public:
 
     void DrawPoint(generic::Vertex point);
 
+    void DrawTriangle(generic::Vertex point_a, generic::Vertex point_b, generic::Vertex point_c);
+
 private:
     std::pair<int64_t, int64_t> ProjectPoint(const generic::Vertex& point) const;
 
-    bool CheckPointDepth(int64_t x, int64_t y, const generic::Vertex& point) const;
+    bool CheckPointDepth(int64_t x, int64_t y, util::FloatType z) const;
 
     void UpdateViewPixel(int64_t x, int64_t y, const generic::Vertex& point);
 

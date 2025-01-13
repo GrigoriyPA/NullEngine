@@ -3,6 +3,7 @@
 #include <ostream>
 
 #include "constants.hpp"
+#include "vector_2d.hpp"
 
 namespace null_engine::util {
 
@@ -23,6 +24,10 @@ public:
     FloatType GetY() const;
     FloatType GetZ() const;
     FloatType GetH() const;
+
+    Vec2 GetXY() const;
+    Vec2 GetXZ() const;
+    Vec2 GetYZ() const;
 
     Vec3& operator+=(FloatType offset);
     Vec3 operator+(FloatType offset) const;

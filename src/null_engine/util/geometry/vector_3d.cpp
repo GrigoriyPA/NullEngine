@@ -73,6 +73,18 @@ FloatType Vec3::GetH() const {
     return h_;
 }
 
+Vec2 Vec3::GetXY() const {
+    return Vec2(x_, y_);
+}
+
+Vec2 Vec3::GetXZ() const {
+    return Vec2(x_, z_);
+}
+
+Vec2 Vec3::GetYZ() const {
+    return Vec2(y_, z_);
+}
+
 Vec3& Vec3::operator+=(FloatType offset) {
     *this += Vec3(offset);
     return *this;
@@ -118,7 +130,7 @@ Vec3 Vec3::operator-(Vec3 other) const {
 }
 
 Vec3 Vec3::operator-() const {
-    return Vec3(-x_, -y_, -z_);
+    return Vec3(-x_, -y_, -z_, h_);
 }
 
 Vec3& Vec3::operator*=(FloatType scale) {
