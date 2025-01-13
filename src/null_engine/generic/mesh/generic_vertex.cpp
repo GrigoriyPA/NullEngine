@@ -25,4 +25,9 @@ Vertex& Vertex::SetColor(util::Vec3 color) {
     return *this;
 }
 
+void Vertex::ApplyNdcTransform(const util::Transform& ndc_transform) {
+    position_ = ndc_transform.Apply(position_);
+    position_ /= position_.GetH();
+}
+
 }  // namespace null_engine::generic

@@ -5,6 +5,7 @@ add_library(${TARGET_NAME}
     generic_camera_control.cpp
     generic_camera_interface.cpp
     generic_direct_camera.cpp
+    generic_perspective_camera.cpp
 )
 
 target_link_libraries(${TARGET_NAME}

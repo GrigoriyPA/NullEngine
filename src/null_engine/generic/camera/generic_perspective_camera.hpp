@@ -7,9 +7,11 @@
 
 namespace null_engine::generic {
 
-class DirectCamera : public CameraBase {
+class PerspectiveCamera : public CameraBase {
 public:
-    DirectCamera(util::FloatType width, util::FloatType height, util::FloatType depth);
+    PerspectiveCamera(
+        util::FloatType fov, util::FloatType ratio, util::FloatType min_distance, util::FloatType max_distance
+    );
 
     util::Transform GetNdcTransform() const;
 

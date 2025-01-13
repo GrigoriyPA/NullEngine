@@ -1,7 +1,7 @@
 #include "quick_start_application.hpp"
 
 #include <null_engine/generic/camera/generic_camera_control.hpp>
-#include <null_engine/generic/camera/generic_direct_camera.hpp>
+#include <null_engine/generic/camera/generic_perspective_camera.hpp>
 #include <null_engine/generic/generic_scene_renderer.hpp>
 #include <null_engine/generic/renderer/generic_texture_consumer.hpp>
 #include <null_engine/native/native_renderer.hpp>
@@ -10,6 +10,7 @@
 #include <null_engine/util/interface/helpers/events.hpp>
 #include <null_engine/util/interface/interface_holder.hpp>
 #include <null_engine/util/interface/objects/fps_counter.hpp>
+#include <numbers>
 
 namespace null_engine::example {
 
@@ -50,8 +51,13 @@ util::InterfaceHolder CreateInterface(const sf::Font& font, Providers& providers
 }
 
 Camera CreateCamera() {
-    const util::FloatType camera_box_size = 10.0;
-    return generic::DirectCamera(camera_box_size, camera_box_size, camera_box_size);
+    const util::FloatType fov = std::numbers::pi / 2.0;
+    const util::FloatType min_distance = 0.1;
+    const util::FloatType max_distance = 250;
+    return generic::PerspectiveCamera(
+        fov, static_cast<util::FloatType>(kViewWidth) / static_cast<util::FloatType>(kViewHeight), min_distance,
+        max_distance
+    );
 }
 
 }  // anonymous namespace

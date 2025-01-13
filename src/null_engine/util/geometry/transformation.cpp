@@ -3,6 +3,7 @@
 #include <cassert>
 #include <null_engine/util/generic/validation.hpp>
 #include <null_engine/util/geometry/constants.hpp>
+#include <null_engine/util/geometry/helpers.hpp>
 
 namespace null_engine::util {
 
@@ -155,6 +156,26 @@ Transform Transform::Basis(Vec3 x, Vec3 y, Vec3 z) {
 Transform Transform::BoxProjection(FloatType width, FloatType height, FloatType depth) {
     return Transform::Scale(2.0 / width, 2.0 / height, 2.0 / depth)
         .ComposeAfter(Transform::Translation(Vec3(0.0, 0.0, -1.0)));
+}
+
+Transform Transform::PerspectiveProjection(
+    FloatType fov, FloatType ratio, FloatType min_distance, FloatType max_distance
+) {
+    assert(Less(0.0, min_distance) && "Min projection distance should be positive");
+    assert(Less(min_distance, max_distance) && "Min and max projection distances invalid");
+
+    const FloatType t = tan(fov / 2.0);
+    assert(Less(0.0, t) && "Invalid fov, value should be in interval (0; PI)");
+
+    auto transform = Transform::Scale(1.0 / t, ratio / t, (max_distance + min_distance) / (max_distance - min_distance))
+                         .ComposeBefore(Transform::Translation(
+                             0.0, 0.0, -2.0 * max_distance * min_distance / (max_distance + min_distance)
+                         ));
+
+    transform.matrix_[kSize - 1][kSize - 1] = 0.0;
+    transform.matrix_[kSize - 1][kSize - 2] = 1.0;
+
+    return transform;
 }
 
 std::ostream& operator<<(std::ostream& out, const Transform& transform) {

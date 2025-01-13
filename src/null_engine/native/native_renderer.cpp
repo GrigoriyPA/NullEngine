@@ -18,7 +18,7 @@ void Renderer::RenderObject(folly::Poly<const generic::IMeshObject&> object) {
     const auto& vertices = object->GetVertices();
     for (uint64_t index : object->GetIndices()) {
         auto vertex = vertices[index];
-        vertex.SetPosition(ndc_transform_.Apply(vertex.GetPosition()));
+        vertex.ApplyNdcTransform(ndc_transform_);
 
         rasterizer_.DrawPoint(vertex);
     }

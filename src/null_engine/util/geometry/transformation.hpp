@@ -49,6 +49,10 @@ public:
 
     static Transform BoxProjection(FloatType width, FloatType height, FloatType depth);
 
+    static Transform PerspectiveProjection(
+        FloatType fov, FloatType ratio, FloatType min_distance, FloatType max_distance
+    );
+
 private:
     void Fill(FloatType valie);
 

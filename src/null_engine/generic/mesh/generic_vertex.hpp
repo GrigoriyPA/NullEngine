@@ -1,5 +1,6 @@
 #pragma once
 
+#include <null_engine/util/geometry/transformation.hpp>
 #include <null_engine/util/geometry/vector_3d.hpp>
 
 namespace null_engine::generic {
@@ -15,6 +16,8 @@ public:
     Vertex& SetPosition(util::Vec3 position);
 
     Vertex& SetColor(util::Vec3 color);
+
+    void ApplyNdcTransform(const util::Transform& ndc_transform);
 
 private:
     util::Vec3 position_;
