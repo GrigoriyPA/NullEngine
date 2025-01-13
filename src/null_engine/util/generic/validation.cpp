@@ -12,8 +12,7 @@ RuntimeError::RuntimeError(const std::string& message, std::source_location loca
     : runtime_error(message)
     , location_(location)
     , error_(fmt::format(
-          "NullEngine runtime error: {}\nOccurred in file {}, in function {} on line {}", message,
-          location_.file_name(), location_.file_name(), location_.line()
+          "NullEngine runtime error: {}\nOccurred in file {}:{}", message, location_.file_name(), location_.line()
       )) {
 }
 
