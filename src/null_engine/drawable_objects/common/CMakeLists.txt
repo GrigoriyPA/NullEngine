@@ -5,7 +5,6 @@ add_library(${TARGET_NAME}
 )
 
 target_link_libraries(${TARGET_NAME}
-    fmt::fmt
     null-engine-generic-mesh
     null-engine-util-generic
     null-engine-util-geometry

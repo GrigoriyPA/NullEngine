@@ -1,7 +1,6 @@
 #include "vertices_object.hpp"
 
-#include <fmt/core.h>
-
+#include <cassert>
 #include <null_engine/generic/mesh/generic_vertex.hpp>
 #include <null_engine/util/generic/validation.hpp>
 #include <null_engine/util/geometry/vector_3d.hpp>
@@ -25,20 +24,14 @@ const std::vector<uint64_t>& VerticesObject::GetIndices() const {
 }
 
 VerticesObject& VerticesObject::SetVertex(uint64_t index, const generic::Vertex& vertex) {
-    util::Ensure(
-        index < vertices_.size(),
-        fmt::format("Invalid vertex index {} for vertex object with {} vertices", index, vertices_.size())
-    );
+    assert(index < vertices_.size() && "Vertex index too large");
 
     vertices_[index] = vertex;
     return *this;
 }
 
 VerticesObject& VerticesObject::SetPositions(const std::vector<util::Vec3>& positions) {
-    util::Ensure(
-        positions.size() == vertices_.size(),
-        fmt::format("Invalid positions size {} for vertex object with {} vertices", positions.size(), vertices_.size())
-    );
+    assert(positions.size() == vertices_.size() && "Number of positions and verticies should be equal");
 
     for (size_t i = 0; i < vertices_.size(); ++i) {
         vertices_[i].SetPosition(positions[i]);
@@ -47,10 +40,7 @@ VerticesObject& VerticesObject::SetPositions(const std::vector<util::Vec3>& posi
 }
 
 VerticesObject& VerticesObject::SetColors(const std::vector<util::Vec3>& colors) {
-    util::Ensure(
-        colors.size() == vertices_.size(),
-        fmt::format("Invalid colors size for vertex object with vertices", colors.size(), vertices_.size())
-    );
+    assert(colors.size() == vertices_.size() && "Number of colors and verticies should be equal");
 
     for (size_t i = 0; i < vertices_.size(); ++i) {
         vertices_[i].SetColor(colors[i]);
@@ -66,15 +56,19 @@ VerticesObject& VerticesObject::SetColor(util::Vec3 color) {
 }
 
 VerticesObject& VerticesObject::SetIndices(const std::vector<uint64_t>& indices) {
-    for (const auto index : indices) {
-        util::Ensure(
-            index < vertices_.size(),
-            fmt::format("Invalid index {} for vertex object with {} vertices", index, vertices_.size())
-        );
-    }
+    assert(ValidateIdices(indices) && "Vertex index too large");
 
     indices_ = indices;
     return *this;
+}
+
+bool VerticesObject::ValidateIdices(const std::vector<uint64_t>& indices) const {
+    for (const auto index : indices) {
+        if (index >= vertices_.size()) {
+            return false;
+        }
+    }
+    return true;
 }
 
 }  // namespace null_engine::drawable

@@ -1,7 +1,6 @@
 #include "transformation.hpp"
 
-#include <fmt/core.h>
-
+#include <cassert>
 #include <null_engine/util/generic/validation.hpp>
 #include <null_engine/util/geometry/constants.hpp>
 
@@ -16,18 +15,10 @@ Transform::Transform() {
 }
 
 Transform::Transform(std::initializer_list<std::initializer_list<FloatType>> init) {
-    Ensure(
-        init.size() == kSize,
-        fmt::format("Unexpected initializer list size {} for transform it should be equal {}", init.size(), kSize)
-    );
+    assert(init.size() == kSize && "Invalid initializer list size for transform");
 
     for (uint32_t i = 0; const auto& init_row : init) {
-        Ensure(
-            init_row.size() == kSize,
-            fmt::format(
-                "Unexpected initializer list row {} size {} for transform it should be equal {}", i, init.size(), kSize
-            )
-        );
+        assert(init_row.size() == kSize && "Invalid initializer list row size for transform");
 
         for (uint32_t j = 0; FloatType init_element : init_row) {
             matrix_[i][j++] = init_element;
@@ -37,9 +28,7 @@ Transform::Transform(std::initializer_list<std::initializer_list<FloatType>> ini
 }
 
 FloatType Transform::GetElement(uint32_t i, uint32_t j) const {
-    Ensure(
-        i < kSize && j < kSize, fmt::format("Invalid index ({}, {}) for transform it should be at most {}", i, j, kSize)
-    );
+    assert(i < kSize && j < kSize && "Transform element index too large");
 
     return matrix_[i][j];
 }

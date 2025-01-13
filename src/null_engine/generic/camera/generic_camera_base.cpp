@@ -1,5 +1,6 @@
 #include "generic_camera_base.hpp"
 
+#include <cassert>
 #include <null_engine/util/generic/validation.hpp>
 #include <null_engine/util/geometry/helpers.hpp>
 #include <null_engine/util/geometry/transformation.hpp>
@@ -50,7 +51,7 @@ CameraBase& CameraBase::SetDirection(util::Vec3 direction) {
 }
 
 CameraBase& CameraBase::SetOrientation(util::Vec3 direction, util::Vec3 horizon) {
-    util::Ensure(util::Equal(direction.ScalarProd(horizon), 0.0), "Direction and horizon should be orthogonal");
+    assert(util::Equal(direction.ScalarProd(horizon), 0.0) && "Direction and horizon should be orthogonal");
 
     direction_ = direction;
     horizon_ = horizon;
