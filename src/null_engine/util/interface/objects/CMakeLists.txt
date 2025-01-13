@@ -2,7 +2,6 @@ set(TARGET_NAME null-engine-util-interface-objects)
 
 add_library(${TARGET_NAME}
     fps_counter.cpp
-    object_interface.cpp
 )
 
 target_link_libraries(${TARGET_NAME}

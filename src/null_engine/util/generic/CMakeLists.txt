@@ -1,7 +1,6 @@
 set(TARGET_NAME null-engine-util-generic)
 
 add_library(${TARGET_NAME}
-    provider.cpp
     validation.cpp
 )
 

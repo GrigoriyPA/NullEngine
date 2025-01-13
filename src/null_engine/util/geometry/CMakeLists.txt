@@ -1,7 +1,6 @@
 set(TARGET_NAME null-engine-util-geometry)
 
 add_library(${TARGET_NAME}
-    constants.cpp
     helpers.cpp
     transformation.cpp
     vector_2d.cpp

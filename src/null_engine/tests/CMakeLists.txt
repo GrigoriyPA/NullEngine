@@ -1,7 +1,6 @@
 set(TARGET_NAME null-engine-tests)
 
 add_library(${TARGET_NAME}
-    tests_constants.cpp
     tests_exceptions.cpp
     tests_helpers.cpp
 )

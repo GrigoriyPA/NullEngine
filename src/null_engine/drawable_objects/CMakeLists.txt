@@ -1,11 +1,11 @@
 set(TARGET_NAME null-engine-drawable-objects)
 
 add_library(${TARGET_NAME}
-    drawable_objects.cpp
+    vertices_object.cpp
 )
 
 target_link_libraries(${TARGET_NAME}
-    null-engine-drawable-objects-common
+    null-engine-generic-mesh
+    null-engine-util-generic
+    null-engine-util-geometry
 )
-
-add_subdirectory(common)

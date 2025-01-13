@@ -1,7 +1,6 @@
 set(TARGET_NAME null-engine-util-interface-helpers)
 
 add_library(${TARGET_NAME}
-    constants.cpp
     events.cpp
     fonts.cpp
     timer.cpp

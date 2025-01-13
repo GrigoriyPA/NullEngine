@@ -1,8 +1,6 @@
 set(TARGET_NAME null-engine-generic-renderer)
 
 add_library(${TARGET_NAME}
-    generic_consumer_interface.cpp
-    generic_renderer_interface.cpp
     generic_texture_consumer.cpp
 )
 

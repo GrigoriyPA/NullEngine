@@ -1,6 +1,6 @@
 #pragma once
 
-#include <null_engine/drawable_objects/common/vertices_object.hpp>
+#include <null_engine/drawable_objects/vertices_object.hpp>
 #include <null_engine/native/rasterization/native_rasterizer.hpp>
 
 namespace null_engine::tests {
