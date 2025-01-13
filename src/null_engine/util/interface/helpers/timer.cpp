@@ -14,7 +14,7 @@ public:
 
     void RefreshClients() {
         FloatType delta_time = static_cast<FloatType>(timer_.restart().asSeconds());
-        for (const auto& client : clients_) {
+        for (const auto& [_, client] : clients_) {
             client->Update(delta_time);
         }
     }

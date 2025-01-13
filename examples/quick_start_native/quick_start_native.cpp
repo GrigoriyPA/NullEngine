@@ -74,7 +74,7 @@ private:
     }
 
     void FillInterface() {
-        interface_.AddObject(util::FPSCounter::Make(0.5, font_, timer_provider_));
+        interface_.AddObject(util::FPSCounter(0.5, font_, timer_provider_));
     }
 
 private:

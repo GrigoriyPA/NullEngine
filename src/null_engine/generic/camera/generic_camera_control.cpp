@@ -8,14 +8,14 @@ SimpleCameraControl::SimpleCameraControl(
     folly::Poly<IMovableCamera&> camera, sf::RenderWindow& window, util::TimerProviderRef timer,
     util::EventsProviderRef events, const SimpleCameraControlSettings& settings
 )
-    : settings_(settings)
+    : util::TimerClientBase<SimpleCameraControl>(timer)
+    , util::EventsClientBase<SimpleCameraControl>(events)
+    , settings_(settings)
     , camera_(camera)
     , window_(window)
     , window_width_(static_cast<int32_t>(window_.getSize().x))
     , window_height_(static_cast<int32_t>(window_.getSize().y))
     , mouse_position_(sf::Mouse::getPosition()) {
-    timer->Subscribe(*this);
-    events->Subscribe(*this);
     window_.setMouseCursorVisible(false);
     CenteringMouse();
 }

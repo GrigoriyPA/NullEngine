@@ -2,21 +2,16 @@
 
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/Drawable.hpp>
+#include <SFML/Graphics/Font.hpp>
 #include <SFML/Graphics/Text.hpp>
 #include <SFML/System/Vector2.hpp>
-#include <null_engine/util/generic/templates.hpp>
 #include <null_engine/util/geometry/constants.hpp>
 #include <null_engine/util/interface/helpers/fonts.hpp>
 #include <null_engine/util/interface/helpers/timer.hpp>
 
-#include "SFML/Graphics/Font.hpp"
-
 namespace null_engine::util {
 
-class FPSCounter : public sf::Drawable, public UniqueConstructable<FPSCounter> {
-public:
-    using Ptr = std::shared_ptr<FPSCounter>;
-
+class FPSCounter : public util::TimerClientBase<FPSCounter>, public sf::Drawable {
 public:
     FPSCounter(FloatType update_period, const sf::Font& font, TimerProviderRef timer);
 
@@ -28,7 +23,6 @@ public:
 
     void Update(FloatType delta_time);
 
-protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
 private:

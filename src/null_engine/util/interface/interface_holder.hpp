@@ -1,7 +1,8 @@
 #pragma once
 
-#include <SFML/Graphics/Drawable.hpp>
-#include <memory>
+#include <folly/Poly.h>
+
+#include <null_engine/util/interface/objects/object_interface.hpp>
 #include <vector>
 
 namespace null_engine::util {
@@ -10,13 +11,13 @@ class InterfaceHolder : public sf::Drawable {
 public:
     InterfaceHolder() = default;
 
-    InterfaceHolder& AddObject(std::unique_ptr<sf::Drawable> object);
+    InterfaceHolder& AddObject(folly::Poly<IInterfaceObject> object);
 
 protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
 private:
-    std::vector<std::unique_ptr<sf::Drawable>> objects_;
+    std::vector<folly::Poly<IInterfaceObject>> objects_;
 };
 
 }  // namespace null_engine::util

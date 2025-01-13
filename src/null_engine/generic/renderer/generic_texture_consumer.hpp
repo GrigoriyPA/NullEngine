@@ -22,7 +22,6 @@ class WindowRenderingConsumer : public TextureRenderingConsumer, public sf::Draw
 public:
     WindowRenderingConsumer(uint64_t width, uint64_t height);
 
-protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
 private:

@@ -31,6 +31,9 @@ struct ITimerProvider : folly::PolyExtends<IProvider<ITimerClient>> {
     using Members = folly::PolyMembers<&T::RefreshClients>;
 };
 
+template <typename Derived>
+using TimerClientBase = ClientBase<Derived, ITimerClient>;
+
 using TimerProviderRef = folly::Poly<IProvider<ITimerClient>&>;
 
 folly::Poly<ITimerProvider> CreateTimerProvider();

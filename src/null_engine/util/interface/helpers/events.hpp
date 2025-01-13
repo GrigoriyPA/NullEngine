@@ -31,6 +31,9 @@ struct IEventsProvider : folly::PolyExtends<IProvider<IEventsClient>> {
     using Members = folly::PolyMembers<&T::DispatchEvent>;
 };
 
+template <typename Derived>
+using EventsClientBase = ClientBase<Derived, IEventsClient>;
+
 using EventsProviderRef = folly::Poly<IProvider<IEventsClient>&>;
 
 folly::Poly<IEventsProvider> CreateEventsProvider();

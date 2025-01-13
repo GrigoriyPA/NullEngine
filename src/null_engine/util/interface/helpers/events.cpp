@@ -11,7 +11,7 @@ public:
     using Base::Base;
 
     void DispatchEvent(const sf::Event& event) {
-        for (const auto& client : clients_) {
+        for (const auto& [_, client] : clients_) {
             client->OnEvent(event);
         }
     }

@@ -16,7 +16,8 @@ struct SimpleCameraControlSettings {
     util::FloatType speed_ratio = 2.0;
 };
 
-class SimpleCameraControl {
+class SimpleCameraControl : public util::TimerClientBase<SimpleCameraControl>,
+                            public util::EventsClientBase<SimpleCameraControl> {
 public:
     SimpleCameraControl(
         folly::Poly<IMovableCamera&> camera, sf::RenderWindow& window, util::TimerProviderRef timer,

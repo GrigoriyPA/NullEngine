@@ -3,17 +3,17 @@
 #include <fmt/core.h>
 
 #include <SFML/Graphics/RenderTarget.hpp>
+#include <iostream>
 #include <null_engine/util/interface/helpers/constants.hpp>
 
 namespace null_engine::util {
 
 FPSCounter::FPSCounter(FloatType update_period, const sf::Font& font, TimerProviderRef timer)
-    : update_period_(update_period)
+    : util::TimerClientBase<FPSCounter>(timer)
+    , update_period_(update_period)
     , font_(font)
     , spent_time_(0.0)
     , number_flips_(0) {
-    timer->Subscribe(*this);
-
     text_.setFont(font);
     text_.setFillColor(kDefaultTextColor);
     text_.setCharacterSize(kDefaultFontSize);
