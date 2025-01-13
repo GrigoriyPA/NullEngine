@@ -3,7 +3,6 @@
 #include <fmt/core.h>
 
 #include <SFML/Graphics/RenderTarget.hpp>
-#include <iostream>
 #include <null_engine/util/interface/helpers/constants.hpp>
 
 namespace null_engine::util {

@@ -12,17 +12,14 @@ namespace null_engine::generic {
 struct IRenderer {
     template <class Base>
     struct Interface : Base {
-        // Update rendering camera and prepare rendering context
         void SetCamera(folly::Poly<const ICamera&> camera) {
             folly::poly_call<0>(*this, std::move(camera));
         }
 
-        // Perform object rendering into current context
         void RenderObject(folly::Poly<const IMeshObject&> object) {
             folly::poly_call<1>(*this, std::move(object));
         }
 
-        // Save rendering results to consumer
         void SaveRenderingResults(folly::Poly<IRenderingConsumer&> consumer) const {
             folly::poly_call<2>(*this, std::move(consumer));
         }

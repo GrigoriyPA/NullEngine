@@ -32,7 +32,6 @@ generic::Scene CreateScene() {
     const uint64_t number_points = 200;
     const util::Vec3 square_size(1.0, 1.0);
     const util::Vec3 first_square_pos(-0.5, -0.5, 5.0);
-
     scene.AddObject(tests::CreatePointsSet(number_points, first_square_pos, square_size, tests::kWhite));
 
     const util::Vec3 second_square_pos(0.0, 0.0, 4.5);

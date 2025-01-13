@@ -13,7 +13,6 @@ public:
     void Rewind();
 
 public:
-    // Size in pixels
     uint64_t view_width;
     uint64_t view_height;
 

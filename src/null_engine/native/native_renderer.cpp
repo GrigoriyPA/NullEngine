@@ -17,10 +17,10 @@ void Renderer::SetCamera(folly::Poly<const generic::ICamera&> camera) {
 void Renderer::RenderObject(folly::Poly<const generic::IMeshObject&> object) {
     const auto& vertices = object->GetVertices();
     for (uint64_t index : object->GetIndices()) {
-        auto vertx = vertices[index];
-        vertx.SetPosition(ndc_transform_.Apply(vertx.GetPosition()));
+        auto vertex = vertices[index];
+        vertex.SetPosition(ndc_transform_.Apply(vertex.GetPosition()));
 
-        rasterizer_.DrawPoint(vertx);
+        rasterizer_.DrawPoint(vertex);
     }
 }
 
