@@ -19,6 +19,8 @@ constexpr uint64_t kViewWidth = 1000;
 constexpr uint64_t kViewHeight = 1000;
 constexpr const char* kFontPath = "../../assets/fonts/arial.ttf";
 
+using Camera = folly::Poly<generic::IMovableCamera>;
+
 struct Providers {
     folly::Poly<util::IEventsProvider> events;
     folly::Poly<util::ITimerProvider> timer;
@@ -27,18 +29,26 @@ struct Providers {
 generic::Scene CreateScene() {
     static constexpr uint64_t kNumberPoints = 200;
 
-    return generic::Scene()
+    generic::Scene scene;
+
+    scene
         .AddObject(
             tests::CreatePointsSet(kNumberPoints, util::Vec3(-0.5, -0.5, 5.0), util::Vec3(1.0, 1.0), tests::kWhite)
         )
         .AddObject(tests::CreatePointsSet(kNumberPoints, util::Vec3(0.0, 0.0, 4.5), util::Vec3(1.0, 1.0), tests::kRed));
+
+    return scene;
 }
 
 util::InterfaceHolder CreateInterface(const sf::Font& font, Providers& providers) {
-    return util::InterfaceHolder().AddObject(util::FPSCounter(0.5, font, providers.timer));
+    util::InterfaceHolder interface;
+
+    interface.AddObject(util::FPSCounter(0.5, font, providers.timer));
+
+    return interface;
 }
 
-folly::Poly<generic::IMovableCamera> CreateCamera() {
+Camera CreateCamera() {
     static constexpr util::FloatType kCameraBoxSize = 10.0;
 
     return generic::DirectCamera(kCameraBoxSize, kCameraBoxSize, kCameraBoxSize);
@@ -94,7 +104,7 @@ private:
     sf::RenderWindow window_;
     generic::Scene scene_;
     util::InterfaceHolder interface_;
-    folly::Poly<generic::IMovableCamera> camera_;
+    Camera camera_;
 };
 
 NativeApplication::NativeApplication()
