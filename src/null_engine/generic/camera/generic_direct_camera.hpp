@@ -17,8 +17,6 @@ private:
     util::FloatType width_ = 0.0;
     util::FloatType height_ = 0.0;
     util::FloatType depth_ = 0.0;
-
-    // Transformm from camera space to NDC space
     util::Transform ndc_transform_;
 };
 

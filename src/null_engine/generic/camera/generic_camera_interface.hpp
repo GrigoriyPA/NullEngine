@@ -10,8 +10,6 @@ namespace null_engine::generic {
 struct ICamera {
     template <class Base>
     struct Interface : Base {
-        // Transform from scene space to normalized device coordinates:
-        // -- NDC coordinates is box [-1, 1] for all coordinates
         util::Transform GetNdcTransform() const {
             return folly::poly_call<0>(*this);
         }
@@ -24,12 +22,10 @@ struct ICamera {
 struct IMovableCamera : folly::PolyExtends<ICamera> {
     template <class Base>
     struct Interface : Base {
-        // Camera position in scene space
         util::Vec3 GetPosition() const {
             return folly::poly_call<0>(*this);
         }
 
-        // Camera right-hand normalized orientation in scene space
         util::Vec3 GetDirection() const {
             return folly::poly_call<1>(*this);
         }

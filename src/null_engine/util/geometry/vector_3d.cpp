@@ -182,10 +182,6 @@ FloatType Vec3::ScalarProd(Vec3 other) const {
     return x_ * other.x_ + y_ * other.y_ + z_ * other.z_;
 }
 
-// Right hand:
-// self = (1, 0, 0)
-// other = (0, 0, 1)
-// result -> (0, 1, 0)
 Vec3 Vec3::VectorProd(Vec3 other) const {
     return Vec3(z_ * other.y_ - y_ * other.z_, x_ * other.z_ - z_ * other.x_, y_ * other.x_ - x_ * other.y_);
 }

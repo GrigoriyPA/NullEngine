@@ -45,10 +45,8 @@ public:
 
     static Transform Rotation(Vec3 axis, FloatType angle);
 
-    // Transformation from specified basis
     static Transform Basis(Vec3 x, Vec3 y, Vec3 z);
 
-    // Camera projection transforms to NDC space [-1, 1]^3
     static Transform BoxProjection(FloatType width, FloatType height, FloatType depth);
 
 private:

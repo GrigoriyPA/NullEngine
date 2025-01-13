@@ -17,7 +17,6 @@ public:
 
     util::Vec3 GetVertical() const;
 
-    // Transform from scene space to camera space
     util::Transform GetCameraTransform() const;
 
     CameraBase& SetPosition(util::Vec3 position);

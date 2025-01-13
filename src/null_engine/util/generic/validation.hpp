@@ -21,7 +21,6 @@ private:
     std::string error_;
 };
 
-// Throws RuntimeError if condition is not true
 void Ensure(
     bool condition, const std::string& message, std::source_location location = std::source_location::current()
 );
