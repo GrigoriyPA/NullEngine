@@ -20,8 +20,8 @@ include_directories(${PROJECT_SOURCE_DIR}/src)
 
 target_link_libraries(${PROJECT_NAME}
     null-engine-drawable-objects
-    null-engine-generic
-    null-engine-native
+    null-engine-renderer
+    null-engine-scene
 )
 
 enable_testing()

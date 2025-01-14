@@ -14,12 +14,12 @@ TextureRenderingConsumer::TextureRenderingConsumer(sf::Texture& texture)
     );
 }
 
-InPort<RasterizerBuffer>* TextureRenderingConsumer::GetTexturePort() const {
+InPort<TextureRenderingConsumer::TextureData>* TextureRenderingConsumer::GetTexturePort() const {
     return in_texture_port_.get();
 }
 
-void TextureRenderingConsumer::OnRenderedTexture(const RasterizerBuffer& texture) {
-    texture_.update(texture.colors.data());
+void TextureRenderingConsumer::OnRenderedTexture(const TextureData& texture) {
+    texture_.update(texture.data());
 }
 
 WindowRenderingConsumer::WindowRenderingConsumer(uint64_t width, uint64_t height)

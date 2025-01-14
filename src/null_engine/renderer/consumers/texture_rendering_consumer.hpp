@@ -10,15 +10,17 @@ namespace null_engine {
 
 class TextureRenderingConsumer {
 public:
+    using TextureData = std::vector<uint8_t>;
+
     explicit TextureRenderingConsumer(sf::Texture& texture);
 
-    InPort<RasterizerBuffer>* GetTexturePort() const;
+    InPort<TextureData>* GetTexturePort() const;
 
 private:
-    void OnRenderedTexture(const RasterizerBuffer& texture);
+    void OnRenderedTexture(const TextureData& texture);
 
     sf::Texture& texture_;
-    InPort<RasterizerBuffer>::Ptr in_texture_port_ = InPort<RasterizerBuffer>::Make();
+    InPort<TextureData>::Ptr in_texture_port_ = InPort<TextureData>::Make();
 };
 
 class WindowRenderingConsumer : public TextureRenderingConsumer, public sf::Drawable {

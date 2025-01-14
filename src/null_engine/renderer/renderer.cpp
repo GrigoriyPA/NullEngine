@@ -13,7 +13,8 @@ void ApplyNdcTransform(Vec3& position, const Transform& ndc_transform) {
 }  // anonymous namespace
 
 Renderer::Renderer(const RendererSettings& settings)
-    : rasterizer_(settings.view_width, settings.view_height) {
+    : settings_(settings)
+    , rasterizer_(settings.view_width, settings.view_height) {
     in_render_port_->SetEventsHandler(std::bind(&Renderer::OnRenderEvent, this, std::placeholders::_1));
 }
 
@@ -21,7 +22,7 @@ InPort<RenderEvent>* Renderer::GetRenderPort() const {
     return in_render_port_.get();
 }
 
-void Renderer::SubscribeToTextures(InPort<RasterizerBuffer>* observer_port) const {
+void Renderer::SubscribeToTextures(InPort<TextureData>* observer_port) const {
     out_texture_port_->Subscribe(observer_port);
 }
 
@@ -39,7 +40,7 @@ void Renderer::OnRenderEvent(const RenderEvent& render_event) {
         }
     }
 
-    out_texture_port_->Notify(buffer_);
+    out_texture_port_->Notify(buffer_.colors);
 }
 
 void Renderer::ClearBuffer() {

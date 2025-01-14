@@ -19,11 +19,13 @@ struct RendererSettings {
 
 class Renderer {
 public:
+    using TextureData = std::vector<uint8_t>;
+
     explicit Renderer(const RendererSettings& settings);
 
     InPort<RenderEvent>* GetRenderPort() const;
 
-    void SubscribeToTextures(InPort<RasterizerBuffer>* observer_port) const;
+    void SubscribeToTextures(InPort<TextureData>* observer_port) const;
 
 private:
     void OnRenderEvent(const RenderEvent& render_event);
@@ -34,7 +36,7 @@ private:
     RasterizerBuffer buffer_;
     Rasterizer rasterizer_;
     InPort<RenderEvent>::Ptr in_render_port_ = InPort<RenderEvent>::Make();
-    OutPort<RasterizerBuffer>::Ptr out_texture_port_ = OutPort<RasterizerBuffer>::Make();
+    OutPort<TextureData>::Ptr out_texture_port_ = OutPort<TextureData>::Make();
 };
 
 }  // namespace null_engine
