@@ -1,10 +1,8 @@
 set(TARGET_NAME null-engine-generic-camera)
 
 add_library(${TARGET_NAME}
-    generic_camera_base.cpp
+    camera.cpp
     generic_camera_control.cpp
-    generic_direct_camera.cpp
-    generic_perspective_camera.cpp
 )
 
 target_link_libraries(${TARGET_NAME}

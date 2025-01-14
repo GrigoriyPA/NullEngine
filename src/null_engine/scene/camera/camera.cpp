@@ -1,11 +1,11 @@
-#include "generic_camera_base.hpp"
+#include "camera.hpp"
 
 #include <cassert>
-#include <null_engine/util/generic/validation.hpp>
 #include <null_engine/util/geometry/helpers.hpp>
-#include <null_engine/util/geometry/transformation.hpp>
 
 namespace null_engine {
+
+namespace detail {
 
 CameraBase::CameraBase()
     : position_()
@@ -68,6 +68,24 @@ void CameraBase::Rotate(Vec3 axis, FloatType angle) {
 
     direction_ = transform.Apply(direction_);
     horizon_ = transform.Apply(horizon_);
+}
+
+}  // namespace detail
+
+DirectCamera::DirectCamera(FloatType width, FloatType height, FloatType depth)
+    : ndc_transform_(Transform::BoxProjection(width, height, depth)) {
+}
+
+Transform DirectCamera::GetNdcTransform() const {
+    return GetCameraTransform().ComposeAfter(ndc_transform_);
+}
+
+PerspectiveCamera::PerspectiveCamera(FloatType fov, FloatType ratio, FloatType min_distance, FloatType max_distance)
+    : ndc_transform_(Transform::PerspectiveProjection(fov, ratio, min_distance, max_distance)) {
+}
+
+Transform PerspectiveCamera::GetNdcTransform() const {
+    return GetCameraTransform().ComposeAfter(ndc_transform_);
 }
 
 }  // namespace null_engine

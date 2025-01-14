@@ -1,9 +1,10 @@
 #pragma once
 
 #include <null_engine/util/geometry/transformation.hpp>
-#include <null_engine/util/geometry/vector_3d.hpp>
 
 namespace null_engine {
+
+namespace detail {
 
 class CameraBase {
 public:
@@ -33,6 +34,28 @@ private:
     Vec3 position_;
     Vec3 direction_;
     Vec3 horizon_;
+};
+
+}  // namespace detail
+
+class DirectCamera : public detail::CameraBase {
+public:
+    DirectCamera(FloatType width, FloatType height, FloatType depth);
+
+    Transform GetNdcTransform() const;
+
+private:
+    const Transform ndc_transform_;
+};
+
+class PerspectiveCamera : public detail::CameraBase {
+public:
+    PerspectiveCamera(FloatType fov, FloatType ratio, FloatType min_distance, FloatType max_distance);
+
+    Transform GetNdcTransform() const;
+
+private:
+    const Transform ndc_transform_;
 };
 
 }  // namespace null_engine
