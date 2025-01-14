@@ -9,6 +9,7 @@ target_link_libraries(${TARGET_NAME}
     null-engine-renderer-consumers
     null-engine-renderer-rasterization
     null-engine-scene
+    null-engine-util-geometry
     null-engine-util-mvc
 )
 

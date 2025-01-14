@@ -6,9 +6,9 @@ namespace null_engine {
 
 CameraControl::CameraControl(AnyMovableCameraRef camera, const CameraControlSettings& settings)
     : settings_(settings)
-    , camera_(camera) {
-    in_refresh_port_->SetEventsHandler(std::bind(&CameraControl::OnRefresh, this, std::placeholders::_1));
-    in_mouse_move_port_->SetEventsHandler(std::bind(&CameraControl::OnMouseMove, this, std::placeholders::_1));
+    , camera_(camera)
+    , in_refresh_port_(InPort<FloatType>::Make(std::bind(&CameraControl::OnRefresh, this, std::placeholders::_1)))
+    , in_mouse_move_port_(InPort<Vec2>::Make(std::bind(&CameraControl::OnMouseMove, this, std::placeholders::_1))) {
 }
 
 InPort<FloatType>* CameraControl::GetRefreshPort() const {

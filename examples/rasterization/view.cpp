@@ -14,9 +14,8 @@ View::View(sf::RenderWindow& window)
     : window_(window)
     , font_(LoadFont(kFontPath))
     , rendering_consumer_(window.getSize().x, window.getSize().y)
-    , fps_display_({}, font_) {
-    in_refresh_port_->SetEventsHandler(std::bind(&View::OnRefresh, this, std::placeholders::_1));
-
+    , fps_display_({}, font_)
+    , in_refresh_port_(InPort<FloatType>::Make(std::bind(&View::OnRefresh, this, std::placeholders::_1))) {
     out_refresh_port_->Subscribe(fps_display_.GetRefreshPort());
 }
 

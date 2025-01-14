@@ -1,5 +1,9 @@
 #include "vector2.hpp"
 
+#include <cassert>
+
+#include "helpers.hpp"
+
 namespace null_engine {
 
 FloatType& Vec2::X() {
@@ -19,13 +23,13 @@ FloatType Vec2::GetY() const {
 }
 
 Vec2& Vec2::operator+=(FloatType offset) {
-    *this += Vec2(offset);
+    *this += Vec2::Ident(offset);
     return *this;
 }
 
-Vec2 Vec2::operator+(FloatType offset) const {
-    Vec2 copy(*this);
-    return copy += offset;
+Vec2 operator+(Vec2 vector, FloatType offset) {
+    vector += offset;
+    return vector;
 }
 
 Vec2& Vec2::operator+=(Vec2 other) {
@@ -34,19 +38,19 @@ Vec2& Vec2::operator+=(Vec2 other) {
     return *this;
 }
 
-Vec2 Vec2::operator+(Vec2 other) const {
-    Vec2 copy(*this);
-    return copy += other;
+Vec2 operator+(Vec2 vector, Vec2 other) {
+    vector += other;
+    return vector;
 }
 
 Vec2& Vec2::operator-=(FloatType offset) {
-    *this -= Vec2(offset);
+    *this -= Vec2::Ident(offset);
     return *this;
 }
 
-Vec2 Vec2::operator-(FloatType offset) const {
-    Vec2 copy(*this);
-    return copy -= offset;
+Vec2 operator-(Vec2 vector, FloatType offset) {
+    vector -= offset;
+    return vector;
 }
 
 Vec2& Vec2::operator-=(Vec2 other) {
@@ -55,9 +59,9 @@ Vec2& Vec2::operator-=(Vec2 other) {
     return *this;
 }
 
-Vec2 Vec2::operator-(Vec2 other) const {
-    Vec2 copy(*this);
-    return copy -= other;
+Vec2 operator-(Vec2 vector, Vec2 other) {
+    vector -= other;
+    return vector;
 }
 
 Vec2 Vec2::operator-() const {
@@ -65,13 +69,13 @@ Vec2 Vec2::operator-() const {
 }
 
 Vec2& Vec2::operator*=(FloatType scale) {
-    *this *= Vec2(scale);
+    *this *= Vec2::Ident(scale);
     return *this;
 }
 
-Vec2 Vec2::operator*(FloatType scale) const {
-    Vec2 copy(*this);
-    return copy *= scale;
+Vec2 operator*(Vec2 vector, FloatType scale) {
+    vector *= scale;
+    return vector;
 }
 
 Vec2& Vec2::operator*=(Vec2 other) {
@@ -80,43 +84,47 @@ Vec2& Vec2::operator*=(Vec2 other) {
     return *this;
 }
 
-Vec2 Vec2::operator*(Vec2 other) const {
-    Vec2 copy(*this);
-    return copy *= other;
+Vec2 operator*(Vec2 vector, Vec2 other) {
+    vector *= other;
+    return vector;
 }
 
 Vec2& Vec2::operator/=(FloatType scale) {
-    *this /= Vec2(scale);
+    assert(!Equal(scale, 0.0) && "Division by zero");
+
+    *this /= Vec2::Ident(scale);
     return *this;
 }
 
-Vec2 Vec2::operator/(FloatType scale) const {
-    Vec2 copy(*this);
-    return copy /= scale;
+Vec2 operator/(Vec2 vector, FloatType scale) {
+    vector /= scale;
+    return vector;
 }
 
 Vec2& Vec2::operator/=(Vec2 other) {
+    assert(!Equal(other.x_, 0.0) && !Equal(other.y_, 0.0) && "Division by zero");
+
     x_ /= other.x_;
     y_ /= other.y_;
     return *this;
 }
 
-Vec2 Vec2::operator/(Vec2 other) const {
-    Vec2 copy(*this);
-    return copy /= other;
+Vec2 operator/(Vec2 vector, Vec2 other) {
+    vector /= other;
+    return vector;
 }
 
 FloatType Vec2::Length() const {
     return std::sqrt(x_ * x_ + y_ * y_);
 }
 
-Vec2 Vec2::Normalized() const {
-    Vec2 copy(*this);
-    return copy.Normalize();
-}
-
 Vec2& Vec2::Normalize() {
     return *this /= Length();
+}
+
+Vec2 Vec2::Normalize(Vec2 other) {
+    other.Normalize();
+    return other;
 }
 
 FloatType Vec2::ScalarProd(Vec2 other) const {
@@ -127,15 +135,15 @@ FloatType Vec2::VectorProd(Vec2 other) const {
     return y_ * other.x_ - x_ * other.y_;
 }
 
-Vec2 operator+(FloatType offset, const Vec2& vector) {
+Vec2 operator+(FloatType offset, Vec2 vector) {
     return vector + offset;
 }
 
-Vec2 operator*(FloatType scale, const Vec2& vector) {
+Vec2 operator*(FloatType scale, Vec2 vector) {
     return vector * scale;
 }
 
-std::ostream& operator<<(std::ostream& out, const Vec2& vector) {
+std::ostream& operator<<(std::ostream& out, Vec2 vector) {
     out << "(" << vector.GetX() << ", " << vector.GetY() << ")";
     return out;
 }

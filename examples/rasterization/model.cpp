@@ -13,7 +13,7 @@ Scene CreateScene() {
     Scene scene;
 
     const uint64_t number_points = 200;
-    const Vec3 square_size(1.0, 1.0);
+    const Vec2 square_size(1.0, 1.0);
     const Vec3 first_square_pos(-0.5, -0.5, 5.0);
     scene.AddObject(CreatePointsSet(number_points, first_square_pos, square_size, kWhite));
 
@@ -38,9 +38,8 @@ Model::Model(uint64_t view_width, uint64_t view_height)
     : scene_(CreateScene())
     , camera_(CreateCamera(view_width, view_height))
     , camera_control_(camera_)
-    , renderer_({view_width, view_height}) {
-    in_refresh_port_->SetEventsHandler(std::bind(&Model::OnRefresh, this, std::placeholders::_1));
-
+    , renderer_({view_width, view_height})
+    , in_refresh_port_(InPort<FloatType>::Make(std::bind(&Model::OnRefresh, this, std::placeholders::_1))) {
     out_refresh_port_->Subscribe(camera_control_.GetRefreshPort());
     out_render_port_->Subscribe(renderer_.GetRenderPort());
 }

@@ -6,9 +6,8 @@ namespace null_engine::tests {
 
 Controller::Controller(sf::RenderWindow& window)
     : window_(window)
-    , mouse_control_(window) {
-    in_refresh_port_->SetEventsHandler(std::bind(&Controller::OnRefresh, this, std::placeholders::_1));
-
+    , mouse_control_(window)
+    , in_refresh_port_(InPort<FloatType>::Make(std::bind(&Controller::OnRefresh, this, std::placeholders::_1))) {
     out_events_port_->Subscribe(mouse_control_.GetEventsPort());
 }
 

@@ -20,7 +20,7 @@ private:
     void OnRenderedTexture(const TextureData& texture);
 
     sf::Texture& texture_;
-    InPort<TextureData>::Ptr in_texture_port_ = InPort<TextureData>::Make();
+    InPort<TextureData>::Ptr in_texture_port_;
 };
 
 class WindowRenderingConsumer : public TextureRenderingConsumer, public sf::Drawable {

@@ -8,10 +8,10 @@
 namespace null_engine {
 
 TextureRenderingConsumer::TextureRenderingConsumer(sf::Texture& texture)
-    : texture_(texture) {
-    in_texture_port_->SetEventsHandler(
-        std::bind(&TextureRenderingConsumer::OnRenderedTexture, this, std::placeholders::_1)
-    );
+    : texture_(texture)
+    , in_texture_port_(InPort<TextureData>::Make(
+          std::bind(&TextureRenderingConsumer::OnRenderedTexture, this, std::placeholders::_1)
+      )) {
 }
 
 InPort<TextureRenderingConsumer::TextureData>* TextureRenderingConsumer::GetTexturePort() const {

@@ -7,9 +7,9 @@ namespace null_engine {
 CenteringMouseControl::CenteringMouseControl(sf::RenderWindow& window)
     : window_(window)
     , window_width_(window_.getSize().x)
-    , window_height_(window_.getSize().y) {
-    in_events_port_->SetEventsHandler(std::bind(&CenteringMouseControl::OnEvent, this, std::placeholders::_1));
-
+    , window_height_(window_.getSize().y)
+    , in_events_port_(InPort<sf::Event>::Make(std::bind(&CenteringMouseControl::OnEvent, this, std::placeholders::_1))
+      ) {
     window_.setMouseCursorVisible(false);
     CenteringMouse();
 }

@@ -17,7 +17,7 @@ private:
 
     sf::RenderWindow& window_;
     CenteringMouseControl mouse_control_;
-    InPort<FloatType>::Ptr in_refresh_port_ = InPort<FloatType>::Make();
+    InPort<FloatType>::Ptr in_refresh_port_;
     OutPort<sf::Event>::Ptr out_events_port_ = OutPort<sf::Event>::Make();
 };
 

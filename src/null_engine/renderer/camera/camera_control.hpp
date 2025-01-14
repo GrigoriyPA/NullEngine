@@ -28,8 +28,8 @@ private:
 
     CameraControlSettings settings_;
     AnyMovableCameraRef camera_;
-    InPort<FloatType>::Ptr in_refresh_port_ = InPort<FloatType>::Make();
-    InPort<Vec2>::Ptr in_mouse_move_port_ = InPort<Vec2>::Make();
+    InPort<FloatType>::Ptr in_refresh_port_;
+    InPort<Vec2>::Ptr in_mouse_move_port_;
 };
 
 }  // namespace null_engine

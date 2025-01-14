@@ -24,7 +24,7 @@ private:
     AnyMovableCamera camera_;
     CameraControl camera_control_;
     Renderer renderer_;
-    InPort<FloatType>::Ptr in_refresh_port_ = InPort<FloatType>::Make();
+    InPort<FloatType>::Ptr in_refresh_port_;
     OutPort<FloatType>::Ptr out_refresh_port_ = OutPort<FloatType>::Make();
     OutPort<RenderEvent>::Ptr out_render_port_ = OutPort<RenderEvent>::Make();
 };

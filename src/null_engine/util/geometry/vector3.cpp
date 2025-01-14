@@ -1,8 +1,16 @@
 #include "vector3.hpp"
 
+#include <cassert>
+
 #include "helpers.hpp"
 
 namespace null_engine {
+
+Vec3::Vec3(Vec2 xy, FloatType z)
+    : x_(xy.GetX())
+    , y_(xy.GetY())
+    , z_(z) {
+}
 
 FloatType& Vec3::X() {
     return x_;
@@ -49,13 +57,13 @@ Vec2 Vec3::GetYZ() const {
 }
 
 Vec3& Vec3::operator+=(FloatType offset) {
-    *this += Vec3(offset);
+    *this += Vec3::Ident(offset);
     return *this;
 }
 
-Vec3 Vec3::operator+(FloatType offset) const {
-    Vec3 copy(*this);
-    return copy += offset;
+Vec3 operator+(Vec3 vector, FloatType offset) {
+    vector += offset;
+    return vector;
 }
 
 Vec3& Vec3::operator+=(Vec3 other) {
@@ -65,19 +73,19 @@ Vec3& Vec3::operator+=(Vec3 other) {
     return *this;
 }
 
-Vec3 Vec3::operator+(Vec3 other) const {
-    Vec3 copy(*this);
-    return copy += other;
+Vec3 operator+(Vec3 vector, Vec3 other) {
+    vector += other;
+    return vector;
 }
 
 Vec3& Vec3::operator-=(FloatType offset) {
-    *this -= Vec3(offset);
+    *this -= Vec3::Ident(offset);
     return *this;
 }
 
-Vec3 Vec3::operator-(FloatType offset) const {
-    Vec3 copy(*this);
-    return copy -= offset;
+Vec3 operator-(Vec3 vector, FloatType offset) {
+    vector -= offset;
+    return vector;
 }
 
 Vec3& Vec3::operator-=(Vec3 other) {
@@ -87,9 +95,9 @@ Vec3& Vec3::operator-=(Vec3 other) {
     return *this;
 }
 
-Vec3 Vec3::operator-(Vec3 other) const {
-    Vec3 copy(*this);
-    return copy -= other;
+Vec3 operator-(Vec3 vector, Vec3 other) {
+    vector -= other;
+    return vector;
 }
 
 Vec3 Vec3::operator-() const {
@@ -97,13 +105,13 @@ Vec3 Vec3::operator-() const {
 }
 
 Vec3& Vec3::operator*=(FloatType scale) {
-    *this *= Vec3(scale);
+    *this *= Vec3::Ident(scale);
     return *this;
 }
 
-Vec3 Vec3::operator*(FloatType scale) const {
-    Vec3 copy(*this);
-    return copy *= scale;
+Vec3 operator*(Vec3 vector, FloatType scale) {
+    vector *= scale;
+    return vector;
 }
 
 Vec3& Vec3::operator*=(Vec3 other) {
@@ -113,44 +121,48 @@ Vec3& Vec3::operator*=(Vec3 other) {
     return *this;
 }
 
-Vec3 Vec3::operator*(Vec3 other) const {
-    Vec3 copy(*this);
-    return copy *= other;
+Vec3 operator*(Vec3 vector, Vec3 other) {
+    vector *= other;
+    return vector;
 }
 
 Vec3& Vec3::operator/=(FloatType scale) {
-    *this /= Vec3(scale);
+    assert(!Equal(scale, 0.0) && "Division by zero");
+
+    *this /= Vec3::Ident(scale);
     return *this;
 }
 
-Vec3 Vec3::operator/(FloatType scale) const {
-    Vec3 copy(*this);
-    return copy /= scale;
+Vec3 operator/(Vec3 vector, FloatType scale) {
+    vector /= scale;
+    return vector;
 }
 
 Vec3& Vec3::operator/=(Vec3 other) {
+    assert(!Equal(other.x_, 0.0) && !Equal(other.y_, 0.0) && !Equal(other.z_, 0.0) && "Division by zero");
+
     x_ /= other.x_;
     y_ /= other.y_;
     z_ /= other.z_;
     return *this;
 }
 
-Vec3 Vec3::operator/(Vec3 other) const {
-    Vec3 copy(*this);
-    return copy /= other;
+Vec3 operator/(Vec3 vector, Vec3 other) {
+    vector /= other;
+    return vector;
 }
 
 FloatType Vec3::Length() const {
     return std::sqrt(x_ * x_ + y_ * y_ + z_ * z_);
 }
 
-Vec3 Vec3::Normalized() const {
-    Vec3 copy(*this);
-    return copy.Normalize();
-}
-
 Vec3& Vec3::Normalize() {
     return *this /= Length();
+}
+
+Vec3 Vec3::Normalize(Vec3 other) {
+    other.Normalize();
+    return other;
 }
 
 FloatType Vec3::ScalarProd(Vec3 other) const {
@@ -170,21 +182,23 @@ Vec3 Vec3::Horizon() const {
 }
 
 Vec3& Vec3::Clamp(FloatType min_value, FloatType max_value) {
+    assert(min_value <= max_value && "Invalid clamp parameters");
+
     x_ = std::min(max_value, std::max(min_value, x_));
     y_ = std::min(max_value, std::max(min_value, y_));
     z_ = std::min(max_value, std::max(min_value, z_));
     return *this;
 }
 
-Vec3 operator+(FloatType offset, const Vec3& vector) {
+Vec3 operator+(FloatType offset, Vec3 vector) {
     return vector + offset;
 }
 
-Vec3 operator*(FloatType scale, const Vec3& vector) {
+Vec3 operator*(FloatType scale, Vec3 vector) {
     return vector * scale;
 }
 
-std::ostream& operator<<(std::ostream& out, const Vec3& vector) {
+std::ostream& operator<<(std::ostream& out, Vec3 vector) {
     out << "(" << vector.GetX() << ", " << vector.GetY() << ", " << vector.GetZ() << ") [" << vector.GetH() << "]";
     return out;
 }

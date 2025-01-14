@@ -8,10 +8,7 @@ namespace null_engine {
 
 FPSDisplay::FPSDisplay(FPSDisplaySettings settings, const sf::Font& font)
     : update_period_(settings.update_period)
-    , spent_time_(0.0)
-    , number_flips_(0) {
-    in_refresh_port_->SetEventsHandler(std::bind(&FPSDisplay::OnRefresh, this, std::placeholders::_1));
-
+    , in_refresh_port_(InPort<FloatType>::Make(std::bind(&FPSDisplay::OnRefresh, this, std::placeholders::_1))) {
     display_text_.setFont(font);
     display_text_.setFillColor(settings.text_color);
     display_text_.setCharacterSize(settings.font_size);

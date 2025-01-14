@@ -32,7 +32,7 @@ private:
     sf::Text display_text_;
     FloatType spent_time_ = 0.0;
     uint64_t number_flips_ = 0;
-    InPort<FloatType>::Ptr in_refresh_port_ = InPort<FloatType>::Make();
+    InPort<FloatType>::Ptr in_refresh_port_;
 };
 
 }  // namespace null_engine

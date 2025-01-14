@@ -17,13 +17,13 @@ public:
 
     Mat4& operator*=(const Mat4& other);
 
-    Mat4 operator*(const Mat4& other) const;
+    friend Mat4 operator*(const Mat4& left, const Mat4& right);
 
     FloatType GetElement(uint32_t i, uint32_t j) const;
 
     Mat4& Transpose();
 
-    [[nodiscard]] Mat4 Transposed() const;
+    static Mat4 Transpose(const Mat4& other);
 
     Vec3 Apply(Vec3 vector) const;
 

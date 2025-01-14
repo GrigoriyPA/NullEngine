@@ -1,21 +1,30 @@
 #include "renderer.hpp"
 
+#include <null_engine/util/geometry/helpers.hpp>
+
 namespace null_engine {
 
 namespace {
 
-void ApplyNdcMat4(Vec3& position, const Mat4& ndc_transform) {
+bool ApplyNdcMat4(Vec3& position, const Mat4& ndc_transform) {
     position = ndc_transform.Apply(position);
+
+    const auto h = position.GetH();
+    if (Equal(h, 0.0)) {
+        return false;
+    }
+
     position /= position.GetH();
     position.H() = 1.0 / position.GetH();
+    return true;
 }
 
 }  // anonymous namespace
 
 Renderer::Renderer(const RendererSettings& settings)
     : settings_(settings)
-    , rasterizer_(settings.view_width, settings.view_height) {
-    in_render_port_->SetEventsHandler(std::bind(&Renderer::OnRenderEvent, this, std::placeholders::_1));
+    , rasterizer_(settings.view_width, settings.view_height)
+    , in_render_port_(InPort<RenderEvent>::Make(std::bind(&Renderer::OnRenderEvent, this, std::placeholders::_1))) {
 }
 
 InPort<RenderEvent>* Renderer::GetRenderPort() const {
@@ -34,7 +43,9 @@ void Renderer::OnRenderEvent(const RenderEvent& render_event) {
         const auto& vertices = object.GetVertices();
         for (uint64_t index : object.GetIndices()) {
             auto vertex = vertices[index];
-            ApplyNdcMat4(vertex.position, ndc_transform);
+            if (!ApplyNdcMat4(vertex.position, ndc_transform)) {
+                continue;
+            }
 
             rasterizer_.DrawPoint(vertex, buffer_);
         }

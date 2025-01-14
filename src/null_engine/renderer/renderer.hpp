@@ -35,7 +35,7 @@ private:
     RendererSettings settings_;
     RasterizerBuffer buffer_;
     Rasterizer rasterizer_;
-    InPort<RenderEvent>::Ptr in_render_port_ = InPort<RenderEvent>::Make();
+    InPort<RenderEvent>::Ptr in_render_port_;
     OutPort<TextureData>::Ptr out_texture_port_ = OutPort<TextureData>::Make();
 };
 

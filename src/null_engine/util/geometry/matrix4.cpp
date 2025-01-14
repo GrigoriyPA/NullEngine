@@ -28,22 +28,21 @@ Mat4::Mat4(std::initializer_list<std::initializer_list<FloatType>> init) {
 }
 
 Mat4& Mat4::operator*=(const Mat4& other) {
-    Mat4 current(*this);
-    for (uint32_t i = 0; i < kSize; ++i) {
-        for (uint32_t j = 0; j < kSize; ++j) {
-            matrix_[i][j] = 0.0;
+    return *this = *this * other;
+}
 
-            for (uint32_t k = 0; k < kSize; ++k) {
-                matrix_[i][j] += current.matrix_[i][k] * other.matrix_[k][j];
+Mat4 operator*(const Mat4& left, const Mat4& right) {
+    Mat4 result;
+    for (uint32_t i = 0; i < Mat4::kSize; ++i) {
+        for (uint32_t j = 0; j < Mat4::kSize; ++j) {
+            result.matrix_[i][j] = 0.0;
+
+            for (uint32_t k = 0; k < Mat4::kSize; ++k) {
+                result.matrix_[i][j] += left.matrix_[i][k] * right.matrix_[k][j];
             }
         }
     }
-    return *this;
-}
-
-Mat4 Mat4::operator*(const Mat4& other) const {
-    Mat4 copy(*this);
-    return copy *= other;
+    return result;
 }
 
 FloatType Mat4::GetElement(uint32_t i, uint32_t j) const {
@@ -61,9 +60,10 @@ Mat4& Mat4::Transpose() {
     return *this;
 }
 
-Mat4 Mat4::Transposed() const {
-    Mat4 copy(*this);
-    return copy.Transpose();
+Mat4 Mat4::Transpose(const Mat4& other) {
+    Mat4 result(other);
+    result.Transpose();
+    return result;
 }
 
 Vec3 Mat4::Apply(Vec3 vector) const {
@@ -97,7 +97,7 @@ Mat4 Mat4::Scale(FloatType scale_x, FloatType scale_y, FloatType scale_z) {
 }
 
 Mat4 Mat4::Scale(FloatType scale) {
-    return Scale(Vec3(scale));
+    return Scale(Vec3::Ident(scale));
 }
 
 Mat4 Mat4::Translation(Vec3 translation) {

@@ -8,19 +8,15 @@ namespace null_engine {
 
 class Vec2 {
 public:
-    constexpr Vec2()
-        : x_(0.0)
-        , y_(0.0) {
-    }
-
-    constexpr explicit Vec2(FloatType size)
-        : x_(size)
-        , y_(size) {
-    }
+    constexpr Vec2() = default;
 
     constexpr Vec2(FloatType x, FloatType y)
         : x_(x)
         , y_(y) {
+    }
+
+    constexpr static Vec2 Ident(FloatType size) {
+        return Vec2(size, size);
     }
 
     FloatType& X();
@@ -30,45 +26,43 @@ public:
     FloatType GetY() const;
 
     Vec2& operator+=(FloatType offset);
-    Vec2 operator+(FloatType offset) const;
+    friend Vec2 operator+(Vec2 vector, FloatType offset);
     Vec2& operator+=(Vec2 other);
-    Vec2 operator+(Vec2 other) const;
+    friend Vec2 operator+(Vec2 vector, Vec2 other);
 
     Vec2& operator-=(FloatType offset);
-    Vec2 operator-(FloatType offset) const;
+    friend Vec2 operator-(Vec2 vector, FloatType offset);
     Vec2& operator-=(Vec2 other);
-    Vec2 operator-(Vec2 other) const;
+    friend Vec2 operator-(Vec2 vector, Vec2 other);
     Vec2 operator-() const;
 
     Vec2& operator*=(FloatType scale);
-    Vec2 operator*(FloatType scale) const;
+    friend Vec2 operator*(Vec2 vector, FloatType scale);
     Vec2& operator*=(Vec2 other);
-    Vec2 operator*(Vec2 other) const;
+    friend Vec2 operator*(Vec2 vector, Vec2 other);
 
     Vec2& operator/=(FloatType scale);
-    Vec2 operator/(FloatType scale) const;
+    friend Vec2 operator/(Vec2 vector, FloatType scale);
     Vec2& operator/=(Vec2 other);
-    Vec2 operator/(Vec2 other) const;
+    friend Vec2 operator/(Vec2 vector, Vec2 other);
 
     FloatType Length() const;
 
-    [[nodiscard]] Vec2 Normalized() const;
-
     Vec2& Normalize();
+    static Vec2 Normalize(Vec2 other);
 
     FloatType ScalarProd(Vec2 other) const;
-
     FloatType VectorProd(Vec2 other) const;
 
 private:
-    FloatType x_;
-    FloatType y_;
+    FloatType x_ = 0.0;
+    FloatType y_ = 0.0;
 };
 
-Vec2 operator+(FloatType offset, const Vec2& vector);
-Vec2 operator*(FloatType scale, const Vec2& vector);
+Vec2 operator+(FloatType offset, Vec2 vector);
+Vec2 operator*(FloatType scale, Vec2 vector);
 
-std::ostream& operator<<(std::ostream& out, const Vec2& vector);
+std::ostream& operator<<(std::ostream& out, Vec2 vector);
 
 FloatType Area(Vec2 point_a, Vec2 point_b, Vec2 point_c);
 

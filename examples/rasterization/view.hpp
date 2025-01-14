@@ -24,7 +24,7 @@ private:
     sf::Font font_;
     WindowRenderingConsumer rendering_consumer_;
     FPSDisplay fps_display_;
-    InPort<FloatType>::Ptr in_refresh_port_ = InPort<FloatType>::Make();
+    InPort<FloatType>::Ptr in_refresh_port_;
     OutPort<FloatType>::Ptr out_refresh_port_ = OutPort<FloatType>::Make();
 };
 

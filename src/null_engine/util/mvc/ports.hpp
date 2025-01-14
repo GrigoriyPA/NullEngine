@@ -17,12 +17,12 @@ public:
     using Ptr = std::unique_ptr<InPort>;
     using EventsHandler = std::function<void(const Event& event)>;
 
-    static InPort::Ptr Make() {
-        return std::make_unique<InPort>();
+    explicit InPort(EventsHandler handler)
+        : events_handler_(handler) {
     }
 
-    void SetEventsHandler(EventsHandler handler) {
-        events_handler_ = handler;
+    static InPort::Ptr Make(EventsHandler handler) {
+        return std::make_unique<InPort>(std::move(handler));
     }
 
     ~InPort() {
@@ -31,9 +31,7 @@ public:
 
 private:
     void OnEvent(const Event& event) {
-        if (events_handler_) {
-            events_handler_(event);
-        }
+        events_handler_(event);
     }
 
     void OnSubscribed(OutPort<Event>* out_port) {

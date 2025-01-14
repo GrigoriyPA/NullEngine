@@ -22,7 +22,7 @@ private:
     sf::RenderWindow& window_;
     int32_t window_width_;
     int32_t window_height_;
-    InPort<sf::Event>::Ptr in_events_port_ = InPort<sf::Event>::Make();
+    InPort<sf::Event>::Ptr in_events_port_;
     OutPort<Vec2>::Ptr out_mouse_move_port_ = OutPort<Vec2>::Make();
 };
 

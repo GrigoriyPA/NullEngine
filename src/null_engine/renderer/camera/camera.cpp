@@ -18,11 +18,11 @@ Vec3 CameraBase::GetPosition() const {
 }
 
 Vec3 CameraBase::GetDirection() const {
-    return direction_.Normalized();
+    return Vec3::Normalize(direction_);
 }
 
 Vec3 CameraBase::GetHorizon() const {
-    return horizon_.Normalized();
+    return Vec3::Normalize(horizon_);
 }
 
 Vec3 CameraBase::GetVertical() const {
