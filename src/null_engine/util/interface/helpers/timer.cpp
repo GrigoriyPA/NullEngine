@@ -2,7 +2,7 @@
 
 #include <SFML/System/Clock.hpp>
 
-namespace null_engine::util {
+namespace null_engine {
 
 namespace {
 
@@ -29,4 +29,4 @@ folly::Poly<ITimerProvider> CreateTimerProvider() {
     return TimerProvider();
 }
 
-}  // namespace null_engine::util
+}  // namespace null_engine

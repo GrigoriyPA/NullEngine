@@ -4,7 +4,7 @@
 
 #include <SFML/Graphics/Drawable.hpp>
 
-namespace null_engine::util {
+namespace null_engine {
 
 struct IInterfaceObject {
     template <class Base>
@@ -18,4 +18,4 @@ struct IInterfaceObject {
     using Members = folly::PolyMembers<&T::draw>;
 };
 
-}  // namespace null_engine::util
+}  // namespace null_engine

@@ -5,10 +5,8 @@
 
 namespace null_engine::tests {
 
-drawable::VerticesObject CreatePointsSet(uint64_t number_points, util::Vec3 offse, util::Vec3 size, util::Vec3 color);
+VerticesObject CreatePointsSet(uint64_t number_points, Vec3 offse, Vec3 size, Vec3 color);
 
-void DrawPoints(
-    native::Rasterizer& rasterizer, uint64_t number_points, util::Vec3 offset, util::Vec3 size, util::Vec3 color
-);
+void DrawPoints(native::Rasterizer& rasterizer, uint64_t number_points, Vec3 offset, Vec3 size, Vec3 color);
 
 }  // namespace null_engine::tests

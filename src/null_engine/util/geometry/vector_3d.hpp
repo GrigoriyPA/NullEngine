@@ -5,7 +5,7 @@
 #include "constants.hpp"
 #include "vector_2d.hpp"
 
-namespace null_engine::util {
+namespace null_engine {
 
 class Vec3 {
 public:
@@ -76,4 +76,4 @@ Vec3 operator*(FloatType scale, const Vec3& vector);
 
 std::ostream& operator<<(std::ostream& out, const Vec3& vector);
 
-}  // namespace null_engine::util
+}  // namespace null_engine

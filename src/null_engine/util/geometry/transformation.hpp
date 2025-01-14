@@ -6,7 +6,7 @@
 #include "constants.hpp"
 #include "vector_3d.hpp"
 
-namespace null_engine::util {
+namespace null_engine {
 
 class Transform {
 public:
@@ -62,4 +62,4 @@ private:
 
 std::ostream& operator<<(std::ostream& out, const Transform& transform);
 
-}  // namespace null_engine::util
+}  // namespace null_engine

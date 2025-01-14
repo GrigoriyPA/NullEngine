@@ -5,10 +5,10 @@
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <null_engine/util/interface/helpers/constants.hpp>
 
-namespace null_engine::util {
+namespace null_engine {
 
 FPSCounter::FPSCounter(FloatType update_period, const sf::Font& font, TimerProviderRef timer)
-    : util::TimerClientBase<FPSCounter>(timer)
+    : TimerClientBase<FPSCounter>(timer)
     , update_period_(update_period)
     , font_(font)
     , spent_time_(0.0)
@@ -54,4 +54,4 @@ void FPSCounter::SetFPS(FloatType fps) {
     text_.setString(fmt::format("FPS: {:.3f}", fps));
 }
 
-}  // namespace null_engine::util
+}  // namespace null_engine

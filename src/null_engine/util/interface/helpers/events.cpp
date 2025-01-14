@@ -1,6 +1,6 @@
 #include "events.hpp"
 
-namespace null_engine::util {
+namespace null_engine {
 
 namespace {
 
@@ -23,4 +23,4 @@ folly::Poly<IEventsProvider> CreateEventsProvider() {
     return EventsProvider();
 }
 
-}  // namespace null_engine::util
+}  // namespace null_engine

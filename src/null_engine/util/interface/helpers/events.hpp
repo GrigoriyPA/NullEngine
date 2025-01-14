@@ -5,7 +5,7 @@
 #include <SFML/Window/Event.hpp>
 #include <null_engine/util/generic/provider.hpp>
 
-namespace null_engine::util {
+namespace null_engine {
 
 struct IEventsClient {
     template <class Base>
@@ -38,4 +38,4 @@ using EventsProviderRef = folly::Poly<IProvider<IEventsClient>&>;
 
 folly::Poly<IEventsProvider> CreateEventsProvider();
 
-}  // namespace null_engine::util
+}  // namespace null_engine

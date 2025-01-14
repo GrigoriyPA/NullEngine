@@ -5,7 +5,7 @@
 #include <null_engine/util/interface/objects/object_interface.hpp>
 #include <vector>
 
-namespace null_engine::util {
+namespace null_engine {
 
 class InterfaceHolder : public sf::Drawable {
 public:
@@ -20,4 +20,4 @@ private:
     std::vector<folly::Poly<IInterfaceObject>> objects_;
 };
 
-}  // namespace null_engine::util
+}  // namespace null_engine

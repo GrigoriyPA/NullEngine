@@ -5,7 +5,7 @@
 #include <null_engine/util/geometry/constants.hpp>
 #include <null_engine/util/geometry/helpers.hpp>
 
-namespace null_engine::util {
+namespace null_engine {
 
 Transform::Transform() {
     Fill(0.0);
@@ -196,4 +196,4 @@ std::ostream& operator<<(std::ostream& out, const Transform& transform) {
     return out;
 }
 
-}  // namespace null_engine::util
+}  // namespace null_engine

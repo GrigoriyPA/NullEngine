@@ -1,27 +1,26 @@
 #pragma once
 
-#include <cstdint>
-#include <null_engine/generic/mesh/generic_vertex.hpp>
-#include <null_engine/util/geometry/vector_3d.hpp>
 #include <vector>
 
-namespace null_engine::drawable {
+#include "vertex.hpp"
+
+namespace null_engine {
 
 class VerticesObject {
 public:
     explicit VerticesObject(uint64_t number_vertices);
 
-    const std::vector<generic::Vertex>& GetVertices() const;
+    const std::vector<Vertex>& GetVertices() const;
 
     const std::vector<uint64_t>& GetIndices() const;
 
-    VerticesObject& SetVertex(uint64_t index, const generic::Vertex& vertex);
+    VerticesObject& SetVertex(uint64_t index, const Vertex& vertex);
 
-    VerticesObject& SetPositions(const std::vector<util::Vec3>& positions);
+    VerticesObject& SetPositions(const std::vector<Vec3>& positions);
 
-    VerticesObject& SetColors(const std::vector<util::Vec3>& colors);
+    VerticesObject& SetColors(const std::vector<Vec3>& colors);
 
-    VerticesObject& SetColor(util::Vec3 color);
+    VerticesObject& SetColor(Vec3 color);
 
     VerticesObject& SetIndices(const std::vector<uint64_t>& indices);
 
@@ -29,8 +28,8 @@ private:
     bool ValidateIdices(const std::vector<uint64_t>& indices) const;
 
 private:
-    std::vector<generic::Vertex> vertices_;
+    std::vector<Vertex> vertices_;
     std::vector<uint64_t> indices_;
 };
 
-}  // namespace null_engine::drawable
+}  // namespace null_engine

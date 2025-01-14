@@ -1,6 +1,6 @@
 #include "interface_holder.hpp"
 
-namespace null_engine::util {
+namespace null_engine {
 
 InterfaceHolder& InterfaceHolder::AddObject(folly::Poly<IInterfaceObject> object) {
     objects_.emplace_back(std::move(object));
@@ -13,4 +13,4 @@ void InterfaceHolder::draw(sf::RenderTarget& target, sf::RenderStates states) co
     }
 }
 
-}  // namespace null_engine::util
+}  // namespace null_engine

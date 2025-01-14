@@ -4,7 +4,7 @@
 
 #include "constants.hpp"
 
-namespace null_engine::util {
+namespace null_engine {
 
 class Vec2 {
 public:
@@ -61,4 +61,4 @@ std::ostream& operator<<(std::ostream& out, const Vec2& vector);
 
 FloatType Area(Vec2 point_a, Vec2 point_b, Vec2 point_c);
 
-}  // namespace null_engine::util
+}  // namespace null_engine

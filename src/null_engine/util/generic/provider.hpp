@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <unordered_map>
 
-namespace null_engine::util {
+namespace null_engine {
 
 template <class Client>
 struct IProvider {
@@ -77,4 +77,4 @@ private:
     const uint64_t subscribtion_id_;
 };
 
-}  // namespace null_engine::util
+}  // namespace null_engine

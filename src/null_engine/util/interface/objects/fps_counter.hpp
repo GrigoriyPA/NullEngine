@@ -9,9 +9,9 @@
 #include <null_engine/util/interface/helpers/fonts.hpp>
 #include <null_engine/util/interface/helpers/timer.hpp>
 
-namespace null_engine::util {
+namespace null_engine {
 
-class FPSCounter : public util::TimerClientBase<FPSCounter>, public sf::Drawable {
+class FPSCounter : public TimerClientBase<FPSCounter>, public sf::Drawable {
 public:
     FPSCounter(FloatType update_period, const sf::Font& font, TimerProviderRef timer);
 
@@ -37,4 +37,4 @@ private:
     uint64_t number_flips_ = 0;
 };
 
-}  // namespace null_engine::util
+}  // namespace null_engine

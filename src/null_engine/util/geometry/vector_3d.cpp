@@ -4,7 +4,7 @@
 #include <cmath>
 #include <null_engine/util/geometry/helpers.hpp>
 
-namespace null_engine::util {
+namespace null_engine {
 
 Vec3::Vec3()
     : x_(0.0)
@@ -226,4 +226,4 @@ std::ostream& operator<<(std::ostream& out, const Vec3& vector) {
     return out;
 }
 
-}  // namespace null_engine::util
+}  // namespace null_engine

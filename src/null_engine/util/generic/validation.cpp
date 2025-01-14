@@ -6,7 +6,7 @@
 #include <stdexcept>
 #include <string>
 
-namespace null_engine::util {
+namespace null_engine {
 
 RuntimeError::RuntimeError(const std::string& message, std::source_location location)
     : runtime_error(message)
@@ -34,4 +34,4 @@ void Ensure(bool condition, const std::string& message, std::source_location loc
     }
 }
 
-}  // namespace null_engine::util
+}  // namespace null_engine

@@ -5,7 +5,7 @@
 #include <null_engine/util/generic/provider.hpp>
 #include <null_engine/util/geometry/constants.hpp>
 
-namespace null_engine::util {
+namespace null_engine {
 
 struct ITimerClient {
     template <class Base>
@@ -38,4 +38,4 @@ using TimerProviderRef = folly::Poly<IProvider<ITimerClient>&>;
 
 folly::Poly<ITimerProvider> CreateTimerProvider();
 
-}  // namespace null_engine::util
+}  // namespace null_engine
