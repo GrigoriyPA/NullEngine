@@ -8,7 +8,7 @@ VertexParams Interpolate(
     const VertexParams& point_a, const VertexParams& point_b, const VertexParams& point_c, Vec3 perspective
 ) {
     const auto color =
-        point_a.color * perspective.X() + point_b.color * perspective.Y() + point_b.color * perspective.Z();
+        point_a.color * perspective.X() + point_b.color * perspective.Y() + point_c.color * perspective.Z();
     return {.color = color};
 }
 

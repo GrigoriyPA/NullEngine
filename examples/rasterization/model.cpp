@@ -24,10 +24,12 @@ Scene CreateScene() {
     const Vec3 point_a(-0.5, -0.5, 3.0);
     const Vec3 point_b(0.5, -0.5, 3.0);
     const Vec3 point_c(0, 0.5, 3.0);
-    scene.AddObject(VerticesObject(3 * number_triangles, VerticesObject::Type::Triangles)
-                        .SetPositions({point_a, point_b, point_c})
-                        .SetParams(VertexParams{.color = kGreen})
-                        .SetIndices({0, 1, 2}));
+    scene.AddObject(
+        VerticesObject(3 * number_triangles, VerticesObject::Type::Triangles)
+            .SetPositions({point_a, point_b, point_c})
+            .SetParams({VertexParams{.color = kRed}, VertexParams{.color = kGreen}, VertexParams{.color = kBlue}})
+            .SetIndices({0, 1, 2})
+    );
 
     return scene;
 }
