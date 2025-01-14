@@ -1,43 +1,8 @@
-#include "vector_3d.hpp"
+#include "vector3.hpp"
 
 #include "helpers.hpp"
 
 namespace null_engine {
-
-Vec3::Vec3()
-    : x_(0.0)
-    , y_(0.0)
-    , z_(0.0)
-    , h_(1.0) {
-}
-
-Vec3::Vec3(FloatType size)
-    : x_(size)
-    , y_(size)
-    , z_(size)
-    , h_(1.0) {
-}
-
-Vec3::Vec3(FloatType x, FloatType y)
-    : x_(x)
-    , y_(y)
-    , z_(0.0)
-    , h_(1.0) {
-}
-
-Vec3::Vec3(FloatType x, FloatType y, FloatType z)
-    : x_(x)
-    , y_(y)
-    , z_(z)
-    , h_(1.0) {
-}
-
-Vec3::Vec3(FloatType x, FloatType y, FloatType z, FloatType h)
-    : x_(x)
-    , y_(y)
-    , z_(z)
-    , h_(h) {
-}
 
 FloatType& Vec3::X() {
     return x_;

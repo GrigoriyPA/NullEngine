@@ -29,12 +29,10 @@ Vec3 CameraBase::GetVertical() const {
     return horizon_.VectorProd(direction_).Normalize();
 }
 
-Transform CameraBase::GetCameraTransform() const {
+Mat4 CameraBase::GetCameraMat4() const {
     const auto vertical = horizon_.VectorProd(direction_);
 
-    return Transform::Basis(horizon_, vertical, direction_)
-        .Transpose()
-        .ComposeBefore(Transform::Translation(-position_));
+    return Mat4::Basis(horizon_, vertical, direction_).Transpose() * Mat4::Translation(-position_);
 }
 
 CameraBase& CameraBase::SetPosition(Vec3 position) {
@@ -64,7 +62,7 @@ void CameraBase::Move(Vec3 translation) {
 }
 
 void CameraBase::Rotate(Vec3 axis, FloatType angle) {
-    const auto transform = Transform::Rotation(axis, angle);
+    const auto transform = Mat4::Rotation(axis, angle);
 
     direction_ = transform.Apply(direction_);
     horizon_ = transform.Apply(horizon_);
@@ -73,19 +71,19 @@ void CameraBase::Rotate(Vec3 axis, FloatType angle) {
 }  // namespace detail
 
 DirectCamera::DirectCamera(FloatType width, FloatType height, FloatType depth)
-    : ndc_transform_(Transform::BoxProjection(width, height, depth)) {
+    : ndc_transform_(Mat4::BoxProjection(width, height, depth)) {
 }
 
-Transform DirectCamera::GetNdcTransform() const {
-    return GetCameraTransform().ComposeAfter(ndc_transform_);
+Mat4 DirectCamera::GetNdcMat4() const {
+    return ndc_transform_ * GetCameraMat4();
 }
 
 PerspectiveCamera::PerspectiveCamera(FloatType fov, FloatType ratio, FloatType min_distance, FloatType max_distance)
-    : ndc_transform_(Transform::PerspectiveProjection(fov, ratio, min_distance, max_distance)) {
+    : ndc_transform_(Mat4::PerspectiveProjection(fov, ratio, min_distance, max_distance)) {
 }
 
-Transform PerspectiveCamera::GetNdcTransform() const {
-    return GetCameraTransform().ComposeAfter(ndc_transform_);
+Mat4 PerspectiveCamera::GetNdcMat4() const {
+    return ndc_transform_ * GetCameraMat4();
 }
 
 }  // namespace null_engine

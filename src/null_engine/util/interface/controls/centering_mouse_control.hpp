@@ -1,7 +1,7 @@
 #pragma once
 
 #include <SFML/Graphics/RenderWindow.hpp>
-#include <null_engine/util/geometry/vector_2d.hpp>
+#include <null_engine/util/geometry/vector2.hpp>
 #include <null_engine/util/mvc/ports.hpp>
 
 namespace null_engine {

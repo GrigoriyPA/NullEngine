@@ -1,6 +1,6 @@
 #pragma once
 
-#include <null_engine/util/geometry/transformation.hpp>
+#include <null_engine/util/geometry/matrix4.hpp>
 
 namespace null_engine {
 
@@ -18,7 +18,7 @@ public:
 
     Vec3 GetVertical() const;
 
-    Transform GetCameraTransform() const;
+    Mat4 GetCameraMat4() const;
 
     CameraBase& SetPosition(Vec3 position);
 
@@ -42,20 +42,20 @@ class DirectCamera : public detail::CameraBase {
 public:
     DirectCamera(FloatType width, FloatType height, FloatType depth);
 
-    Transform GetNdcTransform() const;
+    Mat4 GetNdcMat4() const;
 
 private:
-    const Transform ndc_transform_;
+    const Mat4 ndc_transform_;
 };
 
 class PerspectiveCamera : public detail::CameraBase {
 public:
     PerspectiveCamera(FloatType fov, FloatType ratio, FloatType min_distance, FloatType max_distance);
 
-    Transform GetNdcTransform() const;
+    Mat4 GetNdcMat4() const;
 
 private:
-    const Transform ndc_transform_;
+    const Mat4 ndc_transform_;
 };
 
 }  // namespace null_engine

@@ -1,4 +1,4 @@
-#include "transformation.hpp"
+#include "matrix4.hpp"
 
 #include <cassert>
 
@@ -6,7 +6,7 @@
 
 namespace null_engine {
 
-Transform::Transform() {
+Mat4::Mat4() {
     Fill(0.0);
 
     for (uint32_t i = 0; i < kSize; ++i) {
@@ -14,7 +14,7 @@ Transform::Transform() {
     }
 }
 
-Transform::Transform(std::initializer_list<std::initializer_list<FloatType>> init) {
+Mat4::Mat4(std::initializer_list<std::initializer_list<FloatType>> init) {
     assert(init.size() == kSize && "Invalid initializer list size for transform");
 
     for (uint32_t i = 0; const auto& init_row : init) {
@@ -27,28 +27,8 @@ Transform::Transform(std::initializer_list<std::initializer_list<FloatType>> ini
     }
 }
 
-FloatType Transform::GetElement(uint32_t i, uint32_t j) const {
-    assert(i < kSize && j < kSize && "Transform element index too large");
-
-    return matrix_[i][j];
-}
-
-Transform& Transform::Transpose() {
-    for (uint32_t i = 0; i < kSize; ++i) {
-        for (uint32_t j = i + 1; j < kSize; ++j) {
-            std::swap(matrix_[i][j], matrix_[j][i]);
-        }
-    }
-    return *this;
-}
-
-Transform Transform::Transposed() const {
-    Transform copy(*this);
-    return copy.Transpose();
-}
-
-Transform& Transform::ComposeBefore(const Transform& other) {
-    Transform current(*this);
+Mat4& Mat4::operator*=(const Mat4& other) {
+    Mat4 current(*this);
     for (uint32_t i = 0; i < kSize; ++i) {
         for (uint32_t j = 0; j < kSize; ++j) {
             matrix_[i][j] = 0.0;
@@ -61,25 +41,32 @@ Transform& Transform::ComposeBefore(const Transform& other) {
     return *this;
 }
 
-Transform Transform::ComposedBefore(const Transform& other) const {
-    Transform copy(*this);
-    return copy.ComposeBefore(other);
+Mat4 Mat4::operator*(const Mat4& other) const {
+    Mat4 copy(*this);
+    return copy *= other;
 }
 
-Transform& Transform::ComposeAfter(const Transform& other) {
-    Transform current(*this);
-    *this = other;
-    ComposeBefore(current);
+FloatType Mat4::GetElement(uint32_t i, uint32_t j) const {
+    assert(i < kSize && j < kSize && "Mat4 element index too large");
 
+    return matrix_[i][j];
+}
+
+Mat4& Mat4::Transpose() {
+    for (uint32_t i = 0; i < kSize; ++i) {
+        for (uint32_t j = i + 1; j < kSize; ++j) {
+            std::swap(matrix_[i][j], matrix_[j][i]);
+        }
+    }
     return *this;
 }
 
-Transform Transform::ComposedAfter(const Transform& other) const {
-    Transform copy(*this);
-    return copy.ComposeAfter(other);
+Mat4 Mat4::Transposed() const {
+    Mat4 copy(*this);
+    return copy.Transpose();
 }
 
-Vec3 Transform::Apply(Vec3 vector) const {
+Vec3 Mat4::Apply(Vec3 vector) const {
     FloatType transformed[kSize];
     for (uint32_t i = 0; i < kSize; ++i) {
         transformed[i] = matrix_[i][0] * vector.GetX() + matrix_[i][1] * vector.GetY() + matrix_[i][2] * vector.GetZ() +
@@ -88,7 +75,7 @@ Vec3 Transform::Apply(Vec3 vector) const {
     return Vec3(transformed[0], transformed[1], transformed[2], transformed[3]);
 }
 
-void Transform::Fill(FloatType valie) {
+void Mat4::Fill(FloatType valie) {
     for (uint32_t i = 0; i < kSize; ++i) {
         for (uint32_t j = 0; j < kSize; ++j) {
             matrix_[i][j] = valie;
@@ -96,8 +83,8 @@ void Transform::Fill(FloatType valie) {
     }
 }
 
-Transform Transform::Scale(Vec3 scale) {
-    return Transform(
+Mat4 Mat4::Scale(Vec3 scale) {
+    return Mat4(
         {{scale.GetX(), 0.0, 0.0, 0.0},
          {0.0, scale.GetY(), 0.0, 0.0},
          {0.0, 0.0, scale.GetZ(), 0.0},
@@ -105,16 +92,16 @@ Transform Transform::Scale(Vec3 scale) {
     );
 }
 
-Transform Transform::Scale(FloatType scale_x, FloatType scale_y, FloatType scale_z) {
+Mat4 Mat4::Scale(FloatType scale_x, FloatType scale_y, FloatType scale_z) {
     return Scale(Vec3(scale_x, scale_y, scale_z));
 }
 
-Transform Transform::Scale(FloatType scale) {
+Mat4 Mat4::Scale(FloatType scale) {
     return Scale(Vec3(scale));
 }
 
-Transform Transform::Translation(Vec3 translation) {
-    return Transform(
+Mat4 Mat4::Translation(Vec3 translation) {
+    return Mat4(
         {{1.0, 0.0, 0.0, translation.GetX()},
          {0.0, 1.0, 0.0, translation.GetY()},
          {0.0, 0.0, 1.0, translation.GetZ()},
@@ -122,11 +109,11 @@ Transform Transform::Translation(Vec3 translation) {
     );
 }
 
-Transform Transform::Translation(FloatType translation_x, FloatType translation_y, FloatType translation_z) {
+Mat4 Mat4::Translation(FloatType translation_x, FloatType translation_y, FloatType translation_z) {
     return Translation(Vec3(translation_x, translation_y, translation_z));
 }
 
-Transform Transform::Rotation(Vec3 axis, FloatType angle) {
+Mat4 Mat4::Rotation(Vec3 axis, FloatType angle) {
     axis.Normalize();
 
     const FloatType x = axis.GetX();
@@ -135,7 +122,7 @@ Transform Transform::Rotation(Vec3 axis, FloatType angle) {
     const FloatType c = cos(angle);
     const FloatType s = sin(angle);
 
-    return Transform(
+    return Mat4(
         {{c + x * x * (1.0 - c), x * y * (1.0 - c) - z * s, x * z * (1.0 - c) + y * s, 0.0},
          {y * x * (1.0 - c) + z * s, c + y * y * (1.0 - c), y * z * (1.0 - c) - x * s, 0.0},
          {z * x * (1.0 - c) - y * s, z * y * (1.0 - c) + x * s, c + z * z * (1.0 - c), 0.0},
@@ -143,8 +130,8 @@ Transform Transform::Rotation(Vec3 axis, FloatType angle) {
     );
 }
 
-Transform Transform::Basis(Vec3 x, Vec3 y, Vec3 z) {
-    return Transform(
+Mat4 Mat4::Basis(Vec3 x, Vec3 y, Vec3 z) {
+    return Mat4(
         {{x.GetX(), y.GetX(), z.GetX(), 0.0},
          {x.GetY(), y.GetY(), z.GetY(), 0.0},
          {x.GetZ(), y.GetZ(), z.GetZ(), 0.0},
@@ -152,24 +139,19 @@ Transform Transform::Basis(Vec3 x, Vec3 y, Vec3 z) {
     );
 }
 
-Transform Transform::BoxProjection(FloatType width, FloatType height, FloatType depth) {
-    return Transform::Scale(2.0 / width, 2.0 / height, 2.0 / depth)
-        .ComposeAfter(Transform::Translation(Vec3(0.0, 0.0, -1.0)));
+Mat4 Mat4::BoxProjection(FloatType width, FloatType height, FloatType depth) {
+    return Mat4::Translation(Vec3(0.0, 0.0, -1.0)) * Mat4::Scale(2.0 / width, 2.0 / height, 2.0 / depth);
 }
 
-Transform Transform::PerspectiveProjection(
-    FloatType fov, FloatType ratio, FloatType min_distance, FloatType max_distance
-) {
+Mat4 Mat4::PerspectiveProjection(FloatType fov, FloatType ratio, FloatType min_distance, FloatType max_distance) {
     assert(Less(0.0, min_distance) && "Min projection distance should be positive");
     assert(Less(min_distance, max_distance) && "Min and max projection distances invalid");
 
     const FloatType t = tan(fov / 2.0);
     assert(Less(0.0, t) && "Invalid fov, value should be in interval (0; PI)");
 
-    auto transform = Transform::Scale(1.0 / t, ratio / t, (max_distance + min_distance) / (max_distance - min_distance))
-                         .ComposeBefore(Transform::Translation(
-                             0.0, 0.0, -2.0 * max_distance * min_distance / (max_distance + min_distance)
-                         ));
+    auto transform = Mat4::Scale(1.0 / t, ratio / t, (max_distance + min_distance) / (max_distance - min_distance)) *
+                     Mat4::Translation(0.0, 0.0, -2.0 * max_distance * min_distance / (max_distance + min_distance));
 
     transform.matrix_[kSize - 1][kSize - 1] = 0.0;
     transform.matrix_[kSize - 1][kSize - 2] = 1.0;
@@ -177,17 +159,17 @@ Transform Transform::PerspectiveProjection(
     return transform;
 }
 
-std::ostream& operator<<(std::ostream& out, const Transform& transform) {
-    for (uint32_t i = 0; i < Transform::kSize; ++i) {
-        for (uint32_t j = 0; j < Transform::kSize; ++j) {
+std::ostream& operator<<(std::ostream& out, const Mat4& transform) {
+    for (uint32_t i = 0; i < Mat4::kSize; ++i) {
+        for (uint32_t j = 0; j < Mat4::kSize; ++j) {
             out << transform.GetElement(i, j);
 
-            if (j + 1 < Transform::kSize) {
+            if (j + 1 < Mat4::kSize) {
                 out << ", ";
             }
         }
 
-        if (i + 1 < Transform::kSize) {
+        if (i + 1 < Mat4::kSize) {
             out << "\n";
         }
     }

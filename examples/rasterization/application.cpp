@@ -13,7 +13,7 @@ constexpr uint64_t kViewHeight = 1000;
 
 }  // anonymous namespace
 
-class NativeApplication::Impl {
+class Application::Impl {
 public:
     Impl()
         : window_(sf::VideoMode(kViewWidth, kViewHeight), "Native quick start example")
@@ -43,16 +43,13 @@ private:
     OutPort<FloatType>::Ptr out_refresh_port_ = OutPort<FloatType>::Make();
 };
 
-NativeApplication::NativeApplication()
-    : impl_(std::make_unique<NativeApplication::Impl>()) {
+Application::Application()
+    : impl_(std::make_unique<Application::Impl>()) {
 }
 
-NativeApplication::~NativeApplication() {
-}
+Application::~Application() = default;
 
-void NativeApplication::Run() {
-    assert(impl_ && "Application is not initialised");
-
+void Application::Run() {
     impl_->Run();
 }
 

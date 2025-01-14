@@ -1,6 +1,6 @@
 #pragma once
 
-#include <null_engine/util/geometry/vector_3d.hpp>
+#include <null_engine/util/geometry/vector3.hpp>
 
 namespace null_engine {
 

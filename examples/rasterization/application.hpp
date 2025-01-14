@@ -4,11 +4,14 @@
 
 namespace null_engine::tests {
 
-class NativeApplication {
+class Application {
 public:
-    NativeApplication();
+    Application();
 
-    virtual ~NativeApplication();
+    Application(const Application& other) = delete;
+    Application& operator=(const Application& other) = delete;
+
+    ~Application();
 
     void Run();
 

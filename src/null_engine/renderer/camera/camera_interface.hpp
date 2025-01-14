@@ -2,20 +2,20 @@
 
 #include <folly/Poly.h>
 
-#include <null_engine/util/geometry/transformation.hpp>
+#include <null_engine/util/geometry/matrix4.hpp>
 
 namespace null_engine {
 
 struct ICamera {
     template <class Base>
     struct Interface : Base {
-        Transform GetNdcTransform() const {
+        Mat4 GetNdcMat4() const {
             return folly::poly_call<0>(*this);
         }
     };
 
     template <class T>
-    using Members = folly::PolyMembers<&T::GetNdcTransform>;
+    using Members = folly::PolyMembers<&T::GetNdcMat4>;
 };
 
 using AnyCamera = folly::Poly<ICamera>;

@@ -1,16 +1,45 @@
 #pragma once
 
-#include "vector_2d.hpp"
+#include "vector2.hpp"
 
 namespace null_engine {
 
 class Vec3 {
 public:
-    Vec3();
-    explicit Vec3(FloatType size);
-    Vec3(FloatType x, FloatType y);
-    Vec3(FloatType x, FloatType y, FloatType z);
-    Vec3(FloatType x, FloatType y, FloatType z, FloatType h);
+    constexpr Vec3()
+        : x_(0.0)
+        , y_(0.0)
+        , z_(0.0)
+        , h_(1.0) {
+    }
+
+    constexpr explicit Vec3(FloatType size)
+        : x_(size)
+        , y_(size)
+        , z_(size)
+        , h_(1.0) {
+    }
+
+    constexpr Vec3(FloatType x, FloatType y)
+        : x_(x)
+        , y_(y)
+        , z_(0.0)
+        , h_(1.0) {
+    }
+
+    constexpr Vec3(FloatType x, FloatType y, FloatType z)
+        : x_(x)
+        , y_(y)
+        , z_(z)
+        , h_(1.0) {
+    }
+
+    constexpr Vec3(FloatType x, FloatType y, FloatType z, FloatType h)
+        : x_(x)
+        , y_(y)
+        , z_(z)
+        , h_(h) {
+    }
 
     FloatType& X();
     FloatType& Y();

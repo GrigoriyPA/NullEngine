@@ -4,7 +4,7 @@ namespace null_engine {
 
 namespace {
 
-void ApplyNdcTransform(Vec3& position, const Transform& ndc_transform) {
+void ApplyNdcMat4(Vec3& position, const Mat4& ndc_transform) {
     position = ndc_transform.Apply(position);
     position /= position.GetH();
     position.H() = 1.0 / position.GetH();
@@ -29,12 +29,12 @@ void Renderer::SubscribeToTextures(InPort<TextureData>* observer_port) const {
 void Renderer::OnRenderEvent(const RenderEvent& render_event) {
     ClearBuffer();
 
-    const auto& ndc_transform = render_event.camera.GetNdcTransform();
+    const auto& ndc_transform = render_event.camera.GetNdcMat4();
     for (const auto& object : render_event.scene.GetObjects()) {
         const auto& vertices = object.GetVertices();
         for (uint64_t index : object.GetIndices()) {
             auto vertex = vertices[index];
-            ApplyNdcTransform(vertex.position, ndc_transform);
+            ApplyNdcMat4(vertex.position, ndc_transform);
 
             rasterizer_.DrawPoint(vertex, buffer_);
         }

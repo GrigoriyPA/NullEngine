@@ -1,21 +1,6 @@
-#include "vector_2d.hpp"
+#include "vector2.hpp"
 
 namespace null_engine {
-
-Vec2::Vec2()
-    : x_(0.0)
-    , y_(0.0) {
-}
-
-Vec2::Vec2(FloatType size)
-    : x_(size)
-    , y_(size) {
-}
-
-Vec2::Vec2(FloatType x, FloatType y)
-    : x_(x)
-    , y_(y) {
-}
 
 FloatType& Vec2::X() {
     return x_;

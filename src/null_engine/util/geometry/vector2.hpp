@@ -8,9 +8,20 @@ namespace null_engine {
 
 class Vec2 {
 public:
-    Vec2();
-    explicit Vec2(FloatType size);
-    Vec2(FloatType x, FloatType y);
+    constexpr Vec2()
+        : x_(0.0)
+        , y_(0.0) {
+    }
+
+    constexpr explicit Vec2(FloatType size)
+        : x_(size)
+        , y_(size) {
+    }
+
+    constexpr Vec2(FloatType x, FloatType y)
+        : x_(x)
+        , y_(y) {
+    }
 
     FloatType& X();
     FloatType& Y();
