@@ -12,4 +12,5 @@ target_link_libraries(${TARGET_NAME}
     null-engine-util-geometry
 )
 
+add_subdirectory(camera)
 add_subdirectory(rasterization)

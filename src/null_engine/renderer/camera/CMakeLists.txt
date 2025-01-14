@@ -1,4 +1,4 @@
-set(TARGET_NAME null-engine-generic-camera)
+set(TARGET_NAME null-engine-renderer-camera)
 
 add_library(${TARGET_NAME}
     camera.cpp

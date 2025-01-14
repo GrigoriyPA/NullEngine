@@ -6,10 +6,8 @@ add_library(${TARGET_NAME}
 )
 
 target_link_libraries(${TARGET_NAME}
-    null-engine-generic-camera
     null-engine-generic-renderer
     null-engine-util-generic
 )
 
-add_subdirectory(camera)
 add_subdirectory(renderer)
