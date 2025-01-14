@@ -148,8 +148,8 @@ std::ostream& operator<<(std::ostream& out, Vec2 vector) {
     return out;
 }
 
-FloatType Area(Vec2 point_a, Vec2 point_b, Vec2 point_c) {
-    return std::abs((point_b - point_a).VectorProd(point_c - point_a));
+FloatType OrientedArea(Vec2 point_a, Vec2 point_b, Vec2 point_c) {
+    return (point_b - point_a).VectorProd(point_c - point_a);
 }
 
 }  // namespace null_engine

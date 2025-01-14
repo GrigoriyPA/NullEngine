@@ -8,7 +8,11 @@ namespace null_engine {
 
 class VerticesObject {
 public:
-    explicit VerticesObject(uint64_t number_vertices);
+    enum class Type { Points, Triangles };
+
+    explicit VerticesObject(uint64_t number_vertices, Type object_type = Type::Points);
+
+    Type GetObjectType() const;
 
     const std::vector<Vertex>& GetVertices() const;
 
@@ -27,7 +31,7 @@ public:
 private:
     bool ValidateIdices(const std::vector<uint64_t>& indices) const;
 
-private:
+    Type object_type_;
     std::vector<Vertex> vertices_;
     std::vector<uint64_t> indices_;
 };

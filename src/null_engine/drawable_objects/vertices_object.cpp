@@ -4,12 +4,19 @@
 
 namespace null_engine {
 
-VerticesObject::VerticesObject(uint64_t number_vertices)
+VerticesObject::VerticesObject(uint64_t number_vertices, Type object_type)
     : vertices_(number_vertices)
-    , indices_(number_vertices) {
-    for (size_t i = 0; i < indices_.size(); ++i) {
-        indices_[i] = i;
+    , object_type_(object_type) {
+    if (object_type_ == Type::Points) {
+        indices_.resize(number_vertices);
+        for (size_t i = 0; i < indices_.size(); ++i) {
+            indices_[i] = i;
+        }
     }
+}
+
+VerticesObject::Type VerticesObject::GetObjectType() const {
+    return object_type_;
 }
 
 const std::vector<Vertex>& VerticesObject::GetVertices() const {
@@ -54,6 +61,10 @@ VerticesObject& VerticesObject::SetParams(const VertexParams& params) {
 
 VerticesObject& VerticesObject::SetIndices(const std::vector<uint64_t>& indices) {
     assert(ValidateIdices(indices) && "Vertex index too large");
+
+    if (object_type_ == Type::Triangles) {
+        assert(indices.size() % 3 == 0 && "Invalid number of indices for triangles object type");
+    }
 
     indices_ = indices;
     return *this;

@@ -30,6 +30,10 @@ public:
 private:
     void OnRenderEvent(const RenderEvent& render_event);
 
+    void RenderPointsObject(const VerticesObject& object, const Mat4& ndc_transform);
+
+    void RenderTrianglesObject(const VerticesObject& object, const Mat4& ndc_transform);
+
     void ClearBuffer();
 
     RendererSettings settings_;

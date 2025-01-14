@@ -64,6 +64,6 @@ Vec2 operator*(FloatType scale, Vec2 vector);
 
 std::ostream& operator<<(std::ostream& out, Vec2 vector);
 
-FloatType Area(Vec2 point_a, Vec2 point_b, Vec2 point_c);
+FloatType OrientedArea(Vec2 point_a, Vec2 point_b, Vec2 point_c);
 
 }  // namespace null_engine

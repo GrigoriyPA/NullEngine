@@ -45,19 +45,19 @@ void Rasterizer::DrawTriangle(
     const Vec3 positions_z(point_a.position.GetZ(), point_b.position.GetZ(), point_c.position.GetZ());
     const Vec3 positions_h(point_a.position.GetH(), point_b.position.GetH(), point_c.position.GetH());
 
-    const auto denom = 1.0 / Area(point_a.position.GetXY(), point_b.position.GetXY(), point_c.position.GetXY());
+    const auto denom = 1.0 / OrientedArea(point_a.position.GetXY(), point_b.position.GetXY(), point_c.position.GetXY());
     for (int64_t x = 0; x < view_width_; ++x) {
         for (int64_t y = 0; y < view_height_; ++y) {
             const Vec2 view_position = Vec2(x * pixel_width_ - 1.0, 1.0 - y * pixel_height_);
 
             const Vec3 barycentric =
                 denom * Vec3(
-                            Area(view_position, point_a.position.GetXY(), point_b.position.GetXY()),
-                            Area(view_position, point_a.position.GetXY(), point_c.position.GetXY()),
-                            Area(view_position, point_b.position.GetXY(), point_c.position.GetXY())
+                            OrientedArea(view_position, point_b.position.GetXY(), point_c.position.GetXY()),
+                            OrientedArea(point_a.position.GetXY(), view_position, point_c.position.GetXY()),
+                            OrientedArea(point_a.position.GetXY(), point_b.position.GetXY(), view_position)
                         );
 
-            if (barycentric.GetX() < 0.0 || barycentric.GetY() < 0.0 || barycentric.GetZ() < 0.0) {
+            if (barycentric.GetX() <= 0.0 || barycentric.GetY() <= 0.0 || barycentric.GetZ() <= 0.0) {
                 continue;
             }
 
@@ -67,7 +67,7 @@ void Rasterizer::DrawTriangle(
             );
 
             const auto z = frag_position.GetZ();
-            if (CheckPointDepth(x, y, z, buffer)) {
+            if (!CheckPointDepth(x, y, z, buffer)) {
                 continue;
             }
 

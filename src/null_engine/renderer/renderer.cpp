@@ -6,7 +6,7 @@ namespace null_engine {
 
 namespace {
 
-bool ApplyNdcMat4(Vec3& position, const Mat4& ndc_transform) {
+bool ApplyNdcTransform(Vec3& position, const Mat4& ndc_transform) {
     position = ndc_transform.Apply(position);
 
     const auto h = position.GetH();
@@ -40,18 +40,59 @@ void Renderer::OnRenderEvent(const RenderEvent& render_event) {
 
     const auto& ndc_transform = render_event.camera.GetNdcMat4();
     for (const auto& object : render_event.scene.GetObjects()) {
-        const auto& vertices = object.GetVertices();
-        for (uint64_t index : object.GetIndices()) {
-            auto vertex = vertices[index];
-            if (!ApplyNdcMat4(vertex.position, ndc_transform)) {
-                continue;
-            }
+        switch (object.GetObjectType()) {
+            case VerticesObject::Type::Points:
+                RenderPointsObject(object, ndc_transform);
+                break;
 
-            rasterizer_.DrawPoint(vertex, buffer_);
+            case VerticesObject::Type::Triangles:
+                RenderTrianglesObject(object, ndc_transform);
+                break;
         }
     }
 
     out_texture_port_->Notify(buffer_.colors);
+}
+
+void Renderer::RenderPointsObject(const VerticesObject& object, const Mat4& ndc_transform) {
+    assert(object.GetObjectType() == VerticesObject::Type::Points && "Unexpected object type");
+
+    const auto& vertices = object.GetVertices();
+    for (uint64_t index : object.GetIndices()) {
+        auto point = vertices[index];
+        if (!ApplyNdcTransform(point.position, ndc_transform)) {
+            continue;
+        }
+
+        rasterizer_.DrawPoint(point, buffer_);
+    }
+}
+
+void Renderer::RenderTrianglesObject(const VerticesObject& object, const Mat4& ndc_transform) {
+    assert(object.GetObjectType() == VerticesObject::Type::Triangles && "Unexpected object type");
+
+    const auto& vertices = object.GetVertices();
+    const auto& indices = object.GetIndices();
+    assert(indices.size() % 3 == 0 && "Unexpected number of indices for triangles object");
+
+    for (uint64_t i = 0; i < indices.size(); i += 3) {
+        auto point_a = vertices[indices[i]];
+        if (!ApplyNdcTransform(point_a.position, ndc_transform)) {
+            continue;
+        }
+
+        auto point_b = vertices[indices[i + 1]];
+        if (!ApplyNdcTransform(point_b.position, ndc_transform)) {
+            continue;
+        }
+
+        auto point_c = vertices[indices[i + 2]];
+        if (!ApplyNdcTransform(point_c.position, ndc_transform)) {
+            continue;
+        }
+
+        rasterizer_.DrawTriangle(point_a, point_b, point_c, buffer_);
+    }
 }
 
 void Renderer::ClearBuffer() {
