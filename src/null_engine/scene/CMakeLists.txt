@@ -1,13 +1,9 @@
-set(TARGET_NAME null-engine-generic)
+set(TARGET_NAME null-engine-scene)
 
 add_library(${TARGET_NAME}
-    generic_scene.cpp
-    generic_scene_renderer.cpp
+    scene.cpp
 )
 
 target_link_libraries(${TARGET_NAME}
-    null-engine-generic-renderer
-    null-engine-util-generic
+    null-engine-drawable-objects
 )
-
-add_subdirectory(renderer)

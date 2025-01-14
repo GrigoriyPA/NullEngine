@@ -3,7 +3,6 @@
 #include <folly/Poly.h>
 
 #include <null_engine/util/geometry/transformation.hpp>
-#include <null_engine/util/geometry/vector_3d.hpp>
 
 namespace null_engine {
 
@@ -18,6 +17,9 @@ struct ICamera {
     template <class T>
     using Members = folly::PolyMembers<&T::GetNdcTransform>;
 };
+
+using AnyCamera = folly::Poly<ICamera>;
+using AnyCameraRef = folly::Poly<ICamera&>;
 
 struct IMovableCamera : folly::PolyExtends<ICamera> {
     template <class Base>
@@ -51,5 +53,8 @@ struct IMovableCamera : folly::PolyExtends<ICamera> {
     using Members =
         folly::PolyMembers<&T::GetPosition, &T::GetDirection, &T::GetHorizon, &T::GetVertical, &T::Move, &T::Rotate>;
 };
+
+using AnyMovableCamera = folly::Poly<IMovableCamera>;
+using AnyMovableCameraRef = folly::Poly<IMovableCamera&>;
 
 }  // namespace null_engine

@@ -18,4 +18,7 @@ struct IInterfaceObject {
     using Members = folly::PolyMembers<&T::draw>;
 };
 
+using AnyInterfaceObject = folly::Poly<IInterfaceObject>;
+using AnyInterfaceObjectRef = folly::Poly<IInterfaceObject&>;
+
 }  // namespace null_engine

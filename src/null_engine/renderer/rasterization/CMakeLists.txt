@@ -1,10 +1,9 @@
-set(TARGET_NAME null-engine-native-rasterization)
+set(TARGET_NAME null-engine-renderer-rasterization)
 
 add_library(${TARGET_NAME}
-    native_rasterizer_context.cpp
-    native_rasterizer.cpp
+    rasterizer.cpp
 )
 
 target_link_libraries(${TARGET_NAME}
-    null-engine-util-geometry
+    null-engine-drawable-objects
 )

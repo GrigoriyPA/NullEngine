@@ -1,4 +1,4 @@
-#include "generic_texture_consumer.hpp"
+#include "texture_rendering_consumer.hpp"
 
 #include <fmt/core.h>
 
@@ -9,10 +9,17 @@ namespace null_engine {
 
 TextureRenderingConsumer::TextureRenderingConsumer(sf::Texture& texture)
     : texture_(texture) {
+    in_texture_port_->SetEventsHandler(
+        std::bind(&TextureRenderingConsumer::OnRenderedTexture, this, std::placeholders::_1)
+    );
 }
 
-void TextureRenderingConsumer::OnRenderedTexture(const std::vector<uint8_t>& texture) {
-    texture_.update(texture.data());
+InPort<RasterizerBuffer>* TextureRenderingConsumer::GetTexturePort() const {
+    return in_texture_port_.get();
+}
+
+void TextureRenderingConsumer::OnRenderedTexture(const RasterizerBuffer& texture) {
+    texture_.update(texture.colors.data());
 }
 
 WindowRenderingConsumer::WindowRenderingConsumer(uint64_t width, uint64_t height)

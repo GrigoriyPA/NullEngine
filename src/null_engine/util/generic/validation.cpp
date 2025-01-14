@@ -2,6 +2,7 @@
 
 #include <fmt/core.h>
 
+#include <iostream>
 #include <source_location>
 #include <stdexcept>
 #include <string>
@@ -31,6 +32,16 @@ char const* RuntimeError::what() const {
 void Ensure(bool condition, const std::string& message, std::source_location location) {
     if (!condition) {
         throw RuntimeError(message, location);
+    }
+}
+
+void HandleException() {
+    try {
+        throw;
+    } catch (const std::exception& exception) {
+        std::cerr << "Got exception:\n" << exception.what();
+    } catch (...) {
+        std::cerr << "Got unknown exception\n";
     }
 }
 

@@ -18,9 +18,9 @@ public:
 
     VerticesObject& SetPositions(const std::vector<Vec3>& positions);
 
-    VerticesObject& SetColors(const std::vector<Vec3>& colors);
+    VerticesObject& SetParams(const std::vector<VertexParams>& params);
 
-    VerticesObject& SetColor(Vec3 color);
+    VerticesObject& SetParams(const VertexParams& params);
 
     VerticesObject& SetIndices(const std::vector<uint64_t>& indices);
 

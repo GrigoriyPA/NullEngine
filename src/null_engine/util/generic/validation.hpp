@@ -25,4 +25,6 @@ void Ensure(
     bool condition, const std::string& message, std::source_location location = std::source_location::current()
 );
 
+void HandleException();
+
 }  // namespace null_engine

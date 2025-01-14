@@ -1,8 +1,5 @@
 #pragma once
 
-#include <ostream>
-
-#include "constants.hpp"
 #include "vector_2d.hpp"
 
 namespace null_engine {

@@ -1,8 +1,6 @@
 #include "vector_3d.hpp"
 
-#include <algorithm>
-#include <cmath>
-#include <null_engine/util/geometry/helpers.hpp>
+#include "helpers.hpp"
 
 namespace null_engine {
 

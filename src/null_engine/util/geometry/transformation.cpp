@@ -1,9 +1,8 @@
 #include "transformation.hpp"
 
 #include <cassert>
-#include <null_engine/util/generic/validation.hpp>
-#include <null_engine/util/geometry/constants.hpp>
-#include <null_engine/util/geometry/helpers.hpp>
+
+#include "helpers.hpp"
 
 namespace null_engine {
 

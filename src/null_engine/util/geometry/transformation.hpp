@@ -1,8 +1,5 @@
 #pragma once
 
-#include <cstdint>
-#include <initializer_list>
-
 #include "constants.hpp"
 #include "vector_3d.hpp"
 

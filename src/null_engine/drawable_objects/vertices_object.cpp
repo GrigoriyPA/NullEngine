@@ -5,7 +5,7 @@
 namespace null_engine {
 
 VerticesObject::VerticesObject(uint64_t number_vertices)
-    : vertices_(number_vertices, Vertex(Vec3(0.0), Vec3(1.0)))
+    : vertices_(number_vertices)
     , indices_(number_vertices) {
     for (size_t i = 0; i < indices_.size(); ++i) {
         indices_[i] = i;
@@ -31,23 +31,23 @@ VerticesObject& VerticesObject::SetPositions(const std::vector<Vec3>& positions)
     assert(positions.size() == vertices_.size() && "Number of positions and verticies should be equal");
 
     for (size_t i = 0; i < vertices_.size(); ++i) {
-        vertices_[i].SetPosition(positions[i]);
+        vertices_[i].position = positions[i];
     }
     return *this;
 }
 
-VerticesObject& VerticesObject::SetColors(const std::vector<Vec3>& colors) {
-    assert(colors.size() == vertices_.size() && "Number of colors and verticies should be equal");
+VerticesObject& VerticesObject::SetParams(const std::vector<VertexParams>& params) {
+    assert(params.size() == vertices_.size() && "Number of params and verticies should be equal");
 
     for (size_t i = 0; i < vertices_.size(); ++i) {
-        vertices_[i].SetColor(colors[i]);
+        vertices_[i].params = params[i];
     }
     return *this;
 }
 
-VerticesObject& VerticesObject::SetColor(Vec3 color) {
+VerticesObject& VerticesObject::SetParams(const VertexParams& params) {
     for (auto& vertex : vertices_) {
-        vertex.SetColor(color);
+        vertex.params = params;
     }
     return *this;
 }

@@ -1,9 +1,5 @@
 #include "vector_2d.hpp"
 
-#include <algorithm>
-#include <cmath>
-#include <null_engine/util/geometry/helpers.hpp>
-
 namespace null_engine {
 
 Vec2::Vec2()

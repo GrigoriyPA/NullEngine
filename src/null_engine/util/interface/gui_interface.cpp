@@ -1,8 +1,8 @@
-#include "interface_holder.hpp"
+#include "gui_interface.hpp"
 
 namespace null_engine {
 
-InterfaceHolder& InterfaceHolder::AddObject(folly::Poly<IInterfaceObject> object) {
+InterfaceHolder& InterfaceHolder::AddObject(AnyInterfaceObject object) {
     objects_.emplace_back(std::move(object));
     return *this;
 }
