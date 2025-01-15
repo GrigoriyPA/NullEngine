@@ -2,7 +2,6 @@
 
 #include <array>
 
-#include "constants.hpp"
 #include "vector3.hpp"
 
 namespace null_engine {

@@ -2,7 +2,6 @@
 
 #include <cassert>
 
-#include "constants.hpp"
 #include "helpers.hpp"
 
 namespace null_engine {
