@@ -18,7 +18,8 @@ VerticesObject CreatePointsSet(uint64_t number_points, Vec3 offset, Vec2 size, V
 }
 
 void DrawPoints(
-    const Rasterizer& rasterizer, RasterizerBuffer& buffer, uint64_t number_points, Vec3 offset, Vec2 size, Vec3 color
+    const detail::Rasterizer& rasterizer, detail::RasterizerBuffer& buffer, uint64_t number_points, Vec3 offset,
+    Vec2 size, Vec3 color
 ) {
     const Vec2 step = size / number_points;
     for (uint64_t i = 0; i < number_points; ++i) {

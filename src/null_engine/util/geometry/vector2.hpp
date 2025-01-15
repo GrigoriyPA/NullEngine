@@ -22,8 +22,8 @@ public:
     FloatType& X();
     FloatType& Y();
 
-    FloatType GetX() const;
-    FloatType GetY() const;
+    FloatType X() const;
+    FloatType Y() const;
 
     Vec2& operator+=(FloatType offset);
     friend Vec2 operator+(Vec2 vector, FloatType offset);
@@ -46,6 +46,8 @@ public:
     Vec2& operator/=(Vec2 other);
     friend Vec2 operator/(Vec2 vector, Vec2 other);
 
+    bool IsZero() const;
+
     FloatType Length() const;
 
     Vec2& Normalize();
@@ -53,6 +55,8 @@ public:
 
     FloatType ScalarProd(Vec2 other) const;
     FloatType VectorProd(Vec2 other) const;
+
+    Vec2& Clamp(FloatType min_value, FloatType max_value);
 
 private:
     FloatType x_ = 0.0;

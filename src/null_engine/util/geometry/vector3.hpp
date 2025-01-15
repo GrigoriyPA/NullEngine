@@ -32,14 +32,14 @@ public:
     FloatType& Z();
     FloatType& H();
 
-    FloatType GetX() const;
-    FloatType GetY() const;
-    FloatType GetZ() const;
-    FloatType GetH() const;
+    FloatType X() const;
+    FloatType Y() const;
+    FloatType Z() const;
+    FloatType H() const;
 
-    Vec2 GetXY() const;
-    Vec2 GetXZ() const;
-    Vec2 GetYZ() const;
+    Vec2 XY() const;
+    Vec2 XZ() const;
+    Vec2 YZ() const;
 
     Vec3& operator+=(FloatType offset);
     friend Vec3 operator+(Vec3 vector, FloatType offset);
@@ -61,6 +61,8 @@ public:
     friend Vec3 operator/(Vec3 vector, FloatType scale);
     Vec3& operator/=(Vec3 other);
     friend Vec3 operator/(Vec3 vector, Vec3 other);
+
+    bool IsZero() const;
 
     FloatType Length() const;
 

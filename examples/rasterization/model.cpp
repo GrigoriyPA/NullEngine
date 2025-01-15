@@ -21,9 +21,9 @@ Scene CreateScene() {
     scene.AddObject(CreatePointsSet(number_points, second_square_pos, square_size, kRed));
 
     const uint64_t number_triangles = 1;
-    const Vec3 point_a(-0.5, -0.5, 3.0);
-    const Vec3 point_b(0.5, -0.5, 3.0);
-    const Vec3 point_c(0, 0.5, 3.0);
+    const Vec3 point_a(-0.5, -0.5, 0.5);
+    const Vec3 point_b(0.5, -0.7, 0.5);
+    const Vec3 point_c(0, 0.5, 0.5);
     scene.AddObject(
         VerticesObject(3 * number_triangles, VerticesObject::Type::Triangles)
             .SetPositions({point_a, point_b, point_c})

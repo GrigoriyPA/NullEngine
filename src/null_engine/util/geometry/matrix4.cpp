@@ -2,6 +2,7 @@
 
 #include <cassert>
 
+#include "constants.hpp"
 #include "helpers.hpp"
 
 namespace null_engine {
@@ -69,8 +70,8 @@ Mat4 Mat4::Transpose(const Mat4& other) {
 Vec3 Mat4::Apply(Vec3 vector) const {
     FloatType transformed[kSize];
     for (uint32_t i = 0; i < kSize; ++i) {
-        transformed[i] = matrix_[i][0] * vector.GetX() + matrix_[i][1] * vector.GetY() + matrix_[i][2] * vector.GetZ() +
-                         matrix_[i][3] * vector.GetH();
+        transformed[i] = matrix_[i][0] * vector.X() + matrix_[i][1] * vector.Y() + matrix_[i][2] * vector.Z() +
+                         matrix_[i][3] * vector.H();
     }
     return Vec3(transformed[0], transformed[1], transformed[2], transformed[3]);
 }
@@ -85,10 +86,7 @@ void Mat4::Fill(FloatType valie) {
 
 Mat4 Mat4::Scale(Vec3 scale) {
     return Mat4(
-        {{scale.GetX(), 0.0, 0.0, 0.0},
-         {0.0, scale.GetY(), 0.0, 0.0},
-         {0.0, 0.0, scale.GetZ(), 0.0},
-         {0.0, 0.0, 0.0, 1.0}}
+        {{scale.X(), 0.0, 0.0, 0.0}, {0.0, scale.Y(), 0.0, 0.0}, {0.0, 0.0, scale.Z(), 0.0}, {0.0, 0.0, 0.0, 1.0}}
     );
 }
 
@@ -102,9 +100,9 @@ Mat4 Mat4::Scale(FloatType scale) {
 
 Mat4 Mat4::Translation(Vec3 translation) {
     return Mat4(
-        {{1.0, 0.0, 0.0, translation.GetX()},
-         {0.0, 1.0, 0.0, translation.GetY()},
-         {0.0, 0.0, 1.0, translation.GetZ()},
+        {{1.0, 0.0, 0.0, translation.X()},
+         {0.0, 1.0, 0.0, translation.Y()},
+         {0.0, 0.0, 1.0, translation.Z()},
          {0.0, 0.0, 0.0, 1.0}}
     );
 }
@@ -116,26 +114,24 @@ Mat4 Mat4::Translation(FloatType translation_x, FloatType translation_y, FloatTy
 Mat4 Mat4::Rotation(Vec3 axis, FloatType angle) {
     axis.Normalize();
 
-    const FloatType x = axis.GetX();
-    const FloatType y = axis.GetY();
-    const FloatType z = axis.GetZ();
+    const FloatType x = axis.X();
+    const FloatType y = axis.Y();
+    const FloatType z = axis.Z();
     const FloatType c = cos(angle);
+    const FloatType ic = 1.0 - c;
     const FloatType s = sin(angle);
 
     return Mat4(
-        {{c + x * x * (1.0 - c), x * y * (1.0 - c) - z * s, x * z * (1.0 - c) + y * s, 0.0},
-         {y * x * (1.0 - c) + z * s, c + y * y * (1.0 - c), y * z * (1.0 - c) - x * s, 0.0},
-         {z * x * (1.0 - c) - y * s, z * y * (1.0 - c) + x * s, c + z * z * (1.0 - c), 0.0},
+        {{c + x * x * ic, x * y * ic - z * s, x * z * ic + y * s, 0.0},
+         {y * x * ic + z * s, c + y * y * ic, y * z * ic - x * s, 0.0},
+         {z * x * ic - y * s, z * y * ic + x * s, c + z * z * ic, 0.0},
          {0.0, 0.0, 0.0, 1.0}}
     );
 }
 
 Mat4 Mat4::Basis(Vec3 x, Vec3 y, Vec3 z) {
     return Mat4(
-        {{x.GetX(), y.GetX(), z.GetX(), 0.0},
-         {x.GetY(), y.GetY(), z.GetY(), 0.0},
-         {x.GetZ(), y.GetZ(), z.GetZ(), 0.0},
-         {0.0, 0.0, 0.0, 1.0}}
+        {{x.X(), y.X(), z.X(), 0.0}, {x.Y(), y.Y(), z.Y(), 0.0}, {x.Z(), y.Z(), z.Z(), 0.0}, {0.0, 0.0, 0.0, 1.0}}
     );
 }
 

@@ -14,11 +14,11 @@ FloatType& Vec2::Y() {
     return y_;
 }
 
-FloatType Vec2::GetX() const {
+FloatType Vec2::X() const {
     return x_;
 }
 
-FloatType Vec2::GetY() const {
+FloatType Vec2::Y() const {
     return y_;
 }
 
@@ -114,6 +114,10 @@ Vec2 operator/(Vec2 vector, Vec2 other) {
     return vector;
 }
 
+bool Vec2::IsZero() const {
+    return Equal(x_, 0.0) && Equal(y_, 0.0);
+}
+
 FloatType Vec2::Length() const {
     return std::sqrt(x_ * x_ + y_ * y_);
 }
@@ -135,6 +139,14 @@ FloatType Vec2::VectorProd(Vec2 other) const {
     return y_ * other.x_ - x_ * other.y_;
 }
 
+Vec2& Vec2::Clamp(FloatType min_value, FloatType max_value) {
+    assert(min_value <= max_value && "Invalid clamp parameters");
+
+    x_ = std::min(max_value, std::max(min_value, x_));
+    y_ = std::min(max_value, std::max(min_value, y_));
+    return *this;
+}
+
 Vec2 operator+(FloatType offset, Vec2 vector) {
     return vector + offset;
 }
@@ -144,7 +156,7 @@ Vec2 operator*(FloatType scale, Vec2 vector) {
 }
 
 std::ostream& operator<<(std::ostream& out, Vec2 vector) {
-    out << "(" << vector.GetX() << ", " << vector.GetY() << ")";
+    out << "(" << vector.X() << ", " << vector.Y() << ")";
     return out;
 }
 

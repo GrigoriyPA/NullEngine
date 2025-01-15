@@ -7,8 +7,8 @@
 namespace null_engine {
 
 Vec3::Vec3(Vec2 xy, FloatType z)
-    : x_(xy.GetX())
-    , y_(xy.GetY())
+    : x_(xy.X())
+    , y_(xy.Y())
     , z_(z) {
 }
 
@@ -28,31 +28,31 @@ FloatType& Vec3::H() {
     return h_;
 }
 
-FloatType Vec3::GetX() const {
+FloatType Vec3::X() const {
     return x_;
 }
 
-FloatType Vec3::GetY() const {
+FloatType Vec3::Y() const {
     return y_;
 }
 
-FloatType Vec3::GetZ() const {
+FloatType Vec3::Z() const {
     return z_;
 }
 
-FloatType Vec3::GetH() const {
+FloatType Vec3::H() const {
     return h_;
 }
 
-Vec2 Vec3::GetXY() const {
+Vec2 Vec3::XY() const {
     return Vec2(x_, y_);
 }
 
-Vec2 Vec3::GetXZ() const {
+Vec2 Vec3::XZ() const {
     return Vec2(x_, z_);
 }
 
-Vec2 Vec3::GetYZ() const {
+Vec2 Vec3::YZ() const {
     return Vec2(y_, z_);
 }
 
@@ -152,6 +152,10 @@ Vec3 operator/(Vec3 vector, Vec3 other) {
     return vector;
 }
 
+bool Vec3::IsZero() const {
+    return Equal(x_, 0.0) && Equal(y_, 0.0) && Equal(z_, 0.0);
+}
+
 FloatType Vec3::Length() const {
     return std::sqrt(x_ * x_ + y_ * y_ + z_ * z_);
 }
@@ -199,7 +203,7 @@ Vec3 operator*(FloatType scale, Vec3 vector) {
 }
 
 std::ostream& operator<<(std::ostream& out, Vec3 vector) {
-    out << "(" << vector.GetX() << ", " << vector.GetY() << ", " << vector.GetZ() << ") [" << vector.GetH() << "]";
+    out << "(" << vector.X() << ", " << vector.Y() << ", " << vector.Z() << ") [" << vector.H() << "]";
     return out;
 }
 

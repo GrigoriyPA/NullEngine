@@ -4,8 +4,17 @@
 
 namespace null_engine {
 
-struct VertexParams {
+class VertexParams {
+public:
     Vec3 color;
+
+    VertexParams& operator+=(const VertexParams& other);
+
+    VertexParams& operator-=(const VertexParams& other);
+
+    VertexParams& operator*=(FloatType scale);
+
+    VertexParams& operator/=(FloatType scale);
 };
 
 struct Vertex {

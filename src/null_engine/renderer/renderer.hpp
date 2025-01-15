@@ -18,6 +18,9 @@ struct RendererSettings {
 };
 
 class Renderer {
+    using RasterizerBuffer = detail::RasterizerBuffer;
+    using Rasterizer = detail::Rasterizer;
+
 public:
     using TextureData = std::vector<uint8_t>;
 

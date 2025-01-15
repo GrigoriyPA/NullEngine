@@ -9,13 +9,13 @@ namespace {
 bool ApplyNdcTransform(Vec3& position, const Mat4& ndc_transform) {
     position = ndc_transform.Apply(position);
 
-    const auto h = position.GetH();
+    const auto h = position.H();
     if (Equal(h, 0.0)) {
         return false;
     }
 
-    position /= position.GetH();
-    position.H() = 1.0 / position.GetH();
+    position /= position.H();
+    position.H() = 1.0 / position.H();
     return true;
 }
 
