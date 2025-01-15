@@ -28,7 +28,6 @@ Scene CreateScene() {
         VerticesObject(3 * number_triangles, VerticesObject::Type::Triangles)
             .SetPositions({point_a, point_b, point_c})
             .SetParams({VertexParams{.color = kRed}, VertexParams{.color = kGreen}, VertexParams{.color = kBlue}})
-            .SetIndices({0, 1, 2})
     );
 
     return scene;

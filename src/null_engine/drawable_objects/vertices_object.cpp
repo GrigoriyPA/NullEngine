@@ -7,11 +7,14 @@ namespace null_engine {
 VerticesObject::VerticesObject(uint64_t number_vertices, Type object_type)
     : vertices_(number_vertices)
     , object_type_(object_type) {
-    if (object_type_ == Type::Points) {
-        indices_.resize(number_vertices);
-        for (size_t i = 0; i < indices_.size(); ++i) {
-            indices_[i] = i;
-        }
+    switch (object_type_) {
+        case Type::Points:
+            FillDefaultIndices(number_vertices);
+            break;
+
+        case Type::Triangles:
+            FillDefaultIndices(number_vertices - number_vertices % 3);
+            break;
     }
 }
 
@@ -60,7 +63,7 @@ VerticesObject& VerticesObject::SetParams(const VertexParams& params) {
 }
 
 VerticesObject& VerticesObject::SetIndices(const std::vector<uint64_t>& indices) {
-    assert(ValidateIdices(indices) && "Vertex index too large");
+    assert(ValidateIdicesValues(indices) && "Vertex index too large");
 
     if (object_type_ == Type::Triangles) {
         assert(indices.size() % 3 == 0 && "Invalid number of indices for triangles object type");
@@ -70,13 +73,20 @@ VerticesObject& VerticesObject::SetIndices(const std::vector<uint64_t>& indices)
     return *this;
 }
 
-bool VerticesObject::ValidateIdices(const std::vector<uint64_t>& indices) const {
+bool VerticesObject::ValidateIdicesValues(const std::vector<uint64_t>& indices) const {
     for (const auto index : indices) {
         if (index >= vertices_.size()) {
             return false;
         }
     }
     return true;
+}
+
+void VerticesObject::FillDefaultIndices(size_t indices_size) {
+    indices_.resize(indices_size);
+    for (size_t i = 0; i < indices_size; ++i) {
+        indices_[i] = i;
+    }
 }
 
 }  // namespace null_engine

@@ -29,7 +29,9 @@ public:
     VerticesObject& SetIndices(const std::vector<uint64_t>& indices);
 
 private:
-    bool ValidateIdices(const std::vector<uint64_t>& indices) const;
+    bool ValidateIdicesValues(const std::vector<uint64_t>& indices) const;
+
+    void FillDefaultIndices(size_t indices_size);
 
     Type object_type_;
     std::vector<Vertex> vertices_;
