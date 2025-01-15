@@ -38,7 +38,7 @@ void Renderer::SubscribeToTextures(InPort<TextureData>* observer_port) const {
 void Renderer::OnRenderEvent(const RenderEvent& render_event) {
     ClearBuffer();
 
-    const auto& ndc_transform = render_event.camera.GetNdcMat4();
+    const auto& ndc_transform = render_event.camera.GetNdcTransform() * render_event.camera.GetCameraTransform();
     for (const auto& object : render_event.scene.GetObjects()) {
         switch (object.GetObjectType()) {
             case VerticesObject::Type::Points:

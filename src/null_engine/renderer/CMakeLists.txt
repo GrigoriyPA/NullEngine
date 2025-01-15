@@ -14,5 +14,6 @@ target_link_libraries(${TARGET_NAME}
 )
 
 add_subdirectory(camera)
+add_subdirectory(clipping)
 add_subdirectory(consumers)
 add_subdirectory(rasterization)

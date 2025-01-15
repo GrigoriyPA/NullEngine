@@ -56,10 +56,6 @@ void Rasterizer::DrawTriangle(Vertex point_a, Vertex point_b, Vertex point_c, Ra
     const Vec2 pos_b = point_b.position.XY();
     const Vec2 pos_c = point_c.position.XY();
 
-    const Line2 ab_line(pos_a, pos_b);
-    const Line2 bc_line(pos_b, pos_c);
-    const Line2 ac_line(pos_a, pos_c);
-
     const Interpolation interp_a(point_a);
     const Interpolation interp_b(point_b);
     const Interpolation interp_c(point_c);
@@ -71,27 +67,20 @@ void Rasterizer::DrawTriangle(Vertex point_a, Vertex point_b, Vertex point_c, Ra
     if (down_pixel < up_pixel) {
         return;
     }
+
     const uint64_t height = down_pixel - up_pixel + 1;
+    const auto middle_pos = Line2(pos_a, pos_c).IntersectHorizontal(pos_b.Y()).X();
     const bool swap_borders = OrientedArea(pos_a, pos_b, pos_c) < 0.0;
 
     if (up_pixel <= middle_pixel) {
-        const FloatType up_pixel_pos = 1.0 - (up_pixel + 0.5) * pixel_height_;
-        const FloatType middle_pixel_pos = 1.0 - (middle_pixel + 0.5) * pixel_height_;
         const uint64_t number_pixels = middle_pixel - up_pixel + 1;
-
         TriangleBorders::Border left = {
-            .border = DirValue<FloatType>(
-                ac_line.IntersectHorizontal(up_pixel_pos).X(), ac_line.IntersectHorizontal(middle_pixel_pos).X(),
-                number_pixels
-            ),
+            .border = DirValue<FloatType>(pos_a.X(), middle_pos, number_pixels),
             .interpolation = DirValue<Interpolation>(interp_a, interp_c, height)
         };
 
         TriangleBorders::Border right = {
-            .border = DirValue<FloatType>(
-                ab_line.IntersectHorizontal(up_pixel_pos).X(), ab_line.IntersectHorizontal(middle_pixel_pos).X(),
-                number_pixels
-            ),
+            .border = DirValue<FloatType>(pos_a.X(), pos_b.X(), number_pixels),
             .interpolation = DirValue<Interpolation>(interp_a, interp_b, number_pixels)
         };
 
@@ -103,23 +92,14 @@ void Rasterizer::DrawTriangle(Vertex point_a, Vertex point_b, Vertex point_c, Ra
     }
 
     if (middle_pixel < down_pixel) {
-        const FloatType middle_pixel_pos = 1.0 - (middle_pixel + 1.5) * pixel_height_;
-        const FloatType down_pixel_pos = 1.0 - (down_pixel + 0.5) * pixel_height_;
         const uint64_t number_pixels = down_pixel - middle_pixel;
-
         TriangleBorders::Border left = {
-            .border = DirValue<FloatType>(
-                ac_line.IntersectHorizontal(down_pixel_pos).X(), ac_line.IntersectHorizontal(middle_pixel_pos).X(),
-                number_pixels
-            ),
+            .border = DirValue<FloatType>(pos_c.X(), middle_pos, number_pixels),
             .interpolation = DirValue<Interpolation>(interp_c, interp_a, height)
         };
 
         TriangleBorders::Border right = {
-            .border = DirValue<FloatType>(
-                bc_line.IntersectHorizontal(down_pixel_pos).X(), bc_line.IntersectHorizontal(middle_pixel_pos).X(),
-                number_pixels
-            ),
+            .border = DirValue<FloatType>(pos_c.X(), pos_b.X(), number_pixels),
             .interpolation = DirValue<Interpolation>(interp_c, interp_b, number_pixels)
         };
 
@@ -162,9 +142,9 @@ void Rasterizer::RasterizeLine(RsteriztionLine line, RasterizerBuffer& buffer) c
 
         const auto& interpolation = line.GetInterpolation();
         const auto z = interpolation.GetZ();
-        if (!CheckPointDepth(x, y, z, buffer)) {
-            continue;
-        }
+        // if (!CheckPointDepth(x, y, z, buffer)) {
+        //     continue;
+        // }
 
         auto params = interpolation.GetParams();
         params /= interpolation.GetH();

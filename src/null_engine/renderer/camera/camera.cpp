@@ -29,7 +29,7 @@ Vec3 CameraBase::GetVertical() const {
     return horizon_.VectorProd(direction_).Normalize();
 }
 
-Mat4 CameraBase::GetCameraMat4() const {
+Mat4 CameraBase::GetCameraTransform() const {
     const auto vertical = horizon_.VectorProd(direction_);
 
     return Mat4::Basis(horizon_, vertical, direction_).Transpose() * Mat4::Translation(-position_);
@@ -74,16 +74,16 @@ DirectCamera::DirectCamera(FloatType width, FloatType height, FloatType depth)
     : ndc_transform_(Mat4::BoxProjection(width, height, depth)) {
 }
 
-Mat4 DirectCamera::GetNdcMat4() const {
-    return ndc_transform_ * GetCameraMat4();
+Mat4 DirectCamera::GetNdcTransform() const {
+    return ndc_transform_;
 }
 
 PerspectiveCamera::PerspectiveCamera(FloatType fov, FloatType ratio, FloatType min_distance, FloatType max_distance)
     : ndc_transform_(Mat4::PerspectiveProjection(fov, ratio, min_distance, max_distance)) {
 }
 
-Mat4 PerspectiveCamera::GetNdcMat4() const {
-    return ndc_transform_ * GetCameraMat4();
+Mat4 PerspectiveCamera::GetNdcTransform() const {
+    return ndc_transform_;
 }
 
 }  // namespace null_engine
