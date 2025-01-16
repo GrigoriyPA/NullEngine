@@ -27,4 +27,30 @@ VertexParams& VertexParams::operator/=(FloatType scale) {
     return *this;
 }
 
+Vertex& Vertex::operator+=(const Vertex& other) {
+    position += other.position;
+    params += other.params;
+    return *this;
+}
+
+Vertex& Vertex::operator-=(const Vertex& other) {
+    position -= other.position;
+    params -= other.params;
+    return *this;
+}
+
+Vertex& Vertex::operator*=(FloatType scale) {
+    position *= scale;
+    params *= scale;
+    return *this;
+}
+
+Vertex& Vertex::operator/=(FloatType scale) {
+    assert(!Equal(scale, 0.0) && "Division by zero");
+
+    position /= scale;
+    params /= scale;
+    return *this;
+}
+
 }  // namespace null_engine

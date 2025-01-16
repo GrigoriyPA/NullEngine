@@ -5,6 +5,15 @@
 
 namespace null_engine::detail {
 
+namespace {
+
+void PerspectiveDivision(Vec4& position) {
+    position /= position.H();
+    position.H() = 1.0 / position.H();
+}
+
+}  // anonymous namespace
+
 Rasterizer::Rasterizer(uint64_t view_width, uint64_t view_height)
     : view_width_(view_width)
     , view_height_(view_height)
@@ -13,7 +22,8 @@ Rasterizer::Rasterizer(uint64_t view_width, uint64_t view_height)
 }
 
 void Rasterizer::DrawPoint(const Vertex& point, RasterizerBuffer& buffer) const {
-    const Vec3& position = point.position;
+    auto position = point.position;
+    PerspectiveDivision(position);
 
     const int64_t x = (position.X() + 1.0) / pixel_width_;
     const int64_t y = (1.0 - position.Y()) / pixel_height_;
@@ -30,6 +40,10 @@ void Rasterizer::DrawPoint(const Vertex& point, RasterizerBuffer& buffer) const 
 }
 
 void Rasterizer::DrawTriangle(Vertex point_a, Vertex point_b, Vertex point_c, RasterizerBuffer& buffer) const {
+    PerspectiveDivision(point_a.position);
+    PerspectiveDivision(point_b.position);
+    PerspectiveDivision(point_c.position);
+
     if (point_a.position.Y() < point_b.position.Y()) {
         std::swap(point_a, point_b);
     }

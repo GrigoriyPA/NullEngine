@@ -4,15 +4,6 @@
 
 namespace null_engine {
 
-namespace {
-
-void PerspectiveDivision(Vec3& position) {
-    position /= position.H();
-    position.H() = 1.0 / position.H();
-}
-
-}  // anonymous namespace
-
 Renderer::Renderer(const RendererSettings& settings)
     : settings_(settings)
     , rasterizer_(settings.view_width, settings.view_height)
@@ -53,7 +44,6 @@ void Renderer::RenderPointsObject(const VerticesObject& object, const Mat4& ndc_
         point.position = ndc_transform.Apply(point.position);
 
         if (!Equal(point.position.H(), 0.0)) {
-            PerspectiveDivision(point.position);
             rasterizer_.DrawPoint(point, buffer_);
         }
     }
@@ -68,11 +58,7 @@ void Renderer::RenderTrianglesObject(const VerticesObject& object, const Mat4& n
         vertices.emplace_back(ndc_transform.Apply(vertex.position), vertex.params);
     }
 
-    auto clipped = clipper_.ClipTriangles(std::move(vertices), object.GetTriangleIndices());
-    for (auto& vertex : clipped.vertices) {
-        PerspectiveDivision(vertex.position);
-    }
-
+    const auto clipped = clipper_.ClipTriangles(std::move(vertices), object.GetTriangleIndices());
     for (auto [point_a, point_b, point_c] : clipped.indices) {
         rasterizer_.DrawTriangle(
             clipped.vertices[point_a], clipped.vertices[point_b], clipped.vertices[point_c], buffer_

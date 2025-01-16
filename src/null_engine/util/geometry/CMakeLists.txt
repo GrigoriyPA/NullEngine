@@ -6,6 +6,7 @@ add_library(${TARGET_NAME}
     matrix4.cpp
     vector2.cpp
     vector3.cpp
+    vector4.cpp
 )
 
 target_link_libraries(${TARGET_NAME}

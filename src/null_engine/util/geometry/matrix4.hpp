@@ -2,7 +2,7 @@
 
 #include <array>
 
-#include "vector3.hpp"
+#include "vector4.hpp"
 
 namespace null_engine {
 
@@ -25,6 +25,8 @@ public:
     static Mat4 Transpose(const Mat4& other);
 
     Vec3 Apply(Vec3 vector) const;
+
+    Vec4 Apply(Vec4 vector) const;
 
     static Mat4 Scale(Vec3 scale);
 

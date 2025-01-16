@@ -10,8 +10,8 @@ namespace null_engine::tests {
 
 namespace {
 
-constexpr uint64_t kViewWidth = 1000;
-constexpr uint64_t kViewHeight = 1000;
+constexpr uint64_t kViewWidth = 800;
+constexpr uint64_t kViewHeight = 800;
 
 }  // anonymous namespace
 

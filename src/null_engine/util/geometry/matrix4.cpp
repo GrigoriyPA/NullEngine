@@ -67,12 +67,16 @@ Mat4 Mat4::Transpose(const Mat4& other) {
 }
 
 Vec3 Mat4::Apply(Vec3 vector) const {
-    FloatType transformed[kSize];
+    return Apply(Vec4(vector, 1.0)).XYZ();
+}
+
+Vec4 Mat4::Apply(Vec4 vector) const {
+    std::array<FloatType, 4> transformed;
     for (uint32_t i = 0; i < kSize; ++i) {
         transformed[i] = matrix_[i][0] * vector.X() + matrix_[i][1] * vector.Y() + matrix_[i][2] * vector.Z() +
                          matrix_[i][3] * vector.H();
     }
-    return Vec3(transformed[0], transformed[1], transformed[2], transformed[3]);
+    return Vec4(transformed[0], transformed[1], transformed[2], transformed[3]);
 }
 
 void Mat4::Fill(FloatType valie) {

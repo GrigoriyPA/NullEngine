@@ -64,7 +64,7 @@ VerticesObject& VerticesObject::SetPositions(const std::vector<Vec3>& positions)
     assert(positions.size() == vertices_.size() && "Number of positions and verticies should be equal");
 
     for (size_t i = 0; i < vertices_.size(); ++i) {
-        vertices_[i].position = positions[i];
+        vertices_[i].position = Vec4(positions[i], 1.0);
     }
     return *this;
 }

@@ -16,13 +16,6 @@ public:
         , z_(z) {
     }
 
-    constexpr Vec3(FloatType x, FloatType y, FloatType z, FloatType h)
-        : x_(x)
-        , y_(y)
-        , z_(z)
-        , h_(h) {
-    }
-
     constexpr static Vec3 Ident(FloatType size) {
         return Vec3(size, size, size);
     }
@@ -30,16 +23,12 @@ public:
     FloatType& X();
     FloatType& Y();
     FloatType& Z();
-    FloatType& H();
 
     FloatType X() const;
     FloatType Y() const;
     FloatType Z() const;
-    FloatType H() const;
 
     Vec2 XY() const;
-    Vec2 XZ() const;
-    Vec2 YZ() const;
 
     Vec3& operator+=(FloatType offset);
     friend Vec3 operator+(Vec3 vector, FloatType offset);
@@ -79,7 +68,6 @@ private:
     FloatType x_ = 0.0;
     FloatType y_ = 0.0;
     FloatType z_ = 0.0;
-    FloatType h_ = 1.0;
 };
 
 Vec3 operator+(FloatType offset, Vec3 vector);

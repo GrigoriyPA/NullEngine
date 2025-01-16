@@ -24,10 +24,6 @@ FloatType& Vec3::Z() {
     return z_;
 }
 
-FloatType& Vec3::H() {
-    return h_;
-}
-
 FloatType Vec3::X() const {
     return x_;
 }
@@ -40,20 +36,8 @@ FloatType Vec3::Z() const {
     return z_;
 }
 
-FloatType Vec3::H() const {
-    return h_;
-}
-
 Vec2 Vec3::XY() const {
     return Vec2(x_, y_);
-}
-
-Vec2 Vec3::XZ() const {
-    return Vec2(x_, z_);
-}
-
-Vec2 Vec3::YZ() const {
-    return Vec2(y_, z_);
 }
 
 Vec3& Vec3::operator+=(FloatType offset) {
@@ -101,7 +85,7 @@ Vec3 operator-(Vec3 vector, Vec3 other) {
 }
 
 Vec3 Vec3::operator-() const {
-    return Vec3(-x_, -y_, -z_, h_);
+    return Vec3(-x_, -y_, -z_);
 }
 
 Vec3& Vec3::operator*=(FloatType scale) {
@@ -203,7 +187,7 @@ Vec3 operator*(FloatType scale, Vec3 vector) {
 }
 
 std::ostream& operator<<(std::ostream& out, Vec3 vector) {
-    out << "(" << vector.X() << ", " << vector.Y() << ", " << vector.Z() << ") [" << vector.H() << "]";
+    out << "(" << vector.X() << ", " << vector.Y() << ", " << vector.Z() << ")";
     return out;
 }
 

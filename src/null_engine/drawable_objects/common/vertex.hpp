@@ -1,6 +1,6 @@
 #pragma once
 
-#include <null_engine/util/geometry/vector3.hpp>
+#include <null_engine/util/geometry/vector4.hpp>
 
 namespace null_engine {
 
@@ -17,9 +17,18 @@ public:
     VertexParams& operator/=(FloatType scale);
 };
 
-struct Vertex {
-    Vec3 position;
+class Vertex {
+public:
+    Vec4 position;
     VertexParams params;
+
+    Vertex& operator+=(const Vertex& other);
+
+    Vertex& operator-=(const Vertex& other);
+
+    Vertex& operator*=(FloatType scale);
+
+    Vertex& operator/=(FloatType scale);
 };
 
 }  // namespace null_engine
