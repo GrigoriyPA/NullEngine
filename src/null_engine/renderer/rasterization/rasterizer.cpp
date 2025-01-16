@@ -5,18 +5,6 @@
 
 namespace null_engine::detail {
 
-namespace {
-
-VertexParams Interpolate(
-    const VertexParams& point_a, const VertexParams& point_b, const VertexParams& point_c, Vec3 perspective
-) {
-    const auto color =
-        point_a.color * perspective.X() + point_b.color * perspective.Y() + point_c.color * perspective.Z();
-    return {.color = color};
-}
-
-}  // anonymous namespace
-
 Rasterizer::Rasterizer(uint64_t view_width, uint64_t view_height)
     : view_width_(view_width)
     , view_height_(view_height)
@@ -142,9 +130,9 @@ void Rasterizer::RasterizeLine(RsteriztionLine line, RasterizerBuffer& buffer) c
 
         const auto& interpolation = line.GetInterpolation();
         const auto z = interpolation.GetZ();
-        // if (!CheckPointDepth(x, y, z, buffer)) {
-        //     continue;
-        // }
+        if (!CheckPointDepth(x, y, z, buffer)) {
+            continue;
+        }
 
         auto params = interpolation.GetParams();
         params /= interpolation.GetH();

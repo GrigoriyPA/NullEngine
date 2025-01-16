@@ -15,11 +15,22 @@ VerticesObject::VerticesObject(uint64_t number_vertices, Type object_type)
         case Type::Triangles:
             FillDefaultIndices(number_vertices - number_vertices % 3);
             break;
+
+        case Type::TriangleStrip:
+        case Type::TriangleFan:
+            if (number_vertices >= 3) {
+                FillDefaultIndices(number_vertices);
+            }
+            break;
     }
 }
 
 VerticesObject::Type VerticesObject::GetObjectType() const {
     return object_type_;
+}
+
+size_t VerticesObject::GetNumberVertices() const {
+    return vertices_.size();
 }
 
 const std::vector<Vertex>& VerticesObject::GetVertices() const {
@@ -28,6 +39,18 @@ const std::vector<Vertex>& VerticesObject::GetVertices() const {
 
 const std::vector<uint64_t>& VerticesObject::GetIndices() const {
     return indices_;
+}
+
+const std::vector<detail::TriangleIndex>& VerticesObject::GetTriangleIndices() const {
+    return triangle_indices_;
+}
+
+bool VerticesObject::IsPointsObject() const {
+    return object_type_ == Type::Points;
+}
+
+bool VerticesObject::IsTrianglesObject() const {
+    return object_type_ == Type::Triangles || object_type_ == Type::TriangleStrip || object_type_ == Type::TriangleFan;
 }
 
 VerticesObject& VerticesObject::SetVertex(uint64_t index, const Vertex& vertex) {
@@ -65,11 +88,9 @@ VerticesObject& VerticesObject::SetParams(const VertexParams& params) {
 VerticesObject& VerticesObject::SetIndices(const std::vector<uint64_t>& indices) {
     assert(ValidateIdicesValues(indices) && "Vertex index too large");
 
-    if (object_type_ == Type::Triangles) {
-        assert(indices.size() % 3 == 0 && "Invalid number of indices for triangles object type");
-    }
-
     indices_ = indices;
+    FillTriangleIndices(indices);
+
     return *this;
 }
 
@@ -83,9 +104,45 @@ bool VerticesObject::ValidateIdicesValues(const std::vector<uint64_t>& indices) 
 }
 
 void VerticesObject::FillDefaultIndices(size_t indices_size) {
-    indices_.resize(indices_size);
+    std::vector<uint64_t> indices(indices_size);
     for (size_t i = 0; i < indices_size; ++i) {
-        indices_[i] = i;
+        indices[i] = i;
+    }
+    SetIndices(indices);
+}
+
+void VerticesObject::FillTriangleIndices(const std::vector<uint64_t>& indices) {
+    triangle_indices_.clear();
+    switch (object_type_) {
+        case Type::Triangles:
+            assert(indices.size() % 3 == 0 && "Invalid number of indices for triangles object type");
+
+            triangle_indices_.reserve(indices.size() / 3);
+            for (size_t i = 0; i < indices.size(); i += 3) {
+                triangle_indices_.emplace_back(indices[i], indices[i + 1], indices[i + 2]);
+            }
+            break;
+
+        case Type::TriangleStrip:
+            assert(indices.size() >= 3 && "Triangles strip should contain at least three indices");
+
+            triangle_indices_.reserve(indices.size() - 2);
+            for (size_t i = 2; i < indices.size(); ++i) {
+                triangle_indices_.emplace_back(indices[i - 2], indices[i - 1], indices[i]);
+            }
+            break;
+
+        case Type::TriangleFan:
+            assert(indices.size() >= 3 && "Triangles fan should contain at least three indices");
+
+            triangle_indices_.reserve(indices.size() - 2);
+            for (size_t i = 2; i < indices.size(); ++i) {
+                triangle_indices_.emplace_back(indices[0], indices[i - 1], indices[i]);
+            }
+            break;
+
+        default:
+            break;
     }
 }
 

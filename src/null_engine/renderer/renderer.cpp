@@ -6,17 +6,9 @@ namespace null_engine {
 
 namespace {
 
-bool ApplyNdcTransform(Vec3& position, const Mat4& ndc_transform) {
-    position = ndc_transform.Apply(position);
-
-    const auto h = position.H();
-    if (Equal(h, 0.0)) {
-        return false;
-    }
-
+void PerspectiveDivision(Vec3& position) {
     position /= position.H();
     position.H() = 1.0 / position.H();
-    return true;
 }
 
 }  // anonymous namespace
@@ -38,16 +30,14 @@ void Renderer::SubscribeToTextures(InPort<TextureData>* observer_port) const {
 void Renderer::OnRenderEvent(const RenderEvent& render_event) {
     ClearBuffer();
 
-    const auto& ndc_transform = render_event.camera.GetNdcTransform() * render_event.camera.GetCameraTransform();
+    const auto& ndc_transform = render_event.camera.GetNdcTransform();
     for (const auto& object : render_event.scene.GetObjects()) {
-        switch (object.GetObjectType()) {
-            case VerticesObject::Type::Points:
-                RenderPointsObject(object, ndc_transform);
-                break;
-
-            case VerticesObject::Type::Triangles:
-                RenderTrianglesObject(object, ndc_transform);
-                break;
+        if (object.IsPointsObject()) {
+            RenderPointsObject(object, ndc_transform);
+        } else if (object.IsTrianglesObject()) {
+            RenderTrianglesObject(object, ndc_transform);
+        } else {
+            assert(false && "Unsupported object type for rendering");
         }
     }
 
@@ -55,43 +45,38 @@ void Renderer::OnRenderEvent(const RenderEvent& render_event) {
 }
 
 void Renderer::RenderPointsObject(const VerticesObject& object, const Mat4& ndc_transform) {
-    assert(object.GetObjectType() == VerticesObject::Type::Points && "Unexpected object type");
+    assert(object.IsPointsObject() && "Unexpected object type");
 
     const auto& vertices = object.GetVertices();
     for (uint64_t index : object.GetIndices()) {
         auto point = vertices[index];
-        if (!ApplyNdcTransform(point.position, ndc_transform)) {
-            continue;
-        }
+        point.position = ndc_transform.Apply(point.position);
 
-        rasterizer_.DrawPoint(point, buffer_);
+        if (!Equal(point.position.H(), 0.0)) {
+            PerspectiveDivision(point.position);
+            rasterizer_.DrawPoint(point, buffer_);
+        }
     }
 }
 
 void Renderer::RenderTrianglesObject(const VerticesObject& object, const Mat4& ndc_transform) {
-    assert(object.GetObjectType() == VerticesObject::Type::Triangles && "Unexpected object type");
+    assert(object.IsTrianglesObject() && "Unexpected object type");
 
-    const auto& vertices = object.GetVertices();
-    const auto& indices = object.GetIndices();
-    assert(indices.size() % 3 == 0 && "Unexpected number of indices for triangles object");
+    std::vector<Vertex> vertices;
+    vertices.reserve(object.GetNumberVertices());
+    for (const auto& vertex : object.GetVertices()) {
+        vertices.emplace_back(ndc_transform.Apply(vertex.position), vertex.params);
+    }
 
-    for (uint64_t i = 0; i < indices.size(); i += 3) {
-        auto point_a = vertices[indices[i]];
-        if (!ApplyNdcTransform(point_a.position, ndc_transform)) {
-            continue;
-        }
+    auto clipped = clipper_.ClipTriangles(std::move(vertices), object.GetTriangleIndices());
+    for (auto& vertex : clipped.vertices) {
+        PerspectiveDivision(vertex.position);
+    }
 
-        auto point_b = vertices[indices[i + 1]];
-        if (!ApplyNdcTransform(point_b.position, ndc_transform)) {
-            continue;
-        }
-
-        auto point_c = vertices[indices[i + 2]];
-        if (!ApplyNdcTransform(point_c.position, ndc_transform)) {
-            continue;
-        }
-
-        rasterizer_.DrawTriangle(point_a, point_b, point_c, buffer_);
+    for (auto [point_a, point_b, point_c] : clipped.indices) {
+        rasterizer_.DrawTriangle(
+            clipped.vertices[point_a], clipped.vertices[point_b], clipped.vertices[point_c], buffer_
+        );
     }
 }
 

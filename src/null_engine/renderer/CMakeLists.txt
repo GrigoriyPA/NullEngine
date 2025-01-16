@@ -6,6 +6,7 @@ add_library(${TARGET_NAME}
 
 target_link_libraries(${TARGET_NAME}
     null-engine-renderer-camera
+    null-engine-renderer-clipping
     null-engine-renderer-consumers
     null-engine-renderer-rasterization
     null-engine-scene

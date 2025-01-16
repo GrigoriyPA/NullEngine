@@ -9,17 +9,13 @@ namespace null_engine {
 struct ICamera {
     template <class Base>
     struct Interface : Base {
-        Mat4 GetCameraTransform() const {
-            return folly::poly_call<0>(*this);
-        }
-
         Mat4 GetNdcTransform() const {
-            return folly::poly_call<1>(*this);
+            return folly::poly_call<0>(*this);
         }
     };
 
     template <class T>
-    using Members = folly::PolyMembers<&T::GetCameraTransform, &T::GetNdcTransform>;
+    using Members = folly::PolyMembers<&T::GetNdcTransform>;
 };
 
 using AnyCamera = folly::Poly<ICamera>;

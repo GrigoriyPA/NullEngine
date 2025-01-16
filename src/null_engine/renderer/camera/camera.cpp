@@ -75,7 +75,7 @@ DirectCamera::DirectCamera(FloatType width, FloatType height, FloatType depth)
 }
 
 Mat4 DirectCamera::GetNdcTransform() const {
-    return ndc_transform_;
+    return ndc_transform_ * GetCameraTransform();
 }
 
 PerspectiveCamera::PerspectiveCamera(FloatType fov, FloatType ratio, FloatType min_distance, FloatType max_distance)
@@ -83,7 +83,7 @@ PerspectiveCamera::PerspectiveCamera(FloatType fov, FloatType ratio, FloatType m
 }
 
 Mat4 PerspectiveCamera::GetNdcTransform() const {
-    return ndc_transform_;
+    return ndc_transform_ * GetCameraTransform();
 }
 
 }  // namespace null_engine

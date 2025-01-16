@@ -20,15 +20,15 @@ Scene CreateScene() {
     const Vec3 second_square_pos(0.0, 0.0, 4.5);
     scene.AddObject(CreatePointsSet(number_points, second_square_pos, square_size, kRed));
 
-    const uint64_t number_triangles = 1;
-    const Vec3 point_a(-0.5, -0.5, 0.5);
-    const Vec3 point_b(0.5, -0.7, 0.5);
-    const Vec3 point_c(0, 0.5, 0.5);
-    scene.AddObject(
-        VerticesObject(3 * number_triangles, VerticesObject::Type::Triangles)
-            .SetPositions({point_a, point_b, point_c})
-            .SetParams({VertexParams{.color = kRed}, VertexParams{.color = kGreen}, VertexParams{.color = kBlue}})
-    );
+    const std::vector<Vec3> triangles_points = {
+        Vec3(-0.5, -0.5, 0.5), Vec3(0.5, -0.7, 0.5), Vec3(0, 0.5, 0.5), Vec3(0.5, 0.5, 1.5)
+    };
+    scene.AddObject(VerticesObject(triangles_points.size(), VerticesObject::Type::TriangleStrip)
+                        .SetPositions(triangles_points)
+                        .SetParams(
+                            {VertexParams{.color = kRed}, VertexParams{.color = kGreen}, VertexParams{.color = kBlue},
+                             VertexParams{.color = kWhite}}
+                        ));
 
     return scene;
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <null_engine/renderer/camera/camera_interface.hpp>
+#include <null_engine/renderer/clipping/clipping.hpp>
 #include <null_engine/renderer/rasterization/rasterizer.hpp>
 #include <null_engine/scene/scene.hpp>
 #include <null_engine/util/mvc/ports.hpp>
@@ -18,6 +19,7 @@ struct RendererSettings {
 };
 
 class Renderer {
+    using Clipper = detail::Clipper;
     using RasterizerBuffer = detail::RasterizerBuffer;
     using Rasterizer = detail::Rasterizer;
 
@@ -40,6 +42,7 @@ private:
     void ClearBuffer();
 
     RendererSettings settings_;
+    Clipper clipper_;
     RasterizerBuffer buffer_;
     Rasterizer rasterizer_;
     InPort<RenderEvent>::Ptr in_render_port_;

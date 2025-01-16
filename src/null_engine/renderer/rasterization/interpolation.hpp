@@ -1,6 +1,6 @@
 #pragma once
 
-#include <null_engine/drawable_objects/vertex.hpp>
+#include <null_engine/drawable_objects/common/vertex.hpp>
 
 namespace null_engine::detail {
 
