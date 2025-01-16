@@ -7,7 +7,6 @@ add_library(${TARGET_NAME}
 target_link_libraries(${TARGET_NAME}
     null-engine-renderer-camera
     null-engine-renderer-clipping
-    null-engine-renderer-consumers
     null-engine-renderer-rasterization
     null-engine-scene
     null-engine-util-geometry
@@ -16,5 +15,4 @@ target_link_libraries(${TARGET_NAME}
 
 add_subdirectory(camera)
 add_subdirectory(clipping)
-add_subdirectory(consumers)
 add_subdirectory(rasterization)

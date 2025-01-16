@@ -1,8 +1,8 @@
 #include "view.hpp"
 
-#include <null_engine/renderer/consumers/texture_rendering_consumer.hpp>
 #include <null_engine/util/interface/helpers/fonts.hpp>
 #include <null_engine/util/interface/objects/fps_display.hpp>
+#include <null_engine/util/interface/objects/texture_rendering_consumer.hpp>
 
 namespace null_engine::tests {
 
