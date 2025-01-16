@@ -14,15 +14,17 @@ class InPort {
     friend class OutPort<Event>;
 
 public:
-    using Ptr = std::unique_ptr<InPort>;
     using EventsHandler = std::function<void(const Event& event)>;
 
     explicit InPort(EventsHandler handler)
         : events_handler_(handler) {
     }
 
-    static InPort::Ptr Make(EventsHandler handler) {
-        return std::make_unique<InPort>(std::move(handler));
+    InPort(const InPort<Event>& other) = delete;
+    InPort& operator=(const InPort<Event>& other) = delete;
+
+    void OnEvent(const Event& event) {
+        events_handler_(event);
     }
 
     ~InPort() {
@@ -30,13 +32,10 @@ public:
     }
 
 private:
-    void OnEvent(const Event& event) {
-        events_handler_(event);
-    }
-
-    void OnSubscribed(OutPort<Event>* out_port) {
+    void OnSubscribed(OutPort<Event>* out_port, const Event& event) {
         DoUnsubscribe();
         subscribed_port_ = out_port;
+        OnEvent(event);
     }
 
     void OnUnsubscribed() {
@@ -58,13 +57,17 @@ class OutPort {
 public:
     using Ptr = std::unique_ptr<OutPort>;
 
+    OutPort() = default;
+    OutPort(const OutPort<Event>& other) = delete;
+    OutPort& operator=(const OutPort<Event>& other) = delete;
+
     static OutPort::Ptr Make() {
         return std::make_unique<OutPort>();
     }
 
-    void Subscribe(InPort<Event>* in_port) {
+    void Subscribe(InPort<Event>* in_port, const Event& event) {
         if (subscriptions_.emplace(in_port).second) {
-            in_port->OnSubscribed(this);
+            in_port->OnSubscribed(this, event);
         }
     }
 

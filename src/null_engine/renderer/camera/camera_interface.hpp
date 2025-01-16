@@ -24,34 +24,17 @@ using AnyCameraRef = folly::Poly<ICamera&>;
 struct IMovableCamera : folly::PolyExtends<ICamera> {
     template <class Base>
     struct Interface : Base {
-        Vec3 GetPosition() const {
-            return folly::poly_call<0>(*this);
+        void Move(FloatType direct_move, FloatType horizon_move, FloatType vertical_move) {
+            folly::poly_call<0>(*this, direct_move, horizon_move, vertical_move);
         }
 
-        Vec3 GetDirection() const {
-            return folly::poly_call<1>(*this);
-        }
-
-        Vec3 GetHorizon() const {
-            return folly::poly_call<2>(*this);
-        }
-
-        Vec3 GetVertical() const {
-            return folly::poly_call<3>(*this);
-        }
-
-        void Move(Vec3 translation) {
-            folly::poly_call<4>(*this, translation);
-        }
-
-        void Rotate(Vec3 axis, FloatType angle) {
-            folly::poly_call<5>(*this, axis, angle);
+        void Rotate(FloatType yaw_rotation, FloatType pitch_rotation, FloatType roll_rotation) {
+            folly::poly_call<1>(*this, yaw_rotation, pitch_rotation, roll_rotation);
         }
     };
 
     template <class T>
-    using Members =
-        folly::PolyMembers<&T::GetPosition, &T::GetDirection, &T::GetHorizon, &T::GetVertical, &T::Move, &T::Rotate>;
+    using Members = folly::PolyMembers<&T::Move, &T::Rotate>;
 };
 
 using AnyMovableCamera = folly::Poly<IMovableCamera>;

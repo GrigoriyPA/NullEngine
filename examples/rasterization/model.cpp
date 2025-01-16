@@ -47,28 +47,35 @@ AnyMovableCamera CreateCamera(uint64_t view_width, uint64_t view_height) {
 Model::Model(uint64_t view_width, uint64_t view_height)
     : scene_(CreateScene())
     , camera_(CreateCamera(view_width, view_height))
-    , camera_control_(camera_)
     , renderer_({view_width, view_height})
-    , in_refresh_port_(InPort<FloatType>::Make(std::bind(&Model::OnRefresh, this, std::placeholders::_1))) {
-    out_refresh_port_->Subscribe(camera_control_.GetRefreshPort());
-    out_render_port_->Subscribe(renderer_.GetRenderPort());
+    , in_texture_port_(std::bind(&Model::OnRenderedTexture, this, std::placeholders::_1)) {
+    renderer_.SubscribeToTextures(&in_texture_port_);
 }
 
-InPort<FloatType>* Model::GetRefreshPort() const {
-    return in_refresh_port_.get();
+void Model::SubscribeToDrawEvents(InPort<DrawViewEvent>* observer_port) const {
+    out_draw_event_port_->Subscribe(
+        observer_port, {.delta_time = current_delta_time_, .render_texture = current_texture_}
+    );
 }
 
-InPort<Vec2>* Model::GetMouseMovePort() const {
-    return camera_control_.GetMouseMovePort();
+void Model::DoRendering() {
+    renderer_.GetRenderPort()->OnEvent({.scene = scene_, .camera = camera_});
 }
 
-void Model::SubscribeToTextures(InPort<TextureData>* observer_port) const {
-    renderer_.SubscribeToTextures(observer_port);
+void Model::MoveCamera(const CameraChange& camera_change) {
+    camera_.Move(camera_change.move.direct_move, camera_change.move.horizon_move, camera_change.move.vertical_move);
+    camera_.Rotate(
+        camera_change.rotate.yaw_rotation, camera_change.rotate.pitch_rotation, camera_change.rotate.roll_rotation
+    );
 }
 
-void Model::OnRefresh(FloatType delta_time) const {
-    out_refresh_port_->Notify(delta_time);
-    out_render_port_->Notify({.scene = scene_, .camera = camera_});
+void Model::Refresh(FloatType delta_time) {
+    current_delta_time_ = delta_time;
+}
+
+void Model::OnRenderedTexture(const TextureData& texture) {
+    current_texture_ = texture;
+    out_draw_event_port_->Notify({.delta_time = current_delta_time_, .render_texture = texture});
 }
 
 }  // namespace null_engine::tests

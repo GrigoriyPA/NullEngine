@@ -16,10 +16,11 @@ class FPSDisplay : public sf::Drawable {
 public:
     FPSDisplay(FPSDisplaySettings settings, const sf::Font& font);
 
-    InPort<FloatType>* GetRefreshPort() const;
+    InPort<FloatType>* GetRefreshPort();
 
     FPSDisplay& SetPosition(sf::Vector2f position);
 
+protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
 private:
@@ -27,12 +28,11 @@ private:
 
     void SetFPS(FloatType fps);
 
-private:
     FloatType update_period_;
     sf::Text display_text_;
     FloatType spent_time_ = 0.0;
     uint64_t number_flips_ = 0;
-    InPort<FloatType>::Ptr in_refresh_port_;
+    InPort<FloatType> in_refresh_port_;
 };
 
 }  // namespace null_engine

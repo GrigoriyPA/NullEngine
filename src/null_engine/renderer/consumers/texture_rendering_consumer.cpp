@@ -9,17 +9,17 @@ namespace null_engine {
 
 TextureRenderingConsumer::TextureRenderingConsumer(sf::Texture& texture)
     : texture_(texture)
-    , in_texture_port_(InPort<TextureData>::Make(
-          std::bind(&TextureRenderingConsumer::OnRenderedTexture, this, std::placeholders::_1)
-      )) {
+    , in_texture_port_(std::bind(&TextureRenderingConsumer::OnRenderedTexture, this, std::placeholders::_1)) {
 }
 
-InPort<TextureRenderingConsumer::TextureData>* TextureRenderingConsumer::GetTexturePort() const {
-    return in_texture_port_.get();
+InPort<TextureRenderingConsumer::TextureData>* TextureRenderingConsumer::GetTexturePort() {
+    return &in_texture_port_;
 }
 
 void TextureRenderingConsumer::OnRenderedTexture(const TextureData& texture) {
-    texture_.update(texture.data());
+    if (!texture.empty()) {
+        texture_.update(texture.data());
+    }
 }
 
 WindowRenderingConsumer::WindowRenderingConsumer(uint64_t width, uint64_t height)

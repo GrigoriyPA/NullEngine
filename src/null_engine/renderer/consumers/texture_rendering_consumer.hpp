@@ -1,9 +1,7 @@
 #pragma once
 
-#include <SFML/Graphics/Drawable.hpp>
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Texture.hpp>
-#include <null_engine/renderer/rasterization/rasterizer.hpp>
 #include <null_engine/util/mvc/ports.hpp>
 
 namespace null_engine {
@@ -14,13 +12,13 @@ public:
 
     explicit TextureRenderingConsumer(sf::Texture& texture);
 
-    InPort<TextureData>* GetTexturePort() const;
+    InPort<TextureData>* GetTexturePort();
 
 private:
     void OnRenderedTexture(const TextureData& texture);
 
     sf::Texture& texture_;
-    InPort<TextureData>::Ptr in_texture_port_;
+    InPort<TextureData> in_texture_port_;
 };
 
 class WindowRenderingConsumer : public TextureRenderingConsumer, public sf::Drawable {
@@ -29,6 +27,7 @@ class WindowRenderingConsumer : public TextureRenderingConsumer, public sf::Draw
 public:
     WindowRenderingConsumer(uint64_t width, uint64_t height);
 
+protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
 private:

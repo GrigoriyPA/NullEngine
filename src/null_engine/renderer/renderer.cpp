@@ -16,15 +16,15 @@ void PerspectiveDivision(Vec3& position) {
 Renderer::Renderer(const RendererSettings& settings)
     : settings_(settings)
     , rasterizer_(settings.view_width, settings.view_height)
-    , in_render_port_(InPort<RenderEvent>::Make(std::bind(&Renderer::OnRenderEvent, this, std::placeholders::_1))) {
+    , in_render_port_(std::bind(&Renderer::OnRenderEvent, this, std::placeholders::_1)) {
 }
 
-InPort<RenderEvent>* Renderer::GetRenderPort() const {
-    return in_render_port_.get();
+InPort<RenderEvent>* Renderer::GetRenderPort() {
+    return &in_render_port_;
 }
 
 void Renderer::SubscribeToTextures(InPort<TextureData>* observer_port) const {
-    out_texture_port_->Subscribe(observer_port);
+    out_texture_port_->Subscribe(observer_port, buffer_.colors);
 }
 
 void Renderer::OnRenderEvent(const RenderEvent& render_event) {

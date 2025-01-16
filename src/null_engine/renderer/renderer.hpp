@@ -28,7 +28,7 @@ public:
 
     explicit Renderer(const RendererSettings& settings);
 
-    InPort<RenderEvent>* GetRenderPort() const;
+    InPort<RenderEvent>* GetRenderPort();
 
     void SubscribeToTextures(InPort<TextureData>* observer_port) const;
 
@@ -45,7 +45,7 @@ private:
     Clipper clipper_;
     RasterizerBuffer buffer_;
     Rasterizer rasterizer_;
-    InPort<RenderEvent>::Ptr in_render_port_;
+    InPort<RenderEvent> in_render_port_;
     OutPort<TextureData>::Ptr out_texture_port_ = OutPort<TextureData>::Make();
 };
 

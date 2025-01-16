@@ -57,15 +57,25 @@ CameraBase& CameraBase::SetOrientation(Vec3 direction, Vec3 horizon) {
     return *this;
 }
 
-void CameraBase::Move(Vec3 translation) {
+void CameraBase::MoveGlobal(Vec3 translation) {
     position_ += translation;
 }
 
-void CameraBase::Rotate(Vec3 axis, FloatType angle) {
+void CameraBase::Move(FloatType direct_move, FloatType horizon_move, FloatType vertical_move) {
+    MoveGlobal(direction_ * direct_move + horizon_ * horizon_move + GetVertical() * vertical_move);
+}
+
+void CameraBase::RotateGlobal(Vec3 axis, FloatType angle) {
     const auto transform = Mat4::Rotation(axis, angle);
 
     direction_ = transform.Apply(direction_);
     horizon_ = transform.Apply(horizon_);
+}
+
+void CameraBase::Rotate(FloatType yaw_rotation, FloatType pitch_rotation, FloatType roll_rotation) {
+    RotateGlobal(GetVertical(), yaw_rotation);
+    RotateGlobal(horizon_, pitch_rotation);
+    RotateGlobal(direction_, roll_rotation);
 }
 
 }  // namespace detail

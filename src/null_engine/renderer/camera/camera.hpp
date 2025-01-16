@@ -26,9 +26,13 @@ public:
 
     CameraBase& SetOrientation(Vec3 direction, Vec3 horizon);
 
-    void Move(Vec3 translation);
+    void MoveGlobal(Vec3 translation);
 
-    void Rotate(Vec3 axis, FloatType angle);
+    void Move(FloatType direct_move, FloatType horizon_move, FloatType vertical_move);
+
+    void RotateGlobal(Vec3 axis, FloatType angle);
+
+    void Rotate(FloatType yaw_rotation, FloatType pitch_rotation, FloatType roll_rotation);
 
 private:
     Vec3 position_;

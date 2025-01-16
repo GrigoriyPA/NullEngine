@@ -8,7 +8,7 @@ namespace null_engine {
 
 FPSDisplay::FPSDisplay(FPSDisplaySettings settings, const sf::Font& font)
     : update_period_(settings.update_period)
-    , in_refresh_port_(InPort<FloatType>::Make(std::bind(&FPSDisplay::OnRefresh, this, std::placeholders::_1))) {
+    , in_refresh_port_(std::bind(&FPSDisplay::OnRefresh, this, std::placeholders::_1)) {
     display_text_.setFont(font);
     display_text_.setFillColor(settings.text_color);
     display_text_.setCharacterSize(settings.font_size);
@@ -16,8 +16,8 @@ FPSDisplay::FPSDisplay(FPSDisplaySettings settings, const sf::Font& font)
     SetFPS(0);
 }
 
-InPort<FloatType>* FPSDisplay::GetRefreshPort() const {
-    return in_refresh_port_.get();
+InPort<FloatType>* FPSDisplay::GetRefreshPort() {
+    return &in_refresh_port_;
 }
 
 FPSDisplay& FPSDisplay::SetPosition(sf::Vector2f position) {

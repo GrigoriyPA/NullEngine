@@ -1,5 +1,7 @@
 #include "application.hpp"
 
+#include <SFML/Window/Event.hpp>
+
 #include "controller.hpp"
 #include "model.hpp"
 #include "view.hpp"
@@ -17,30 +19,34 @@ class Application::Impl {
 public:
     Impl()
         : window_(sf::VideoMode(kViewWidth, kViewHeight), "Native quick start example")
-        , controller_(window_)
         , model_(kViewWidth, kViewHeight)
+        , controller_(window_, &model_)
         , view_(window_) {
-        out_refresh_port_->Subscribe(controller_.GetRefreshPort());
-        out_refresh_port_->Subscribe(model_.GetRefreshPort());
-        out_refresh_port_->Subscribe(view_.GetRefreshPort());
-
-        controller_.SubscribeToMouseMove(model_.GetMouseMovePort());
-        model_.SubscribeToTextures(view_.GetTexturePort());
+        model_.SubscribeToDrawEvents(view_.GetDrawEventsPort());
     }
 
     void Run() {
         sf::Clock timer;
         while (window_.isOpen()) {
-            out_refresh_port_->Notify(timer.restart().asSeconds());
+            for (sf::Event event; window_.pollEvent(event);) {
+                if (event.type == sf::Event::Closed ||
+                    (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::Escape)) {
+                    window_.close();
+                    return;
+                }
+
+                controller_.AddEvent(event);
+            }
+            controller_.AddRefresh(timer.restart().asSeconds());
+            controller_.Apply();
         }
     }
 
 private:
     sf::RenderWindow window_;
-    Controller controller_;
     Model model_;
+    Controller controller_;
     View view_;
-    OutPort<FloatType>::Ptr out_refresh_port_ = OutPort<FloatType>::Make();
 };
 
 Application::Application()

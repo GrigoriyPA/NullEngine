@@ -2,30 +2,28 @@
 
 #include <SFML/Graphics/Font.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
-#include <null_engine/renderer/consumers/texture_rendering_consumer.hpp>
-#include <null_engine/util/interface/fps_display.hpp>
+#include <null_engine/util/interface/gui_interface.hpp>
+#include <null_engine/util/mvc/ports.hpp>
+
+#include "events.hpp"
 
 namespace null_engine::tests {
 
 class View {
 public:
-    using TextureData = std::vector<uint8_t>;
-
     explicit View(sf::RenderWindow& window);
 
-    InPort<FloatType>* GetRefreshPort() const;
-
-    InPort<TextureData>* GetTexturePort() const;
+    InPort<DrawViewEvent>* GetDrawEventsPort();
 
 private:
-    void OnRefresh(FloatType delta_time) const;
+    void OnDrawEvent(const DrawViewEvent& draw_event) const;
 
     sf::RenderWindow& window_;
     sf::Font font_;
-    WindowRenderingConsumer rendering_consumer_;
-    FPSDisplay fps_display_;
-    InPort<FloatType>::Ptr in_refresh_port_;
+    GuiInterface interface_;
+    InPort<DrawViewEvent> in_draw_event_port_;
     OutPort<FloatType>::Ptr out_refresh_port_ = OutPort<FloatType>::Make();
+    OutPort<TextureData>::Ptr out_texture_port_ = OutPort<TextureData>::Make();
 };
 
 }  // namespace null_engine::tests

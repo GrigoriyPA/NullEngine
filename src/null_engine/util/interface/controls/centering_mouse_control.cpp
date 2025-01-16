@@ -4,22 +4,22 @@
 
 namespace null_engine {
 
-CenteringMouseControl::CenteringMouseControl(sf::RenderWindow& window)
+CenteringMouseControl::CenteringMouseControl(sf::RenderWindow& window, const CenteringMouseSettings& settings)
     : window_(window)
+    , settings_(settings)
     , window_width_(window_.getSize().x)
     , window_height_(window_.getSize().y)
-    , in_events_port_(InPort<sf::Event>::Make(std::bind(&CenteringMouseControl::OnEvent, this, std::placeholders::_1))
-      ) {
+    , in_events_port_(std::bind(&CenteringMouseControl::OnEvent, this, std::placeholders::_1)) {
     window_.setMouseCursorVisible(false);
     CenteringMouse();
 }
 
-InPort<sf::Event>* CenteringMouseControl::GetEventsPort() const {
-    return in_events_port_.get();
+InPort<sf::Event>* CenteringMouseControl::GetEventsPort() {
+    return &in_events_port_;
 }
 
-void CenteringMouseControl::SubscribeOnMouseMove(InPort<Vec2>* observer_port) const {
-    out_mouse_move_port_->Subscribe(observer_port);
+void CenteringMouseControl::SubscribeOnCameraChange(InPort<CameraChange>* observer_port) const {
+    out_camera_change_port_->Subscribe(observer_port, {});
 }
 
 void CenteringMouseControl::OnEvent(const sf::Event& event) const {
@@ -27,8 +27,10 @@ void CenteringMouseControl::OnEvent(const sf::Event& event) const {
         return;
     }
 
-    Vec2 mouse_move(event.mouseMove.x - window_width_ / 2, event.mouseMove.y - window_height_ / 2);
-    out_mouse_move_port_->Notify(mouse_move);
+    out_camera_change_port_->Notify(
+        {.yaw_rotation = static_cast<FloatType>(event.mouseMove.x - window_width_ / 2) * settings_.sensitivity,
+         .pitch_rotation = static_cast<FloatType>(event.mouseMove.y - window_height_ / 2) * settings_.sensitivity}
+    );
 
     CenteringMouse();
 }
