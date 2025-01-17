@@ -119,10 +119,14 @@ void Rasterizer::DrawTriangle(
     auto info_b = GetVertexInfo(point_b);
     auto info_c = GetVertexInfo(point_c);
 
-    SortValues<VertexInfo>(info_a, info_b, info_c, [](auto left, auto right) { return left.y > right.y; });
+    SortValues<VertexInfo>(info_a, info_b, info_c, [](const auto& left, const auto& right) {
+        return left.y > right.y;
+    });
 
     if (info_a.y == info_c.y) {
-        SortValues<VertexInfo>(info_a, info_b, info_c, [](auto left, auto right) { return left.x < right.x; });
+        SortValues<VertexInfo>(info_a, info_b, info_c, [](const auto& left, const auto& right) {
+            return left.x < right.x;
+        });
         RasterizeHorizontalLine(HorizontalLine(info_a, info_c), buffer);
         return;
     }
