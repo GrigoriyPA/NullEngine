@@ -25,6 +25,8 @@ void Renderer::OnRenderEvent(const RenderEvent& render_event) {
     for (const auto& object : render_event.scene.GetObjects()) {
         if (object.IsPointsObject()) {
             RenderPointsObject(object, ndc_transform);
+        } else if (object.IsLinesObject()) {
+            RenderLinesObject(object, ndc_transform);
         } else if (object.IsTrianglesObject()) {
             RenderTrianglesObject(object, ndc_transform);
         } else {
@@ -49,16 +51,22 @@ void Renderer::RenderPointsObject(const VerticesObject& object, const Mat4& ndc_
     }
 }
 
+void Renderer::RenderLinesObject(const VerticesObject& object, const Mat4& ndc_transform) {
+    assert(object.IsLinesObject() && "Unexpected object type");
+
+    const auto clipped = clipper_.ClipLines(TransformObjectVertices(object, ndc_transform), object.GetLinesIndices());
+
+    for (auto [point_a, point_b] : clipped.indices) {
+        rasterizer_.DrawLine(clipped.vertices[point_a], clipped.vertices[point_b], buffer_);
+    }
+}
+
 void Renderer::RenderTrianglesObject(const VerticesObject& object, const Mat4& ndc_transform) {
     assert(object.IsTrianglesObject() && "Unexpected object type");
 
-    std::vector<Vertex> vertices;
-    vertices.reserve(object.GetNumberVertices());
-    for (const auto& vertex : object.GetVertices()) {
-        vertices.emplace_back(ndc_transform.Apply(vertex.position), vertex.params);
-    }
+    const auto clipped =
+        clipper_.ClipTriangles(TransformObjectVertices(object, ndc_transform), object.GetTriangleIndices());
 
-    const auto clipped = clipper_.ClipTriangles(std::move(vertices), object.GetTriangleIndices());
     for (auto [point_a, point_b, point_c] : clipped.indices) {
         rasterizer_.DrawTriangle(
             clipped.vertices[point_a], clipped.vertices[point_b], clipped.vertices[point_c], buffer_
@@ -69,6 +77,16 @@ void Renderer::RenderTrianglesObject(const VerticesObject& object, const Mat4& n
 void Renderer::ClearBuffer() {
     buffer_.colors.assign(4 * settings_.view_width * settings_.view_height, 0);
     buffer_.depth.assign(settings_.view_width * settings_.view_height, 1.0);
+}
+
+std::vector<Vertex> Renderer::TransformObjectVertices(const VerticesObject& object, const Mat4& ndc_transform) {
+    std::vector<Vertex> vertices;
+    vertices.reserve(object.GetNumberVertices());
+    for (const auto& vertex : object.GetVertices()) {
+        vertices.emplace_back(ndc_transform.Apply(vertex.position), vertex.params);
+    }
+
+    return vertices;
 }
 
 }  // namespace null_engine

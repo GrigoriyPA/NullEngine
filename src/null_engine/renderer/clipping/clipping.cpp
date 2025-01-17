@@ -1,50 +1,85 @@
 #include "clipping.hpp"
 
 #include <cassert>
+#include <null_engine/util/generic/helpers.hpp>
 
 namespace null_engine::detail {
 
-namespace {
-
-void RemoveTriange(std::vector<TriangleIndex>& indices, int64_t i) {
-    assert(i < indices.size() && "Invalid index for remove");
-
-    if (i + 1 < indices.size()) {
-        std::swap(indices[i], indices.back());
-    }
-    indices.pop_back();
+Clipper::Clipper()
+    : clipping_planes_(
+          {Vec4(0.0, 0.0, -1.0, 1.0), Vec4(0.0, 0.0, 1.0, 1.0), Vec4(-1.0, 0.0, 0.0, 1.0), Vec4(1.0, 0.0, 0.0, 1.0),
+           Vec4(0.0, -1.0, 0.0, 1.0), Vec4(0.0, 1.0, 0.0, 1.0)}
+      ) {
 }
 
-}  // anonymous namespace
+LineClippingResult Clipper::ClipLines(std::vector<Vertex> vertices, std::vector<LineIndex> indices) {
+    vertices_.swap(vertices);
+    line_indices_.swap(indices);
 
-TriangleClippingResult Clipper::ClipTriangles(std::vector<Vertex> vertices, std::vector<TriangleIndex> indices) {
-    TriangleClippingResult result{.vertices = std::move(vertices), .indices = std::move(indices)};
+    for (auto plane_normal : clipping_planes_) {
+        ClipLinesByPlane(plane_normal);
+    }
 
-    ClipTrianglesByPlane(result, Vec4(0.0, 0.0, -1.0, 1.0));
-    ClipTrianglesByPlane(result, Vec4(0.0, 0.0, 1.0, 1.0));
-
-    ClipTrianglesByPlane(result, Vec4(-1.0, 0.0, 0.0, 1.0));
-    ClipTrianglesByPlane(result, Vec4(1.0, 0.0, 0.0, 1.0));
-
-    ClipTrianglesByPlane(result, Vec4(0.0, -1.0, 0.0, 1.0));
-    ClipTrianglesByPlane(result, Vec4(0.0, 1.0, 0.0, 1.0));
+    LineClippingResult result;
+    result.vertices.swap(vertices_);
+    result.indices.swap(line_indices_);
 
     return result;
 }
 
-void Clipper::ClipTrianglesByPlane(TriangleClippingResult& triangles, Vec4 normal) {
-    auto& indices = triangles.indices;
-    if (indices.empty()) {
+TriangleClippingResult Clipper::ClipTriangles(std::vector<Vertex> vertices, std::vector<TriangleIndex> indices) {
+    vertices_.swap(vertices);
+    triangle_indices_.swap(indices);
+
+    for (auto plane_normal : clipping_planes_) {
+        ClipTrianglesByPlane(plane_normal);
+    }
+
+    TriangleClippingResult result;
+    result.vertices.swap(vertices_);
+    result.indices.swap(triangle_indices_);
+
+    return result;
+}
+
+void Clipper::ClipLinesByPlane(Vec4 plane_normal) {
+    if (line_indices_.empty()) {
         return;
     }
 
-    auto& vertices = triangles.vertices;
-    for (int64_t i = indices.size() - 1; i >= 0; --i) {
-        const auto [id_a, id_b, id_c] = indices[i];
+    for (int64_t i = line_indices_.size() - 1; i >= 0; --i) {
+        const auto [id_a, id_b] = line_indices_[i];
 
-        auto prod_a = normal.ScalarProd(vertices[id_a].position);
-        auto prod_b = normal.ScalarProd(vertices[id_b].position);
-        auto prod_c = normal.ScalarProd(vertices[id_c].position);
+        const auto prod_a = plane_normal.ScalarProd(vertices_[id_a].position);
+        const auto prod_b = plane_normal.ScalarProd(vertices_[id_b].position);
+
+        const uint32_t number_inside = static_cast<uint32_t>(prod_a >= -kEps) + static_cast<uint32_t>(prod_b >= -kEps);
+        if (number_inside == 2) {
+            continue;
+        }
+
+        SwapRemove(line_indices_, i);
+
+        const uint32_t number_outside = static_cast<uint32_t>(prod_a < kEps) + static_cast<uint32_t>(prod_b < kEps);
+        if (number_outside == 2) {
+            continue;
+        }
+
+        ClipLine({.scalar_prod = prod_a, .index = id_a}, {.scalar_prod = prod_b, .index = id_b});
+    }
+}
+
+void Clipper::ClipTrianglesByPlane(Vec4 plane_normal) {
+    if (triangle_indices_.empty()) {
+        return;
+    }
+
+    for (int64_t i = triangle_indices_.size() - 1; i >= 0; --i) {
+        const auto [id_a, id_b, id_c] = triangle_indices_[i];
+
+        const auto prod_a = plane_normal.ScalarProd(vertices_[id_a].position);
+        const auto prod_b = plane_normal.ScalarProd(vertices_[id_b].position);
+        const auto prod_c = plane_normal.ScalarProd(vertices_[id_c].position);
 
         const uint32_t number_inside = static_cast<uint32_t>(prod_a >= -kEps) + static_cast<uint32_t>(prod_b >= -kEps) +
                                        static_cast<uint32_t>(prod_c >= -kEps);
@@ -52,7 +87,7 @@ void Clipper::ClipTrianglesByPlane(TriangleClippingResult& triangles, Vec4 norma
             continue;
         }
 
-        RemoveTriange(indices, i);
+        SwapRemove(triangle_indices_, i);
 
         const uint32_t number_outside = static_cast<uint32_t>(prod_a < kEps) + static_cast<uint32_t>(prod_b < kEps) +
                                         static_cast<uint32_t>(prod_c < kEps);
@@ -61,15 +96,24 @@ void Clipper::ClipTrianglesByPlane(TriangleClippingResult& triangles, Vec4 norma
         }
 
         ClipTriangle(
-            triangles, {.scalar_prod = prod_a, .index = id_a}, {.scalar_prod = prod_b, .index = id_b},
+            {.scalar_prod = prod_a, .index = id_a}, {.scalar_prod = prod_b, .index = id_b},
             {.scalar_prod = prod_c, .index = id_c}
         );
     }
 }
 
-void Clipper::ClipTriangle(
-    TriangleClippingResult& triangles, ClippingPoint point_a, ClippingPoint point_b, ClippingPoint point_c
-) {
+void Clipper::ClipLine(ClippingPoint point_a, ClippingPoint point_b) {
+    if (point_a.scalar_prod < -kEps) {
+        std::swap(point_a, point_b);
+    }
+    assert(point_a.scalar_prod >= kEps && "Expected one point with positive scalar production with clip plane");
+    assert(point_b.scalar_prod < -kEps && "Expected one point with negative scalar production with clip plane");
+
+    AddInterpolatedPoint(point_a, point_b);
+    line_indices_.emplace_back(point_a.index, vertices_.size() - 1);
+}
+
+void Clipper::ClipTriangle(ClippingPoint point_a, ClippingPoint point_b, ClippingPoint point_c) {
     if (point_a.scalar_prod < kEps) {
         std::swap(point_a, point_c);
         if (point_a.scalar_prod < kEps) {
@@ -83,36 +127,34 @@ void Clipper::ClipTriangle(
         point_a.scalar_prod >= kEps && "Expected at least one point with positive scalar production with clip plane"
     );
 
-    auto& indices = triangles.indices;
-    auto& vertices = triangles.vertices;
     if (point_b.scalar_prod < -kEps) {
-        AddInterpolatedPoint(triangles, point_a, point_b);
-        AddInterpolatedPoint(triangles, point_a, point_c);
+        AddInterpolatedPoint(point_a, point_b);
+        AddInterpolatedPoint(point_a, point_c);
 
-        indices.emplace_back(point_a.index, vertices.size() - 2, vertices.size() - 1);
+        triangle_indices_.emplace_back(point_a.index, vertices_.size() - 2, vertices_.size() - 1);
     } else if (point_c.scalar_prod < -kEps) {
-        AddInterpolatedPoint(triangles, point_a, point_c);
-        AddInterpolatedPoint(triangles, point_b, point_c);
+        AddInterpolatedPoint(point_a, point_c);
+        AddInterpolatedPoint(point_b, point_c);
 
-        indices.emplace_back(point_a.index, point_b.index, vertices.size() - 1);
-        indices.emplace_back(point_a.index, vertices.size() - 2, vertices.size() - 1);
+        triangle_indices_.emplace_back(point_a.index, point_b.index, vertices_.size() - 1);
+        triangle_indices_.emplace_back(point_a.index, vertices_.size() - 2, vertices_.size() - 1);
     } else {
         assert(false && "Expected at least one point with negative scalar production with clip plane");
     }
 }
 
-void Clipper::AddInterpolatedPoint(TriangleClippingResult& triangles, ClippingPoint inside, ClippingPoint outside) {
+void Clipper::AddInterpolatedPoint(ClippingPoint inside, ClippingPoint outside) {
     assert(inside.scalar_prod >= -kEps && "First point should be inside clip plane");
     assert(outside.scalar_prod < kEps && "Second point should be outside clip plane");
 
-    auto vertex_a = triangles.vertices[inside.index];
-    auto vertex_b = triangles.vertices[outside.index];
+    auto vertex_a = vertices_[inside.index];
+    auto vertex_b = vertices_[outside.index];
 
     const auto delta = inside.scalar_prod - outside.scalar_prod;
     if (delta < kEps) {
         vertex_a += vertex_b;
         vertex_a *= 0.5;
-        triangles.vertices.emplace_back(std::move(vertex_a));
+        vertices_.emplace_back(std::move(vertex_a));
         return;
     }
 
@@ -121,7 +163,7 @@ void Clipper::AddInterpolatedPoint(TriangleClippingResult& triangles, ClippingPo
     vertex_b *= ratio - kEps;
 
     vertex_a += vertex_b;
-    triangles.vertices.emplace_back(std::move(vertex_a));
+    vertices_.emplace_back(std::move(vertex_a));
 }
 
 }  // namespace null_engine::detail

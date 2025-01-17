@@ -12,6 +12,17 @@ VerticesObject::VerticesObject(uint64_t number_vertices, Type object_type)
             FillDefaultIndices(number_vertices);
             break;
 
+        case Type::Lines:
+            FillDefaultIndices(number_vertices - number_vertices % 2);
+            break;
+
+        case Type::LineStrip:
+        case Type::LineLoop:
+            if (number_vertices >= 2) {
+                FillDefaultIndices(number_vertices);
+            }
+            break;
+
         case Type::Triangles:
             FillDefaultIndices(number_vertices - number_vertices % 3);
             break;
@@ -41,12 +52,24 @@ const std::vector<uint64_t>& VerticesObject::GetIndices() const {
     return indices_;
 }
 
+const std::vector<detail::LineIndex>& VerticesObject::GetLinesIndices() const {
+    assert(IsLinesObject() && "Invalid object type for line indices");
+
+    return line_indices_;
+}
+
 const std::vector<detail::TriangleIndex>& VerticesObject::GetTriangleIndices() const {
+    assert(IsTrianglesObject() && "Invalid object type for line indices");
+
     return triangle_indices_;
 }
 
 bool VerticesObject::IsPointsObject() const {
     return object_type_ == Type::Points;
+}
+
+bool VerticesObject::IsLinesObject() const {
+    return object_type_ == Type::Lines || object_type_ == Type::LineStrip || object_type_ == Type::LineLoop;
 }
 
 bool VerticesObject::IsTrianglesObject() const {
@@ -89,31 +112,38 @@ VerticesObject& VerticesObject::SetIndices(const std::vector<uint64_t>& indices)
     assert(ValidateIdicesValues(indices) && "Vertex index too large");
 
     indices_ = indices;
-    FillTriangleIndices(indices);
 
-    return *this;
-}
-
-bool VerticesObject::ValidateIdicesValues(const std::vector<uint64_t>& indices) const {
-    for (const auto index : indices) {
-        if (index >= vertices_.size()) {
-            return false;
-        }
-    }
-    return true;
-}
-
-void VerticesObject::FillDefaultIndices(size_t indices_size) {
-    std::vector<uint64_t> indices(indices_size);
-    for (size_t i = 0; i < indices_size; ++i) {
-        indices[i] = i;
-    }
-    SetIndices(indices);
-}
-
-void VerticesObject::FillTriangleIndices(const std::vector<uint64_t>& indices) {
+    line_indices_.clear();
     triangle_indices_.clear();
     switch (object_type_) {
+        case Type::Lines:
+            assert(indices.size() % 2 == 0 && "Invalid number of indices for lines object type");
+
+            line_indices_.reserve(indices.size() / 2);
+            for (size_t i = 0; i < indices.size(); i += 2) {
+                line_indices_.emplace_back(indices[i], indices[i + 1]);
+            }
+            break;
+
+        case Type::LineStrip:
+            assert(indices.size() >= 2 && "Lines strip should contain at least two indices");
+
+            line_indices_.reserve(indices.size() - 1);
+            for (size_t i = 1; i < indices.size(); ++i) {
+                line_indices_.emplace_back(indices[i - 1], indices[i]);
+            }
+            break;
+
+        case Type::LineLoop:
+            assert(indices.size() >= 2 && "Lines loop should contain at least two indices");
+
+            line_indices_.reserve(indices.size());
+            for (size_t i = 1; i < indices.size(); ++i) {
+                line_indices_.emplace_back(indices[i - 1], indices[i]);
+            }
+            line_indices_.emplace_back(indices.back(), indices[0]);
+            break;
+
         case Type::Triangles:
             assert(indices.size() % 3 == 0 && "Invalid number of indices for triangles object type");
 
@@ -144,6 +174,32 @@ void VerticesObject::FillTriangleIndices(const std::vector<uint64_t>& indices) {
         default:
             break;
     }
+
+    return *this;
+}
+
+VerticesObject& VerticesObject::Transform(const Mat4& transform) {
+    for (auto& [position, _] : vertices_) {
+        position = transform.Apply(position);
+    }
+    return *this;
+}
+
+bool VerticesObject::ValidateIdicesValues(const std::vector<uint64_t>& indices) const {
+    for (const auto index : indices) {
+        if (index >= vertices_.size()) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void VerticesObject::FillDefaultIndices(size_t indices_size) {
+    std::vector<uint64_t> indices(indices_size);
+    for (size_t i = 0; i < indices_size; ++i) {
+        indices[i] = i;
+    }
+    SetIndices(indices);
 }
 
 }  // namespace null_engine

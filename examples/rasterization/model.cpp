@@ -20,15 +20,23 @@ Scene CreateScene() {
     const Vec3 second_square_pos(0.0, 0.0, 4.5);
     scene.AddObject(CreatePointsSet(number_points, second_square_pos, square_size, kRed));
 
-    const std::vector<Vec3> triangles_points = {
+    const std::vector<Vec3> sample_points = {
         Vec3(-0.5, -0.5, 0.5), Vec3(0.5, -0.7, 0.5), Vec3(0, 0.5, 0.5), Vec3(0.5, 0.5, 1.5)
     };
-    scene.AddObject(VerticesObject(triangles_points.size(), VerticesObject::Type::TriangleStrip)
-                        .SetPositions(triangles_points)
-                        .SetParams(
-                            {VertexParams{.color = kRed}, VertexParams{.color = kGreen}, VertexParams{.color = kBlue},
-                             VertexParams{.color = kWhite}}
-                        ));
+    const std::vector<VertexParams> sample_params = {
+        VertexParams{.color = kRed}, VertexParams{.color = kGreen}, VertexParams{.color = kBlue},
+        VertexParams{.color = kWhite}
+    };
+
+    scene.AddObject(VerticesObject(sample_points.size(), VerticesObject::Type::LineLoop)
+                        .SetPositions(sample_points)
+                        .SetParams(sample_params));
+
+    const Vec3 traingles_translation(2.0, 0.0, 2.0);
+    scene.AddObject(VerticesObject(sample_points.size(), VerticesObject::Type::TriangleStrip)
+                        .SetPositions(sample_points)
+                        .SetParams(sample_params)
+                        .Transform(Mat4::Translation(traingles_translation)));
 
     return scene;
 }

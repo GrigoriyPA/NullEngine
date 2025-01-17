@@ -4,6 +4,11 @@
 
 namespace null_engine::detail {
 
+struct LineClippingResult {
+    std::vector<Vertex> vertices;
+    std::vector<LineIndex> indices;
+};
+
 struct TriangleClippingResult {
     std::vector<Vertex> vertices;
     std::vector<TriangleIndex> indices;
@@ -16,16 +21,27 @@ class Clipper {
     };
 
 public:
-    static TriangleClippingResult ClipTriangles(std::vector<Vertex> vertices, std::vector<TriangleIndex> indices);
+    Clipper();
+
+    LineClippingResult ClipLines(std::vector<Vertex> vertices, std::vector<LineIndex> indices);
+
+    TriangleClippingResult ClipTriangles(std::vector<Vertex> vertices, std::vector<TriangleIndex> indices);
 
 private:
-    static void ClipTrianglesByPlane(TriangleClippingResult& triangles, Vec4 normal);
+    void ClipLinesByPlane(Vec4 plane_normal);
 
-    static void ClipTriangle(
-        TriangleClippingResult& triangles, ClippingPoint point_a, ClippingPoint point_b, ClippingPoint point_c
-    );
+    void ClipTrianglesByPlane(Vec4 plane_normal);
 
-    static void AddInterpolatedPoint(TriangleClippingResult& triangles, ClippingPoint inside, ClippingPoint outside);
+    void ClipLine(ClippingPoint point_a, ClippingPoint point_b);
+
+    void ClipTriangle(ClippingPoint point_a, ClippingPoint point_b, ClippingPoint point_c);
+
+    void AddInterpolatedPoint(ClippingPoint inside, ClippingPoint outside);
+
+    std::vector<Vec4> clipping_planes_;
+    std::vector<Vertex> vertices_;
+    std::vector<LineIndex> line_indices_;
+    std::vector<TriangleIndex> triangle_indices_;
 };
 
 }  // namespace null_engine::detail

@@ -37,9 +37,13 @@ private:
 
     void RenderPointsObject(const VerticesObject& object, const Mat4& ndc_transform);
 
+    void RenderLinesObject(const VerticesObject& object, const Mat4& ndc_transform);
+
     void RenderTrianglesObject(const VerticesObject& object, const Mat4& ndc_transform);
 
     void ClearBuffer();
+
+    static std::vector<Vertex> TransformObjectVertices(const VerticesObject& object, const Mat4& ndc_transform);
 
     RendererSettings settings_;
     Clipper clipper_;
