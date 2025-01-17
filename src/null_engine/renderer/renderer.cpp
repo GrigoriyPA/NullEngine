@@ -21,16 +21,20 @@ void Renderer::SubscribeToTextures(InPort<TextureData>* observer_port) const {
 void Renderer::OnRenderEvent(const RenderEvent& render_event) {
     ClearBuffer();
 
-    const auto& ndc_transform = render_event.camera.GetNdcTransform();
-    for (const auto& object : render_event.scene.GetObjects()) {
-        if (object.IsPointsObject()) {
-            RenderPointsObject(object, ndc_transform);
-        } else if (object.IsLinesObject()) {
-            RenderLinesObject(object, ndc_transform);
-        } else if (object.IsTrianglesObject()) {
-            RenderTrianglesObject(object, ndc_transform);
-        } else {
-            assert(false && "Unsupported object type for rendering");
+    const auto& camera_transform = render_event.camera.GetNdcTransform();
+    for (const auto& [object, instances] : render_event.scene) {
+        for (const auto& instance_transform : instances) {
+            const auto ndc_transform = camera_transform * instance_transform;
+
+            if (object.IsPointsObject()) {
+                RenderPointsObject(object, ndc_transform);
+            } else if (object.IsLinesObject()) {
+                RenderLinesObject(object, ndc_transform);
+            } else if (object.IsTrianglesObject()) {
+                RenderTrianglesObject(object, ndc_transform);
+            } else {
+                assert(false && "Unsupported object type for rendering");
+            }
         }
     }
 

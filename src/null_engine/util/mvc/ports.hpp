@@ -23,6 +23,10 @@ public:
     InPort(const InPort<Event>& other) = delete;
     InPort& operator=(const InPort<Event>& other) = delete;
 
+    bool HasSubscription() const {
+        return subscribed_port_ != nullptr;
+    }
+
     void OnEvent(const Event& event) {
         events_handler_(event);
     }
@@ -43,7 +47,7 @@ private:
     }
 
     void DoUnsubscribe() {
-        if (subscribed_port_) {
+        if (HasSubscription()) {
             subscribed_port_->Unsubscribe(this);
         }
     }

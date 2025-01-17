@@ -1,6 +1,7 @@
 #include "model.hpp"
 
 #include <null_engine/renderer/camera/camera.hpp>
+#include <null_engine/scene/animations/primitive_animations.hpp>
 #include <null_engine/tests/tests_constants.hpp>
 #include <null_engine/tests/tests_helpers.hpp>
 #include <numbers>
@@ -9,7 +10,7 @@ namespace null_engine::tests {
 
 namespace {
 
-Scene CreateScene() {
+Scene CreateScene(AnimatorRegistry& animator_registry) {
     Scene scene;
 
     const uint64_t number_points = 200;
@@ -27,16 +28,28 @@ Scene CreateScene() {
         VertexParams{.color = kRed}, VertexParams{.color = kBlue}, VertexParams{.color = kGreen},
         VertexParams{.color = kWhite}
     };
-
     scene.AddObject(VerticesObject(sample_points.size(), VerticesObject::Type::LineLoop)
                         .SetPositions(sample_points)
                         .SetParams(sample_params));
 
     const Vec3 traingles_translation(2.0, 0.0, 2.0);
-    scene.AddObject(VerticesObject(sample_points.size(), VerticesObject::Type::TriangleStrip)
-                        .SetPositions(sample_points)
-                        .SetParams(sample_params)
-                        .Transform(Mat4::Translation(traingles_translation)));
+    SceneObject traingles_object(
+        VerticesObject(sample_points.size(), VerticesObject::Type::TriangleStrip)
+            .SetPositions(sample_points)
+            .SetParams(sample_params),
+        Mat4::Translation(traingles_translation)
+    );
+
+    const auto rotation_axis = Vec3::Ident(1.0);
+    const auto rotation_speed = std::numbers::pi / 2.0;
+    auto animator = std::make_unique<RotationAnimation>(rotation_axis, rotation_speed);
+
+    auto animation = Animation::Make();
+    animator->SubscribeOnAnimation(animation->GetTransformPort());
+    animator_registry.AddAnimator(std::move(animator));
+    traingles_object.SetAnimation(std::move(animation));
+
+    scene.AddObject(std::move(traingles_object));
 
     return scene;
 }
@@ -53,7 +66,7 @@ AnyMovableCamera CreateCamera(uint64_t view_width, uint64_t view_height) {
 }  // anonymous namespace
 
 Model::Model(uint64_t view_width, uint64_t view_height)
-    : scene_(CreateScene())
+    : scene_(CreateScene(animator_registry_))
     , camera_(CreateCamera(view_width, view_height))
     , renderer_({view_width, view_height})
     , in_texture_port_(std::bind(&Model::OnRenderedTexture, this, std::placeholders::_1)) {
@@ -79,6 +92,7 @@ void Model::MoveCamera(const CameraChange& camera_change) {
 
 void Model::Refresh(FloatType delta_time) {
     current_delta_time_ = delta_time;
+    animator_registry_.GetRefreshPort()->OnEvent(delta_time);
 }
 
 void Model::OnRenderedTexture(const TextureData& texture) {

@@ -5,5 +5,9 @@ add_library(${TARGET_NAME}
 )
 
 target_link_libraries(${TARGET_NAME}
-    null-engine-drawable-objects
+    null-engine-scene-animations
+    null-engine-scene-objects
 )
+
+add_subdirectory(animations)
+add_subdirectory(objects)

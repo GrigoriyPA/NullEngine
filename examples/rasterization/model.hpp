@@ -1,6 +1,7 @@
 #pragma once
 
 #include <null_engine/renderer/renderer.hpp>
+#include <null_engine/scene/animations/animator.hpp>
 
 #include "events.hpp"
 
@@ -40,6 +41,7 @@ private:
 
     void OnRenderedTexture(const TextureData& texture);
 
+    AnimatorRegistry animator_registry_;
     Scene scene_;
     AnyMovableCamera camera_;
     Renderer renderer_;
