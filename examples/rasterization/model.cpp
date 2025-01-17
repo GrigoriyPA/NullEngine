@@ -21,10 +21,10 @@ Scene CreateScene() {
     scene.AddObject(CreatePointsSet(number_points, second_square_pos, square_size, kRed));
 
     const std::vector<Vec3> sample_points = {
-        Vec3(-0.5, -0.5, 0.5), Vec3(0.5, -0.7, 0.5), Vec3(0, 0.5, 0.5), Vec3(0.5, 0.5, 1.5)
+        Vec3(-0.5, -0.5, 0.5), Vec3(0, 0.5, 0.5), Vec3(0.5, -0.7, 0.5), Vec3(0.5, 0.5, 1.5)
     };
     const std::vector<VertexParams> sample_params = {
-        VertexParams{.color = kRed}, VertexParams{.color = kGreen}, VertexParams{.color = kBlue},
+        VertexParams{.color = kRed}, VertexParams{.color = kBlue}, VertexParams{.color = kGreen},
         VertexParams{.color = kWhite}
     };
 

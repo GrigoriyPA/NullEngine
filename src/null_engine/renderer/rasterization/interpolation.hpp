@@ -6,11 +6,10 @@ namespace null_engine::detail {
 
 class Interpolation {
 public:
-    explicit Interpolation(const Vertex& point);
+    Interpolation(FloatType z, FloatType h, const VertexParams& params);
 
     FloatType GetZ() const;
-    FloatType GetH() const;
-    const VertexParams& GetParams() const;
+    VertexParams GetParams() const;
 
     Interpolation& operator+=(const Interpolation& other);
     friend Interpolation operator+(Interpolation left, const Interpolation& right);
@@ -56,63 +55,26 @@ private:
     Value delta_;
 };
 
-class PixelCounted {
-public:
-    explicit PixelCounted(uint64_t number_pixels);
-
-    bool HasPixels() const;
-
-protected:
-    void DecreasePixels();
-
-private:
-    uint64_t number_pixels_;
+struct VertexInfo {
+    int64_t x;
+    int64_t y;
+    Interpolation interpolation;
 };
 
-class TriangleBorders : public PixelCounted {
+class HorizontalLine {
 public:
-    struct Border {
-        DirValue<FloatType> border;
-        DirValue<Interpolation> interpolation;
-    };
+    HorizontalLine(const VertexInfo& vertex_a, const VertexInfo& vertex_b);
 
-    TriangleBorders(DirValue<int64_t> y, const Border& left, const Border& right, uint64_t number_pixels);
+    bool Finished() const;
 
-    int64_t GetY() const;
-
-    FloatType GetLeftBorder() const;
-
-    FloatType GetRightBorder() const;
-
-    const Interpolation& GetLeftInterpolation() const;
-
-    const Interpolation& GetRightInterpolation() const;
-
-    void Increment();
-
-private:
-    DirValue<int64_t> y_;
-    Border left_;
-    Border right_;
-};
-
-class RsteriztionLine : public PixelCounted {
-public:
-    RsteriztionLine(
-        DirValue<int64_t> x, int64_t y, const DirValue<Interpolation>& interpolation, uint64_t number_pixels
-    );
-
-    int64_t GetX() const;
-
-    int64_t GetY() const;
-
-    const Interpolation& GetInterpolation() const;
+    VertexInfo GetVertex() const;
 
     void Increment();
 
 private:
     DirValue<int64_t> x_;
     int64_t y_;
+    uint64_t number_pixels_;
     DirValue<Interpolation> interpolation_;
 };
 

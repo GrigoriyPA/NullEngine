@@ -5,10 +5,10 @@
 
 namespace null_engine::detail {
 
-Interpolation::Interpolation(const Vertex& point)
-    : z_(point.position.Z())
-    , h_(point.position.H())
-    , params_(point.params) {
+Interpolation::Interpolation(FloatType z, FloatType h, const VertexParams& params)
+    : z_(z)
+    , h_(h)
+    , params_(params) {
     params_ *= h_;
 }
 
@@ -16,12 +16,10 @@ FloatType Interpolation::GetZ() const {
     return z_;
 }
 
-FloatType Interpolation::GetH() const {
-    return h_;
-}
-
-const VertexParams& Interpolation::GetParams() const {
-    return params_;
+VertexParams Interpolation::GetParams() const {
+    VertexParams result = params_;
+    result /= h_;
+    return result;
 }
 
 Interpolation& Interpolation::operator+=(const Interpolation& other) {
@@ -74,82 +72,28 @@ Interpolation operator/(Interpolation left, FloatType scale) {
     return left;
 }
 
-PixelCounted::PixelCounted(uint64_t number_pixels)
-    : number_pixels_(number_pixels) {
+HorizontalLine::HorizontalLine(const VertexInfo& vertex_a, const VertexInfo& vertex_b)
+    : x_(vertex_a.x, vertex_a.x <= vertex_b.x ? 1 : -1)
+    , y_(vertex_a.y)
+    , number_pixels_(std::abs(vertex_a.x - vertex_b.x) + 1)
+    , interpolation_(vertex_a.interpolation, vertex_b.interpolation, number_pixels_) {
+    assert(vertex_a.y == vertex_b.y && "Expected horizontal line");
 }
 
-bool PixelCounted::HasPixels() const {
-    return number_pixels_ > 0;
+bool HorizontalLine::Finished() const {
+    return number_pixels_ == 0;
 }
 
-void PixelCounted::DecreasePixels() {
-    assert(number_pixels_ && "Can not increment after finish");
-    --number_pixels_;
+VertexInfo HorizontalLine::GetVertex() const {
+    return {.x = x_.Get(), .y = y_, .interpolation = interpolation_.Get()};
 }
 
-TriangleBorders::TriangleBorders(DirValue<int64_t> y, const Border& left, const Border& right, uint64_t number_pixels)
-    : PixelCounted(number_pixels)
-    , y_(y)
-    , left_(left)
-    , right_(right) {
-}
-
-int64_t TriangleBorders::GetY() const {
-    return y_.Get();
-}
-
-FloatType TriangleBorders::GetLeftBorder() const {
-    return left_.border.Get();
-}
-
-FloatType TriangleBorders::GetRightBorder() const {
-    return right_.border.Get();
-}
-
-const Interpolation& TriangleBorders::GetLeftInterpolation() const {
-    return left_.interpolation.Get();
-}
-
-const Interpolation& TriangleBorders::GetRightInterpolation() const {
-    return right_.interpolation.Get();
-}
-
-void TriangleBorders::Increment() {
-    DecreasePixels();
-
-    y_.Increment();
-    left_.border.Increment();
-    left_.interpolation.Increment();
-    right_.border.Increment();
-    right_.interpolation.Increment();
-}
-
-RsteriztionLine::RsteriztionLine(
-    DirValue<int64_t> x, int64_t y, const DirValue<Interpolation>& interpolation, uint64_t number_pixels
-)
-    : PixelCounted(number_pixels)
-    , x_(x)
-    , y_(y)
-    , interpolation_(interpolation) {
-}
-
-int64_t RsteriztionLine::GetX() const {
-    return x_.Get();
-}
-
-int64_t RsteriztionLine::GetY() const {
-    return y_;
-}
-
-const Interpolation& RsteriztionLine::GetInterpolation() const {
-    return interpolation_.Get();
-}
-
-void RsteriztionLine::Increment() {
-    DecreasePixels();
+void HorizontalLine::Increment() {
+    assert(!Finished() && "Can not increment after finish");
 
     x_.Increment();
     interpolation_.Increment();
+    --number_pixels_;
 }
 
 }  // namespace null_engine::detail

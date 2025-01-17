@@ -114,15 +114,9 @@ void Clipper::ClipLine(ClippingPoint point_a, ClippingPoint point_b) {
 }
 
 void Clipper::ClipTriangle(ClippingPoint point_a, ClippingPoint point_b, ClippingPoint point_c) {
-    if (point_a.scalar_prod < kEps) {
-        std::swap(point_a, point_c);
-        if (point_a.scalar_prod < kEps) {
-            std::swap(point_a, point_b);
-        }
-    }
-    if (point_b.scalar_prod < -kEps) {
-        std::swap(point_b, point_c);
-    }
+    SortValues<ClippingPoint>(point_a, point_b, point_c, [](auto left, auto right) {
+        return left.scalar_prod < right.scalar_prod;
+    });
     assert(
         point_a.scalar_prod >= kEps && "Expected at least one point with positive scalar production with clip plane"
     );
@@ -159,8 +153,8 @@ void Clipper::AddInterpolatedPoint(ClippingPoint inside, ClippingPoint outside) 
     }
 
     const auto ratio = inside.scalar_prod / delta;
-    vertex_a *= 1.0 - ratio + kEps;
-    vertex_b *= ratio - kEps;
+    vertex_a *= 1.0 - ratio;
+    vertex_b *= ratio;
 
     vertex_a += vertex_b;
     vertices_.emplace_back(std::move(vertex_a));

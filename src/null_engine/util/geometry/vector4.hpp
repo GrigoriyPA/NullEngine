@@ -70,7 +70,7 @@ private:
     FloatType x_ = 0.0;
     FloatType y_ = 0.0;
     FloatType z_ = 0.0;
-    FloatType h_ = 1.0;
+    FloatType h_ = 0.0;
 };
 
 Vec4 operator+(FloatType offset, Vec4 vector);

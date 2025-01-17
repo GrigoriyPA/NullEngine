@@ -100,7 +100,7 @@ Vec4 operator-(Vec4 vector, Vec4 other) {
 }
 
 Vec4 Vec4::operator-() const {
-    return Vec4(-x_, -y_, -z_, h_);
+    return Vec4(-x_, -y_, -z_, -h_);
 }
 
 Vec4& Vec4::operator*=(FloatType scale) {
