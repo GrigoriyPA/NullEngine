@@ -8,6 +8,8 @@ namespace null_engine::detail {
 
 class FragmentShader {
 public:
+    Vec3 GetViewPos() const;
+
     void SetViewPos(Vec3 view_pos);
 
     std::optional<Vec3> GetPointColor(const InterpolationParams& params) const;

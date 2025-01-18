@@ -22,6 +22,7 @@ class Renderer {
     using Clipper = detail::Clipper;
     using RasterizerBuffer = detail::RasterizerBuffer;
     using Rasterizer = detail::Rasterizer;
+    using FragmentShader = detail::FragmentShader;
 
 public:
     using TextureData = std::vector<uint8_t>;
@@ -47,9 +48,9 @@ private:
     Clipper clipper_;
     RasterizerBuffer buffer_;
     Rasterizer rasterizer_;
+    FragmentShader fragment_shader_;
     Mat4 camera_transform_;
     Mat4 object_transform_;
-    Vec3 view_pos_;
     InPort<RenderEvent> in_render_port_;
     OutPort<TextureData>::Ptr out_texture_port_ = OutPort<TextureData>::Make();
 };

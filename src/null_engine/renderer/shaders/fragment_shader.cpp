@@ -2,6 +2,10 @@
 
 namespace null_engine::detail {
 
+Vec3 FragmentShader::GetViewPos() const {
+    return view_pos_;
+}
+
 void FragmentShader::SetViewPos(Vec3 view_pos) {
     view_pos_ = view_pos;
 }

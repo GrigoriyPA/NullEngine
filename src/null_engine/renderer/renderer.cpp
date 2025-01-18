@@ -22,7 +22,7 @@ void Renderer::SubscribeToTextures(InPort<TextureData>* observer_port) const {
 void Renderer::OnRenderEvent(const RenderEvent& render_event) {
     ClearBuffer();
 
-    view_pos_ = render_event.camera.GetViewPos();
+    fragment_shader_.SetViewPos(render_event.camera.GetViewPos());
     camera_transform_ = render_event.camera.GetNdcTransform();
 
     for (const auto& [object, instances] : render_event.scene) {
@@ -51,7 +51,7 @@ void Renderer::RenderPointsObject(const VerticesObject& object) {
     for (uint64_t index : object.GetIndices()) {
         const auto& point = vertices[index];
         if (!Equal(point.position.H(), 0.0)) {
-            rasterizer_.DrawPoint(point, buffer_);
+            rasterizer_.DrawPoint(point, buffer_, fragment_shader_);
         }
     }
 }
@@ -65,7 +65,7 @@ void Renderer::RenderLinesObject(const VerticesObject& object) {
     );
 
     for (auto [point_a, point_b] : clipped.indices) {
-        rasterizer_.DrawLine(clipped.vertices[point_a], clipped.vertices[point_b], buffer_);
+        rasterizer_.DrawLine(clipped.vertices[point_a], clipped.vertices[point_b], buffer_, fragment_shader_);
     }
 }
 
@@ -73,13 +73,14 @@ void Renderer::RenderTrianglesObject(const VerticesObject& object) {
     assert(object.IsTrianglesObject() && "Unexpected object type");
 
     const auto clipped = clipper_.ClipTriangles(
-        view_pos_, detail::ConvertObjectVerices(camera_transform_, object_transform_, object.GetVertices()),
+        fragment_shader_.GetViewPos(),
+        detail::ConvertObjectVerices(camera_transform_, object_transform_, object.GetVertices()),
         object.GetTriangleIndices()
     );
 
     for (auto [point_a, point_b, point_c] : clipped.indices) {
         rasterizer_.DrawTriangle(
-            clipped.vertices[point_a], clipped.vertices[point_b], clipped.vertices[point_c], buffer_
+            clipped.vertices[point_a], clipped.vertices[point_b], clipped.vertices[point_c], buffer_, fragment_shader_
         );
     }
 }

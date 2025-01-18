@@ -101,19 +101,22 @@ Rasterizer::Rasterizer(uint64_t view_width, uint64_t view_height)
     , pixel_width_(2.0 / static_cast<FloatType>(view_width)) {
 }
 
-void Rasterizer::DrawPoint(const InterpVertex& point, RasterizerBuffer& buffer) const {
-    RasterizePoint(GetVertexInfo(point), buffer);
+void Rasterizer::DrawPoint(const InterpVertex& point, RasterizerBuffer& buffer, const FragmentShader& shader) const {
+    RasterizePoint(GetVertexInfo(point), buffer, shader);
 }
 
-void Rasterizer::DrawLine(const InterpVertex& point_a, const InterpVertex& point_b, RasterizerBuffer& buffer) const {
+void Rasterizer::DrawLine(
+    const InterpVertex& point_a, const InterpVertex& point_b, RasterizerBuffer& buffer, const FragmentShader& shader
+) const {
     LineWalker walker(GetVertexInfo(point_a), GetVertexInfo(point_b));
     for (; !walker.Finished(); walker.Move()) {
-        RasterizePoint(walker.GetVertex(), buffer);
+        RasterizePoint(walker.GetVertex(), buffer, shader);
     }
 }
 
 void Rasterizer::DrawTriangle(
-    const InterpVertex& point_a, const InterpVertex& point_b, const InterpVertex& point_c, RasterizerBuffer& buffer
+    const InterpVertex& point_a, const InterpVertex& point_b, const InterpVertex& point_c, RasterizerBuffer& buffer,
+    const FragmentShader& shader
 ) const {
     auto info_a = GetVertexInfo(point_a);
     auto info_b = GetVertexInfo(point_b);
@@ -127,7 +130,7 @@ void Rasterizer::DrawTriangle(
         SortValues<VertexInfo>(info_a, info_b, info_c, [](const auto& left, const auto& right) {
             return left.x < right.x;
         });
-        RasterizeHorizontalLine(HorizontalLine(info_a, info_c), buffer);
+        RasterizeHorizontalLine(HorizontalLine(info_a, info_c), buffer, shader);
         return;
     }
 
@@ -139,7 +142,7 @@ void Rasterizer::DrawTriangle(
             walker_ac.MoveHorizontal();
             walker_ab.MoveHorizontal();
 
-            RasterizeHorizontalLine(HorizontalLine(walker_ac.GetVertex(), walker_ab.GetVertex()), buffer);
+            RasterizeHorizontalLine(HorizontalLine(walker_ac.GetVertex(), walker_ab.GetVertex()), buffer, shader);
         }
     }
 
@@ -157,7 +160,7 @@ void Rasterizer::DrawTriangle(
             walker_ac.MoveHorizontal();
             walker_bc.MoveHorizontal();
 
-            RasterizeHorizontalLine(HorizontalLine(walker_ac.GetVertex(), walker_bc.GetVertex()), buffer);
+            RasterizeHorizontalLine(HorizontalLine(walker_ac.GetVertex(), walker_bc.GetVertex()), buffer, shader);
         }
     }
 }
@@ -173,13 +176,15 @@ VertexInfo Rasterizer::GetVertexInfo(const InterpVertex& point) const {
     };
 }
 
-void Rasterizer::RasterizeHorizontalLine(HorizontalLine line, RasterizerBuffer& buffer) const {
+void Rasterizer::RasterizeHorizontalLine(HorizontalLine line, RasterizerBuffer& buffer, const FragmentShader& shader)
+    const {
     for (; !line.Finished(); line.Increment()) {
-        RasterizePoint(line.GetVertex(), buffer);
+        RasterizePoint(line.GetVertex(), buffer, shader);
     }
 }
 
-void Rasterizer::RasterizePoint(const VertexInfo& vertex_info, RasterizerBuffer& buffer) const {
+void Rasterizer::RasterizePoint(const VertexInfo& vertex_info, RasterizerBuffer& buffer, const FragmentShader& shader)
+    const {
     if (!CheckPointPosition(vertex_info.x, vertex_info.y)) {
         return;
     }
@@ -188,7 +193,7 @@ void Rasterizer::RasterizePoint(const VertexInfo& vertex_info, RasterizerBuffer&
         return;
     }
 
-    UpdateViewPixel(vertex_info, buffer);
+    UpdateViewPixel(vertex_info, buffer, shader);
 }
 
 bool Rasterizer::CheckPointPosition(int64_t x, int64_t y) const {
@@ -202,12 +207,17 @@ bool Rasterizer::CheckPointDepth(int64_t x, int64_t y, FloatType z, RasterizerBu
     return buffer.depth[y * view_width_ + x] > z;
 }
 
-void Rasterizer::UpdateViewPixel(const VertexInfo& vertex_info, RasterizerBuffer& buffer) const {
+void Rasterizer::UpdateViewPixel(const VertexInfo& vertex_info, RasterizerBuffer& buffer, const FragmentShader& shader)
+    const {
+    const auto maybe_color = shader.GetPointColor(vertex_info.interpolation.GetParams());
+    if (!maybe_color) {
+        return;
+    }
+
     const uint64_t point_offset = vertex_info.y * view_width_ + vertex_info.x;
     buffer.depth[point_offset] = vertex_info.interpolation.GetZ();
 
-    const auto params = vertex_info.interpolation.GetParams();
-    const Vec3 color = (params.color * 255.0).Clamp(0.0, 255.0);
+    const auto color = (*maybe_color * 255.0).Clamp(0.0, 255.0);
     buffer.colors[4 * point_offset] = static_cast<uint8_t>(color.X());
     buffer.colors[4 * point_offset + 1] = static_cast<uint8_t>(color.Y());
     buffer.colors[4 * point_offset + 2] = static_cast<uint8_t>(color.Z());
