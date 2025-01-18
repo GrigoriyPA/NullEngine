@@ -1,6 +1,7 @@
 set(TARGET_NAME null-engine-drawable-objects)
 
 add_library(${TARGET_NAME}
+    primitive_objects.cpp
     vertices_object.cpp
 )
 

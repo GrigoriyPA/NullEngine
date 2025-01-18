@@ -37,7 +37,7 @@ public:
 
     explicit SceneObject(const Mat4& instance);
 
-    SceneObject(const VerticesObject& object, const Mat4& instance);
+    explicit SceneObject(const VerticesObject& object, const Mat4& instance = Mat4());
 
     bool HasObject() const;
 
@@ -55,10 +55,10 @@ public:
 
     SceneObject& SetAnimation(Animation::Ptr animation);
 
-    SceneObject& AddChildren(SceneObject object);
+    SceneObject& AddChild(SceneObject object);
 
     template <typename... Args>
-    SceneObject& EmplaceChildren(Args&&... args) {
+    SceneObject& EmplaceChild(Args&&... args) {
         children_.emplace_back(std::forward<Args>(args)...);
         return *this;
     }

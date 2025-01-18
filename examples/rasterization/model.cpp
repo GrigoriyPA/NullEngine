@@ -1,5 +1,6 @@
 #include "model.hpp"
 
+#include <null_engine/drawable_objects/primitive_objects.hpp>
 #include <null_engine/renderer/camera/camera.hpp>
 #include <null_engine/scene/animations/primitive_animations.hpp>
 #include <null_engine/tests/tests_constants.hpp>
@@ -13,24 +14,22 @@ namespace {
 Scene CreateScene(AnimatorRegistry& animator_registry) {
     Scene scene;
 
-    const std::vector<Vec3> sample_points = {
-        Vec3(-0.5, -0.5, 0.5), Vec3(0, 0.5, 0.5), Vec3(0.5, -0.7, 0.5), Vec3(0.5, 0.5, 1.5)
-    };
-    const std::vector<VertexParams> sample_params = {
-        VertexParams{.color = kRed}, VertexParams{.color = kBlue}, VertexParams{.color = kGreen},
-        VertexParams{.color = kWhite}
-    };
-    scene.AddObject(VerticesObject(sample_points.size(), VerticesObject::Type::LineLoop)
-                        .SetPositions(sample_points)
-                        .SetParams(sample_params));
+    const std::vector<Vec3> sample_points = {Vec3(-0.5, -0.5, 0.5), Vec3(0, 0.5, 0.5),   Vec3(0.5, -0.7, 0.5),
+                                             Vec3(0, 0.5, 0.5),     Vec3(0.5, 0.5, 1.5), Vec3(0.5, -0.7, 0.5)};
+    const std::vector<VertexParams> sample_params = {VertexParams{.color = kRed},   VertexParams{.color = kBlue},
+                                                     VertexParams{.color = kGreen}, VertexParams{.color = kBlue},
+                                                     VertexParams{.color = kWhite}, VertexParams{.color = kGreen}};
 
-    const Vec3 traingles_translation(2.0, 0.0, 2.0);
-    SceneObject traingles_object(
-        VerticesObject(sample_points.size(), VerticesObject::Type::TriangleStrip)
-            .SetPositions(sample_points)
-            .SetParams(sample_params)
-            .GenerateNormals(),
-        Mat4::Translation(traingles_translation)
+    const Vec3 traingles_translation(0.0, 0.0, 2.0);
+    SceneObject traingles_object(Mat4::Translation(traingles_translation));
+    traingles_object.EmplaceChild(VerticesObject(sample_points.size(), VerticesObject::Type::Triangles)
+                                      .SetPositions(sample_points)
+                                      .SetParams(sample_params)
+                                      .GenerateNormals(false));
+
+    const auto normals_scale = 0.5;
+    traingles_object.EmplaceChild(
+        CreateNormalsVisualization(traingles_object.GetChild(0).GetObject(), kRed, normals_scale)
     );
 
     const auto rotation_axis = Vec3::Ident(1.0);

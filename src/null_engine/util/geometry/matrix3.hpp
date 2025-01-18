@@ -34,11 +34,7 @@ public:
 
     Vec3 GetColumn(uint32_t j) const;
 
-    FloatType Minor(uint32_t i, uint32_t j) const;
-
     FloatType AlgebraicAddition(uint32_t i, uint32_t j) const;
-
-    FloatType Determinant() const;
 
     Vec3 Apply(Vec2 vector) const;
 

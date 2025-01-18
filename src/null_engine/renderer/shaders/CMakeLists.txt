@@ -1,6 +1,7 @@
 set(TARGET_NAME null-engine-renderer-shaders)
 
 add_library(${TARGET_NAME}
+    fragment_shader.cpp
     vertex_shader.cpp
 )
 

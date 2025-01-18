@@ -13,8 +13,8 @@ bool IsWisiblePoint(const InterpVertex& point, Vec3 view_pos) {
         return true;
     }
 
-    const auto direction = point.params.frag_pos - view_pos;
-    return normal.ScalarProd(direction) > -kEps;
+    const auto direction = view_pos - point.params.frag_pos;
+    return normal.ScalarProd(direction) > 0.0;
 }
 
 }  // anonymous namespace

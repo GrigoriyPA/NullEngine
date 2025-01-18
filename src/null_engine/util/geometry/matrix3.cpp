@@ -99,34 +99,12 @@ Vec3 Mat3::GetColumn(uint32_t j) const {
     return Vec3(matrix_[0][j], matrix_[1][j], matrix_[2][j]);
 }
 
-FloatType Mat3::Minor(uint32_t i, uint32_t j) const {
-    assert(i < kSize && j < kSize && "Mat3 element index too large");
-
-    std::array<std::array<FloatType, kSize - 1>, kSize - 1> sub_matrix;
-    for (uint32_t row = 0, k = 0; row < kSize; ++row) {
-        if (row == i) {
-            continue;
-        }
-        for (uint32_t col = 0, t = 0; col < kSize; ++col) {
-            if (col == j) {
-                continue;
-            }
-            sub_matrix[k][t++] = matrix_[row][col];
-        }
-        k++;
-    }
-
-    return sub_matrix[0][0] * sub_matrix[1][1] - sub_matrix[1][0] * sub_matrix[0][1];
-}
-
 FloatType Mat3::AlgebraicAddition(uint32_t i, uint32_t j) const {
     assert(i < kSize && j < kSize && "Mat3 element index too large");
 
-    FloatType result = Minor(i, j);
-    if ((i + j) % 2 == 1) {
-        result *= -1.0;
-    }
-
+    FloatType result = 0.0;
+    result += matrix_[(i + 1) % kSize][(j + 1) % kSize] * matrix_[(i + 2) % kSize][(j + 2) % kSize];
+    result -= matrix_[(i + 1) % kSize][(j + 2) % kSize] * matrix_[(i + 2) % kSize][(j + 1) % kSize];
     return result;
 }
 
@@ -193,6 +171,7 @@ Mat3 Mat3::Inverse(const Mat3& other) {
     const FloatType determinant = result.GetRow(0).ScalarProd(other.GetRow(0));
     assert(!Equal(determinant, 0.0) && "Can not inverse singular matrix");
 
+    result.Transpose();
     result /= determinant;
     return result;
 }

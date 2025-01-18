@@ -120,7 +120,7 @@ SceneObject& SceneObject::SetAnimation(Animation::Ptr animation) {
     return *this;
 }
 
-SceneObject& SceneObject::AddChildren(SceneObject object) {
+SceneObject& SceneObject::AddChild(SceneObject object) {
     children_.emplace_back(std::move(object));
     return *this;
 }
