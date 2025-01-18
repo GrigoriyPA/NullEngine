@@ -26,6 +26,8 @@ void Renderer::OnRenderEvent(const RenderEvent& render_event) {
     camera_transform_ = render_event.camera.GetNdcTransform();
 
     for (const auto& [object, instances] : render_event.scene) {
+        fragment_shader_.SetMaterial(object.GetMaterial());
+
         for (const auto& instance_transform : instances) {
             object_transform_ = instance_transform;
 

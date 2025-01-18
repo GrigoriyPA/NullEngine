@@ -9,6 +9,10 @@
 
 namespace null_engine::tests {
 
+struct ViewAssetes {
+    std::unique_ptr<sf::Font> font;
+};
+
 class View {
 public:
     explicit View(sf::RenderWindow& window);
@@ -19,7 +23,7 @@ private:
     void OnDrawEvent(const DrawViewEvent& draw_event) const;
 
     sf::RenderWindow& window_;
-    sf::Font font_;
+    ViewAssetes assetes_;
     GuiInterface interface_;
     InPort<DrawViewEvent> in_draw_event_port_;
     OutPort<FloatType>::Ptr out_refresh_port_ = OutPort<FloatType>::Make();

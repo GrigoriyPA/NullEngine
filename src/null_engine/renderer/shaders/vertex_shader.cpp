@@ -8,6 +8,7 @@ namespace null_engine::detail {
 InterpolationParams& InterpolationParams::operator+=(const InterpolationParams& other) {
     color += other.color;
     normal += other.normal;
+    tex_coords += other.tex_coords;
     frag_pos += other.frag_pos;
     return *this;
 }
@@ -15,6 +16,7 @@ InterpolationParams& InterpolationParams::operator+=(const InterpolationParams& 
 InterpolationParams& InterpolationParams::operator-=(const InterpolationParams& other) {
     color -= other.color;
     normal -= other.normal;
+    tex_coords -= other.tex_coords;
     frag_pos -= other.frag_pos;
     return *this;
 }
@@ -22,6 +24,7 @@ InterpolationParams& InterpolationParams::operator-=(const InterpolationParams& 
 InterpolationParams& InterpolationParams::operator*=(FloatType scale) {
     color *= scale;
     normal *= scale;
+    tex_coords *= scale;
     frag_pos *= scale;
     return *this;
 }
@@ -31,6 +34,7 @@ InterpolationParams& InterpolationParams::operator/=(FloatType scale) {
 
     color /= scale;
     normal /= scale;
+    tex_coords /= scale;
     frag_pos /= scale;
     return *this;
 }
@@ -75,6 +79,7 @@ std::vector<InterpVertex> ConvertObjectVerices(
             InterpolationParams{
                 .color = params.color,
                 .normal = normal_transform.Apply(params.normal),
+                .tex_coords = params.tex_coords,
                 .frag_pos = object_transform.Apply(position).XYZ()
             }
         );

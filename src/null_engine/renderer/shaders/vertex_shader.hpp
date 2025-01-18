@@ -10,6 +10,7 @@ class InterpolationParams {
 public:
     Vec3 color;
     Vec3 normal;
+    Vec2 tex_coords;
     Vec3 frag_pos;
 
     InterpolationParams& operator+=(const InterpolationParams& other);

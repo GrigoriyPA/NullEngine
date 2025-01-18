@@ -40,6 +40,10 @@ VerticesObject::Type VerticesObject::GetObjectType() const {
     return object_type_;
 }
 
+const Material& VerticesObject::GetMaterial() const {
+    return material_;
+}
+
 size_t VerticesObject::GetNumberVertices() const {
     return vertices_.size();
 }
@@ -74,6 +78,11 @@ bool VerticesObject::IsLinesObject() const {
 
 bool VerticesObject::IsTrianglesObject() const {
     return object_type_ == Type::Triangles || object_type_ == Type::TriangleStrip || object_type_ == Type::TriangleFan;
+}
+
+VerticesObject& VerticesObject::SetMaterial(const Material& material) {
+    material_ = material;
+    return *this;
 }
 
 VerticesObject& VerticesObject::SetVertex(uint64_t index, const Vertex& vertex) {

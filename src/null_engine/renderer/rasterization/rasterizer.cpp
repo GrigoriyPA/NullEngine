@@ -209,15 +209,12 @@ bool Rasterizer::CheckPointDepth(int64_t x, int64_t y, FloatType z, RasterizerBu
 
 void Rasterizer::UpdateViewPixel(const VertexInfo& vertex_info, RasterizerBuffer& buffer, const FragmentShader& shader)
     const {
-    const auto maybe_color = shader.GetPointColor(vertex_info.interpolation.GetParams());
-    if (!maybe_color) {
-        return;
-    }
-
     const uint64_t point_offset = vertex_info.y * view_width_ + vertex_info.x;
     buffer.depth[point_offset] = vertex_info.interpolation.GetZ();
 
-    const auto color = (*maybe_color * 255.0).Clamp(0.0, 255.0);
+    auto color = shader.GetPointColor(vertex_info.interpolation.GetParams());
+    color = (color * 255.0).Clamp(0.0, 255.0);
+
     buffer.colors[4 * point_offset] = static_cast<uint8_t>(color.X());
     buffer.colors[4 * point_offset + 1] = static_cast<uint8_t>(color.Y());
     buffer.colors[4 * point_offset + 2] = static_cast<uint8_t>(color.Z());

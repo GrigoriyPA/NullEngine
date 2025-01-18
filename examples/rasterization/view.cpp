@@ -10,17 +10,21 @@ namespace {
 
 constexpr const char* kFontPath = "../../assets/fonts/arial.ttf";
 
+ViewAssetes LoadAssets() {
+    return {.font = LoadFont(kFontPath)};
+}
+
 }  // anonymous namespace
 
 View::View(sf::RenderWindow& window)
     : window_(window)
-    , font_(LoadFont(kFontPath))
+    , assetes_(LoadAssets())
     , in_draw_event_port_(std::bind(&View::OnDrawEvent, this, std::placeholders::_1)) {
     auto renderer_view = std::make_unique<WindowRenderingConsumer>(window_.getSize().x, window_.getSize().y);
     out_texture_port_->Subscribe(renderer_view->GetTexturePort(), {});
     interface_.AddObject(std::move(renderer_view));
 
-    auto fps_display = std::make_unique<FPSDisplay>(FPSDisplaySettings{}, font_);
+    auto fps_display = std::make_unique<FPSDisplay>(FPSDisplaySettings{}, *assetes_.font);
     out_refresh_port_->Subscribe(fps_display->GetRefreshPort(), 0.0);
     interface_.AddObject(std::move(fps_display));
 }

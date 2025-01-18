@@ -11,7 +11,13 @@ namespace null_engine::tests {
 
 namespace {
 
-Scene CreateScene(AnimatorRegistry& animator_registry) {
+constexpr const char* kTexturePath = "../../assets/textures/box_diffuse.png";
+
+ModelAssetes LoadAssets() {
+    return {.texture = Texture::LoadFromFile(kTexturePath)};
+}
+
+Scene CreateScene(AnimatorRegistry& animator_registry, const ModelAssetes& assets) {
     Scene scene;
 
     const std::vector<Vec3> sample_points = {Vec3(-0.5, -0.5, 0.5), Vec3(0, 0.5, 0.5),   Vec3(0.5, -0.7, 0.5),
@@ -20,8 +26,8 @@ Scene CreateScene(AnimatorRegistry& animator_registry) {
                                                      VertexParams{.color = kGreen}, VertexParams{.color = kBlue},
                                                      VertexParams{.color = kWhite}, VertexParams{.color = kGreen}};
 
-    const Vec3 traingles_translation(0.0, 0.0, 2.0);
-    SceneObject traingles_object(Mat4::Translation(traingles_translation));
+    const Vec3 sample_translation(0.0, 0.0, 2.0);
+    SceneObject traingles_object(Mat4::Translation(sample_translation));
     traingles_object.EmplaceChild(VerticesObject(sample_points.size(), VerticesObject::Type::Triangles)
                                       .SetPositions(sample_points)
                                       .SetParams(sample_params)
@@ -43,6 +49,26 @@ Scene CreateScene(AnimatorRegistry& animator_registry) {
 
     scene.AddObject(std::move(traingles_object));
 
+    const std::vector<Vec3> triangle_points = {
+        Vec3(-0.5, 0.0, 0.0),
+        Vec3(0, 0.5, 0.0),
+        Vec3(0.5, 0.0, 0.0),
+    };
+    const std::vector<VertexParams> triangle_params = {
+        VertexParams{.tex_coords = Vec2(0.0, 1.0)},
+        VertexParams{.tex_coords = Vec2(0.5, 0.5)},
+        VertexParams{.tex_coords = Vec2(1.0, 1.0)},
+    };
+    const Vec3 triangle_translation(2.0, 0.0, 2.0);
+    scene.EmplaceObject(
+        VerticesObject(triangle_points.size(), VerticesObject::Type::Triangles)
+            .SetPositions(triangle_points)
+            .SetParams(triangle_params)
+            .SetMaterial({.diffuse_tex = TextureView(*assets.texture)})
+            .GenerateNormals(false),
+        Mat4::Translation(triangle_translation)
+    );
+
     return scene;
 }
 
@@ -58,7 +84,8 @@ AnyMovableCamera CreateCamera(uint64_t view_width, uint64_t view_height) {
 }  // anonymous namespace
 
 Model::Model(uint64_t view_width, uint64_t view_height)
-    : scene_(CreateScene(animator_registry_))
+    : assets_(LoadAssets())
+    , scene_(CreateScene(animator_registry_, assets_))
     , camera_(CreateCamera(view_width, view_height))
     , renderer_({view_width, view_height})
     , in_texture_port_(std::bind(&Model::OnRenderedTexture, this, std::placeholders::_1)) {

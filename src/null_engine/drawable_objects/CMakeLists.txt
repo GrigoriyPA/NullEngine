@@ -7,7 +7,9 @@ add_library(${TARGET_NAME}
 
 target_link_libraries(${TARGET_NAME}
     null-engine-drawable-objects-common
+    null-engine-drawable-objects-material
     null-engine-util-geometry
 )
 
 add_subdirectory(common)
+add_subdirectory(material)

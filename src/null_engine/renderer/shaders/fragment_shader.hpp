@@ -1,6 +1,6 @@
 #pragma once
 
-#include <optional>
+#include <null_engine/drawable_objects/material/material.hpp>
 
 #include "vertex_shader.hpp"
 
@@ -10,12 +10,15 @@ class FragmentShader {
 public:
     Vec3 GetViewPos() const;
 
+    Vec3 GetPointColor(const InterpolationParams& params) const;
+
     void SetViewPos(Vec3 view_pos);
 
-    std::optional<Vec3> GetPointColor(const InterpolationParams& params) const;
+    void SetMaterial(const Material& material);
 
 private:
     Vec3 view_pos_;
+    Material material_;
 };
 
 }  // namespace null_engine::detail

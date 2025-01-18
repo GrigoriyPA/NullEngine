@@ -21,10 +21,14 @@ bool IsWisiblePoint(const InterpVertex& point, Vec3 view_pos) {
 
 Clipper::Clipper(const ClipperSettings& settings)
     : settings_(settings)
-    , clipping_planes_(
-          {Vec4(0.0, 0.0, -1.0, 1.0), Vec4(0.0, 0.0, 1.0, 1.0), Vec4(-1.0, 0.0, 0.0, 1.0), Vec4(1.0, 0.0, 0.0, 1.0),
-           Vec4(0.0, -1.0, 0.0, 1.0), Vec4(0.0, 1.0, 0.0, 1.0)}
-      ) {
+    , clipping_planes_({
+          Vec4(0.0, 0.0, -1.0, 1.0),
+          Vec4(0.0, 0.0, 1.0, 1.0),
+          Vec4(-1.0, 0.0, 0.0, 1.0),
+          Vec4(1.0, 0.0, 0.0, 1.0),
+          Vec4(0.0, -1.0, 0.0, 1.0),
+          Vec4(0.0, 1.0, 0.0, 1.0),
+      }) {
 }
 
 LineClippingResult Clipper::ClipLines(std::vector<InterpVertex> vertices, std::vector<LineIndex> indices) {

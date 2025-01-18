@@ -7,6 +7,10 @@
 
 namespace null_engine::tests {
 
+struct ModelAssetes {
+    Texture::Ptr texture;
+};
+
 class Model {
     friend class Controller;
 
@@ -41,6 +45,7 @@ private:
 
     void OnRenderedTexture(const TextureData& texture);
 
+    ModelAssetes assets_;
     AnimatorRegistry animator_registry_;
     Scene scene_;
     AnyMovableCamera camera_;

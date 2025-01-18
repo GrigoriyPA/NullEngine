@@ -2,9 +2,9 @@
 
 namespace null_engine {
 
-sf::Font LoadFont(const std::string& file) {
-    sf::Font font;
-    font.loadFromFile(file);
+std::unique_ptr<sf::Font> LoadFont(const std::string& file) {
+    auto font = std::make_unique<sf::Font>();
+    font->loadFromFile(file);
 
     return font;
 }

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <null_engine/drawable_objects/common/vertex.hpp>
+#include <null_engine/drawable_objects/material/material.hpp>
 #include <null_engine/util/geometry/matrix4.hpp>
-#include <vector>
 
 namespace null_engine {
 
@@ -32,6 +32,8 @@ public:
 
     Type GetObjectType() const;
 
+    const Material& GetMaterial() const;
+
     size_t GetNumberVertices() const;
 
     const std::vector<Vertex>& GetVertices() const;
@@ -47,6 +49,8 @@ public:
     bool IsLinesObject() const;
 
     bool IsTrianglesObject() const;
+
+    VerticesObject& SetMaterial(const Material& material);
 
     VerticesObject& SetVertex(uint64_t index, const Vertex& vertex);
 
@@ -68,6 +72,7 @@ private:
     void FillDefaultIndices(size_t indices_size);
 
     Type object_type_;
+    Material material_;
     std::vector<Vertex> vertices_;
     std::vector<uint64_t> indices_;
     std::vector<LineIndex> line_indices_;
