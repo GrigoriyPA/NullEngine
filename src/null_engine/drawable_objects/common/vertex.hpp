@@ -1,34 +1,17 @@
 #pragma once
 
-#include <null_engine/util/geometry/vector4.hpp>
+#include <null_engine/util/geometry/vector3.hpp>
 
 namespace null_engine {
 
-class VertexParams {
-public:
+struct VertexParams {
     Vec3 color;
-
-    VertexParams& operator+=(const VertexParams& other);
-
-    VertexParams& operator-=(const VertexParams& other);
-
-    VertexParams& operator*=(FloatType scale);
-
-    VertexParams& operator/=(FloatType scale);
+    Vec3 normal;
 };
 
-class Vertex {
-public:
-    Vec4 position;
+struct Vertex {
+    Vec3 position;
     VertexParams params;
-
-    Vertex& operator+=(const Vertex& other);
-
-    Vertex& operator-=(const Vertex& other);
-
-    Vertex& operator*=(FloatType scale);
-
-    Vertex& operator/=(FloatType scale);
 };
 
 }  // namespace null_engine

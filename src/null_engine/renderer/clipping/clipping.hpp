@@ -1,16 +1,23 @@
 #pragma once
 
 #include <null_engine/drawable_objects/vertices_object.hpp>
+#include <null_engine/renderer/shaders/vertex_shader.hpp>
 
-namespace null_engine::detail {
+namespace null_engine {
+
+struct ClipperSettings {
+    bool clip_triangles_by_normals = true;
+};
+
+namespace detail {
 
 struct LineClippingResult {
-    std::vector<Vertex> vertices;
+    std::vector<InterpVertex> vertices;
     std::vector<LineIndex> indices;
 };
 
 struct TriangleClippingResult {
-    std::vector<Vertex> vertices;
+    std::vector<InterpVertex> vertices;
     std::vector<TriangleIndex> indices;
 };
 
@@ -21,11 +28,13 @@ class Clipper {
     };
 
 public:
-    Clipper();
+    explicit Clipper(const ClipperSettings& settings);
 
-    LineClippingResult ClipLines(std::vector<Vertex> vertices, std::vector<LineIndex> indices);
+    LineClippingResult ClipLines(std::vector<InterpVertex> vertices, std::vector<LineIndex> indices);
 
-    TriangleClippingResult ClipTriangles(std::vector<Vertex> vertices, std::vector<TriangleIndex> indices);
+    TriangleClippingResult ClipTriangles(
+        Vec3 view_pos, std::vector<InterpVertex> vertices, std::vector<TriangleIndex> indices
+    );
 
 private:
     void ClipLinesByPlane(Vec4 plane_normal);
@@ -38,10 +47,15 @@ private:
 
     void AddInterpolatedPoint(ClippingPoint inside, ClippingPoint outside);
 
+    void ClipTrianglesByNormals(Vec3 view_pos);
+
+    ClipperSettings settings_;
     std::vector<Vec4> clipping_planes_;
-    std::vector<Vertex> vertices_;
+    std::vector<InterpVertex> vertices_;
     std::vector<LineIndex> line_indices_;
     std::vector<TriangleIndex> triangle_indices_;
 };
 
-}  // namespace null_engine::detail
+}  // namespace detail
+
+}  // namespace null_engine

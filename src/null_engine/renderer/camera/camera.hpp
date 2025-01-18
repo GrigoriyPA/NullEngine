@@ -10,7 +10,7 @@ class CameraBase {
 public:
     CameraBase();
 
-    Vec3 GetPosition() const;
+    Vec3 GetViewPos() const;
 
     Vec3 GetDirection() const;
 

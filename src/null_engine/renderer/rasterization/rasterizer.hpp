@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-
 #include "interpolation.hpp"
 
 namespace null_engine::detail {
@@ -15,15 +13,16 @@ class Rasterizer {
 public:
     Rasterizer(uint64_t view_width, uint64_t view_height);
 
-    void DrawPoint(const Vertex& point, RasterizerBuffer& buffer) const;
+    void DrawPoint(const InterpVertex& point, RasterizerBuffer& buffer) const;
 
-    void DrawLine(const Vertex& point_a, const Vertex& point_b, RasterizerBuffer& buffer) const;
+    void DrawLine(const InterpVertex& point_a, const InterpVertex& point_b, RasterizerBuffer& buffer) const;
 
-    void DrawTriangle(const Vertex& point_a, const Vertex& point_b, const Vertex& point_c, RasterizerBuffer& buffer)
-        const;
+    void DrawTriangle(
+        const InterpVertex& point_a, const InterpVertex& point_b, const InterpVertex& point_c, RasterizerBuffer& buffer
+    ) const;
 
 private:
-    VertexInfo GetVertexInfo(const Vertex& point) const;
+    VertexInfo GetVertexInfo(const InterpVertex& point) const;
 
     void RasterizeHorizontalLine(HorizontalLine line, RasterizerBuffer& buffer) const;
 

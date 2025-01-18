@@ -87,7 +87,7 @@ VerticesObject& VerticesObject::SetPositions(const std::vector<Vec3>& positions)
     assert(positions.size() == vertices_.size() && "Number of positions and verticies should be equal");
 
     for (size_t i = 0; i < vertices_.size(); ++i) {
-        vertices_[i].position = Vec4(positions[i], 1.0);
+        vertices_[i].position = positions[i];
     }
     return *this;
 }
@@ -180,8 +180,44 @@ VerticesObject& VerticesObject::SetIndices(const std::vector<uint64_t>& indices)
 
 VerticesObject& VerticesObject::Transform(const Mat4& transform) {
     for (auto& [position, _] : vertices_) {
-        position = transform.Apply(position);
+        position = transform.Apply(position).XYZ();
     }
+    return *this;
+}
+
+VerticesObject& VerticesObject::GenerateNormals(bool clockwise) {
+    assert(IsTrianglesObject() && "Can not generate normals for not triangles object");
+
+    std::vector<size_t> traingles_per_vertex(vertices_.size());
+
+    const auto add_normal = [&](uint64_t id_a, const Vec3& point_b, const Vec3& point_c) {
+        const auto& point_a = vertices_[id_a].position;
+
+        auto normal = (point_b - point_a).VectorProd(point_c - point_a);
+        if (!normal.IsZero()) {
+            normal.Normalize();
+        }
+        vertices_[id_a].params.normal += clockwise ? normal : -normal;
+
+        ++traingles_per_vertex[id_a];
+    };
+
+    for (const auto& [id_a, id_b, id_c] : GetTriangleIndices()) {
+        add_normal(id_a, vertices_[id_b].position, vertices_[id_c].position);
+        add_normal(id_b, vertices_[id_c].position, vertices_[id_a].position);
+        add_normal(id_c, vertices_[id_a].position, vertices_[id_b].position);
+    }
+
+    for (size_t i = 0; i < vertices_.size(); ++i) {
+        auto& normal = vertices_[i].params.normal;
+        if (const auto denom = traingles_per_vertex[i]) {
+            normal /= denom;
+        }
+        if (!normal.IsZero()) {
+            normal.Normalize();
+        }
+    }
+
     return *this;
 }
 

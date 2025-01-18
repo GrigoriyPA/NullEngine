@@ -60,6 +60,8 @@ public:
 
     VerticesObject& Transform(const Mat4& transform);
 
+    VerticesObject& GenerateNormals(bool clockwise = true);
+
 private:
     bool ValidateIdicesValues(const std::vector<uint64_t>& indices) const;
 

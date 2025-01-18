@@ -1,15 +1,15 @@
 #pragma once
 
-#include <null_engine/drawable_objects/common/vertex.hpp>
+#include <null_engine/renderer/shaders/vertex_shader.hpp>
 
 namespace null_engine::detail {
 
 class Interpolation {
 public:
-    Interpolation(FloatType z, FloatType h, const VertexParams& params);
+    Interpolation(FloatType z, FloatType h, const InterpolationParams& params);
 
     FloatType GetZ() const;
-    VertexParams GetParams() const;
+    InterpolationParams GetParams() const;
 
     Interpolation& operator+=(const Interpolation& other);
     friend Interpolation operator+(Interpolation left, const Interpolation& right);
@@ -26,7 +26,7 @@ public:
 private:
     FloatType z_;
     FloatType h_;
-    VertexParams params_;
+    InterpolationParams params_;
 };
 
 template <typename Value>

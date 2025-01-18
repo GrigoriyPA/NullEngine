@@ -1,7 +1,7 @@
 set(TARGET_NAME null-engine-drawable-objects-common)
 
 add_library(${TARGET_NAME}
-    vertex.cpp
+    vertex.hpp
 )
 
 target_link_libraries(${TARGET_NAME}

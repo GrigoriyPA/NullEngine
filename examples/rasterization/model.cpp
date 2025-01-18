@@ -13,14 +13,6 @@ namespace {
 Scene CreateScene(AnimatorRegistry& animator_registry) {
     Scene scene;
 
-    const uint64_t number_points = 200;
-    const Vec2 square_size(1.0, 1.0);
-    const Vec3 first_square_pos(-0.5, -0.5, 5.0);
-    scene.AddObject(CreatePointsSet(number_points, first_square_pos, square_size, kWhite));
-
-    const Vec3 second_square_pos(0.0, 0.0, 4.5);
-    scene.AddObject(CreatePointsSet(number_points, second_square_pos, square_size, kRed));
-
     const std::vector<Vec3> sample_points = {
         Vec3(-0.5, -0.5, 0.5), Vec3(0, 0.5, 0.5), Vec3(0.5, -0.7, 0.5), Vec3(0.5, 0.5, 1.5)
     };
@@ -36,7 +28,8 @@ Scene CreateScene(AnimatorRegistry& animator_registry) {
     SceneObject traingles_object(
         VerticesObject(sample_points.size(), VerticesObject::Type::TriangleStrip)
             .SetPositions(sample_points)
-            .SetParams(sample_params),
+            .SetParams(sample_params)
+            .GenerateNormals(),
         Mat4::Translation(traingles_translation)
     );
 

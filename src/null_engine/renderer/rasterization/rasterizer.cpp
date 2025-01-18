@@ -101,11 +101,11 @@ Rasterizer::Rasterizer(uint64_t view_width, uint64_t view_height)
     , pixel_width_(2.0 / static_cast<FloatType>(view_width)) {
 }
 
-void Rasterizer::DrawPoint(const Vertex& point, RasterizerBuffer& buffer) const {
+void Rasterizer::DrawPoint(const InterpVertex& point, RasterizerBuffer& buffer) const {
     RasterizePoint(GetVertexInfo(point), buffer);
 }
 
-void Rasterizer::DrawLine(const Vertex& point_a, const Vertex& point_b, RasterizerBuffer& buffer) const {
+void Rasterizer::DrawLine(const InterpVertex& point_a, const InterpVertex& point_b, RasterizerBuffer& buffer) const {
     LineWalker walker(GetVertexInfo(point_a), GetVertexInfo(point_b));
     for (; !walker.Finished(); walker.Move()) {
         RasterizePoint(walker.GetVertex(), buffer);
@@ -113,7 +113,7 @@ void Rasterizer::DrawLine(const Vertex& point_a, const Vertex& point_b, Rasteriz
 }
 
 void Rasterizer::DrawTriangle(
-    const Vertex& point_a, const Vertex& point_b, const Vertex& point_c, RasterizerBuffer& buffer
+    const InterpVertex& point_a, const InterpVertex& point_b, const InterpVertex& point_c, RasterizerBuffer& buffer
 ) const {
     auto info_a = GetVertexInfo(point_a);
     auto info_b = GetVertexInfo(point_b);
@@ -162,7 +162,7 @@ void Rasterizer::DrawTriangle(
     }
 }
 
-VertexInfo Rasterizer::GetVertexInfo(const Vertex& point) const {
+VertexInfo Rasterizer::GetVertexInfo(const InterpVertex& point) const {
     auto position = point.position;
     PerspectiveDivision(position);
 

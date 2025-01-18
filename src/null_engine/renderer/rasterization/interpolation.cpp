@@ -5,7 +5,7 @@
 
 namespace null_engine::detail {
 
-Interpolation::Interpolation(FloatType z, FloatType h, const VertexParams& params)
+Interpolation::Interpolation(FloatType z, FloatType h, const InterpolationParams& params)
     : z_(z)
     , h_(h)
     , params_(params) {
@@ -16,8 +16,8 @@ FloatType Interpolation::GetZ() const {
     return z_;
 }
 
-VertexParams Interpolation::GetParams() const {
-    VertexParams result = params_;
+InterpolationParams Interpolation::GetParams() const {
+    InterpolationParams result = params_;
     result /= h_;
     return result;
 }

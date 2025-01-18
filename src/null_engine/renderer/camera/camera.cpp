@@ -13,7 +13,7 @@ CameraBase::CameraBase()
     , horizon_(1.0, 0.0, 0.0) {
 }
 
-Vec3 CameraBase::GetPosition() const {
+Vec3 CameraBase::GetViewPos() const {
     return position_;
 }
 
@@ -68,8 +68,8 @@ void CameraBase::Move(FloatType direct_move, FloatType horizon_move, FloatType v
 void CameraBase::RotateGlobal(Vec3 axis, FloatType angle) {
     const auto transform = Mat4::Rotation(axis, angle);
 
-    direction_ = transform.Apply(direction_);
-    horizon_ = transform.Apply(horizon_);
+    direction_ = transform.Apply(direction_).XYZ();
+    horizon_ = transform.Apply(horizon_).XYZ();
 }
 
 void CameraBase::Rotate(FloatType yaw_rotation, FloatType pitch_rotation, FloatType roll_rotation) {

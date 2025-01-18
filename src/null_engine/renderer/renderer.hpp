@@ -4,7 +4,6 @@
 #include <null_engine/renderer/clipping/clipping.hpp>
 #include <null_engine/renderer/rasterization/rasterizer.hpp>
 #include <null_engine/scene/scene.hpp>
-#include <null_engine/util/mvc/ports.hpp>
 
 namespace null_engine {
 
@@ -16,6 +15,7 @@ struct RenderEvent {
 struct RendererSettings {
     uint64_t view_width;
     uint64_t view_height;
+    ClipperSettings clipper_settings = {};
 };
 
 class Renderer {
@@ -35,20 +35,21 @@ public:
 private:
     void OnRenderEvent(const RenderEvent& render_event);
 
-    void RenderPointsObject(const VerticesObject& object, const Mat4& ndc_transform);
+    void RenderPointsObject(const VerticesObject& object);
 
-    void RenderLinesObject(const VerticesObject& object, const Mat4& ndc_transform);
+    void RenderLinesObject(const VerticesObject& object);
 
-    void RenderTrianglesObject(const VerticesObject& object, const Mat4& ndc_transform);
+    void RenderTrianglesObject(const VerticesObject& object);
 
     void ClearBuffer();
-
-    static std::vector<Vertex> TransformObjectVertices(const VerticesObject& object, const Mat4& ndc_transform);
 
     RendererSettings settings_;
     Clipper clipper_;
     RasterizerBuffer buffer_;
     Rasterizer rasterizer_;
+    Mat4 camera_transform_;
+    Mat4 object_transform_;
+    Vec3 view_pos_;
     InPort<RenderEvent> in_render_port_;
     OutPort<TextureData>::Ptr out_texture_port_ = OutPort<TextureData>::Make();
 };

@@ -5,14 +5,29 @@
 
 namespace null_engine::detail {
 
-Clipper::Clipper()
-    : clipping_planes_(
+namespace {
+
+bool IsWisiblePoint(const InterpVertex& point, Vec3 view_pos) {
+    const auto normal = point.params.normal;
+    if (normal.IsZero()) {
+        return true;
+    }
+
+    const auto direction = point.params.frag_pos - view_pos;
+    return normal.ScalarProd(direction) > -kEps;
+}
+
+}  // anonymous namespace
+
+Clipper::Clipper(const ClipperSettings& settings)
+    : settings_(settings)
+    , clipping_planes_(
           {Vec4(0.0, 0.0, -1.0, 1.0), Vec4(0.0, 0.0, 1.0, 1.0), Vec4(-1.0, 0.0, 0.0, 1.0), Vec4(1.0, 0.0, 0.0, 1.0),
            Vec4(0.0, -1.0, 0.0, 1.0), Vec4(0.0, 1.0, 0.0, 1.0)}
       ) {
 }
 
-LineClippingResult Clipper::ClipLines(std::vector<Vertex> vertices, std::vector<LineIndex> indices) {
+LineClippingResult Clipper::ClipLines(std::vector<InterpVertex> vertices, std::vector<LineIndex> indices) {
     vertices_.swap(vertices);
     line_indices_.swap(indices);
 
@@ -27,12 +42,17 @@ LineClippingResult Clipper::ClipLines(std::vector<Vertex> vertices, std::vector<
     return result;
 }
 
-TriangleClippingResult Clipper::ClipTriangles(std::vector<Vertex> vertices, std::vector<TriangleIndex> indices) {
+TriangleClippingResult Clipper::ClipTriangles(
+    Vec3 view_pos, std::vector<InterpVertex> vertices, std::vector<TriangleIndex> indices
+) {
     vertices_.swap(vertices);
     triangle_indices_.swap(indices);
 
     for (auto plane_normal : clipping_planes_) {
         ClipTrianglesByPlane(plane_normal);
+    }
+    if (settings_.clip_triangles_by_normals) {
+        ClipTrianglesByNormals(view_pos);
     }
 
     TriangleClippingResult result;
@@ -158,6 +178,21 @@ void Clipper::AddInterpolatedPoint(ClippingPoint inside, ClippingPoint outside) 
 
     vertex_a += vertex_b;
     vertices_.emplace_back(std::move(vertex_a));
+}
+
+void Clipper::ClipTrianglesByNormals(Vec3 view_pos) {
+    if (triangle_indices_.empty()) {
+        return;
+    }
+
+    for (int64_t i = triangle_indices_.size() - 1; i >= 0; --i) {
+        const auto [id_a, id_b, id_c] = triangle_indices_[i];
+
+        if (!IsWisiblePoint(vertices_[id_a], view_pos) && !IsWisiblePoint(vertices_[id_b], view_pos) &&
+            !IsWisiblePoint(vertices_[id_c], view_pos)) {
+            SwapRemove(triangle_indices_, i);
+        }
+    }
 }
 
 }  // namespace null_engine::detail
