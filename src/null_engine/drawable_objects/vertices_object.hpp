@@ -36,6 +36,8 @@ public:
 
     size_t GetNumberVertices() const;
 
+    size_t GetNumberIndices() const;
+
     const std::vector<Vertex>& GetVertices() const;
 
     const std::vector<uint64_t>& GetIndices() const;
@@ -65,6 +67,8 @@ public:
     VerticesObject& Transform(const Mat4& transform);
 
     VerticesObject& GenerateNormals(bool clockwise = true);
+
+    VerticesObject& Merge(const VerticesObject& other);
 
 private:
     bool ValidateIdicesValues(const std::vector<uint64_t>& indices) const;

@@ -69,7 +69,7 @@ std::vector<InterpVertex> ConvertObjectVerices(
     const Mat4& camera_transform, const Mat4& object_transform, const std::vector<Vertex>& verices
 ) {
     const auto ndc_transform = camera_transform * object_transform;
-    const auto normal_transform = Mat3::Inverse(Mat4::ToMat3(object_transform)).Transpose();
+    const auto normal_transform = Mat4::NormalTransform(object_transform);
 
     std::vector<InterpVertex> result;
     result.reserve(verices.size());

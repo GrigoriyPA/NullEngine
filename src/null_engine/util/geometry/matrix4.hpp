@@ -51,6 +51,8 @@ public:
 
     static Mat4 FromMat3(const Mat3& tranform);
 
+    static Mat3 NormalTransform(const Mat4& tranform);
+
     static Mat4 Scale(Vec3 scale);
 
     static Mat4 Scale(FloatType scale_x, FloatType scale_y, FloatType scale_z);

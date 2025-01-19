@@ -20,54 +20,20 @@ ModelAssetes LoadAssets() {
 Scene CreateScene(AnimatorRegistry& animator_registry, const ModelAssetes& assets) {
     Scene scene;
 
-    const std::vector<Vec3> sample_points = {Vec3(-0.5, -0.5, 0.5), Vec3(0, 0.5, 0.5),   Vec3(0.5, -0.7, 0.5),
-                                             Vec3(0, 0.5, 0.5),     Vec3(0.5, 0.5, 1.5), Vec3(0.5, -0.7, 0.5)};
-    const std::vector<VertexParams> sample_params = {VertexParams{.color = kRed},   VertexParams{.color = kBlue},
-                                                     VertexParams{.color = kGreen}, VertexParams{.color = kBlue},
-                                                     VertexParams{.color = kWhite}, VertexParams{.color = kGreen}};
-
-    const Vec3 sample_translation(0.0, 0.0, 2.0);
-    SceneObject traingles_object(Mat4::Translation(sample_translation));
-    traingles_object.EmplaceChild(VerticesObject(sample_points.size(), VerticesObject::Type::Triangles)
-                                      .SetPositions(sample_points)
-                                      .SetParams(sample_params)
-                                      .GenerateNormals(false));
-
-    const auto normals_scale = 0.5;
-    traingles_object.EmplaceChild(
-        CreateNormalsVisualization(traingles_object.GetChild(0).GetObject(), kRed, normals_scale)
+    const Vec3 cube_translation(0.0, 0.0, 2.0);
+    SceneObject cube(
+        CreateCube().SetMaterial({.diffuse_tex = TextureView(*assets.texture)}), Mat4::Translation(cube_translation)
     );
 
     const auto rotation_axis = Vec3::Ident(1.0);
-    const auto rotation_speed = std::numbers::pi / 2.0;
+    const auto rotation_speed = std::numbers::pi / 3.0;
     auto animator = std::make_unique<RotationAnimation>(rotation_axis, rotation_speed);
-
     auto animation = Animation::Make();
     animator->SubscribeOnAnimation(animation->GetTransformPort());
     animator_registry.AddAnimator(std::move(animator));
-    traingles_object.SetAnimation(std::move(animation));
+    cube.SetAnimation(std::move(animation));
 
-    scene.AddObject(std::move(traingles_object));
-
-    const std::vector<Vec3> triangle_points = {
-        Vec3(-0.5, 0.0, 0.0),
-        Vec3(0, 0.5, 0.0),
-        Vec3(0.5, 0.0, 0.0),
-    };
-    const std::vector<VertexParams> triangle_params = {
-        VertexParams{.tex_coords = Vec2(0.0, 1.0)},
-        VertexParams{.tex_coords = Vec2(0.5, 0.5)},
-        VertexParams{.tex_coords = Vec2(1.0, 1.0)},
-    };
-    const Vec3 triangle_translation(2.0, 0.0, 2.0);
-    scene.EmplaceObject(
-        VerticesObject(triangle_points.size(), VerticesObject::Type::Triangles)
-            .SetPositions(triangle_points)
-            .SetParams(triangle_params)
-            .SetMaterial({.diffuse_tex = TextureView(*assets.texture)})
-            .GenerateNormals(false),
-        Mat4::Translation(triangle_translation)
-    );
+    scene.AddObject(std::move(cube));
 
     return scene;
 }

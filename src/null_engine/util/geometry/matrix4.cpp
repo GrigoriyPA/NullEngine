@@ -165,6 +165,10 @@ Mat4 Mat4::FromMat3(const Mat3& tranform) {
     };
 }
 
+Mat3 Mat4::NormalTransform(const Mat4& tranform) {
+    return Mat3::Inverse(Mat4::ToMat3(tranform)).Transpose();
+}
+
 Mat4 Mat4::Scale(Vec3 scale) {
     return Mat4(
         {{scale.X(), 0.0, 0.0, 0.0}, {0.0, scale.Y(), 0.0, 0.0}, {0.0, 0.0, scale.Z(), 0.0}, {0.0, 0.0, 0.0, 1.0}}

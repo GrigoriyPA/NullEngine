@@ -48,6 +48,10 @@ size_t VerticesObject::GetNumberVertices() const {
     return vertices_.size();
 }
 
+size_t VerticesObject::GetNumberIndices() const {
+    return indices_.size();
+}
+
 const std::vector<Vertex>& VerticesObject::GetVertices() const {
     return vertices_;
 }
@@ -188,8 +192,10 @@ VerticesObject& VerticesObject::SetIndices(const std::vector<uint64_t>& indices)
 }
 
 VerticesObject& VerticesObject::Transform(const Mat4& transform) {
-    for (auto& [position, _] : vertices_) {
+    const auto normal_transform = Mat4::NormalTransform(transform);
+    for (auto& [position, params] : vertices_) {
         position = transform.Apply(position).XYZ();
+        params.normal = normal_transform.Apply(params.normal);
     }
     return *this;
 }
@@ -202,7 +208,7 @@ VerticesObject& VerticesObject::GenerateNormals(bool clockwise) {
     const auto add_normal = [&](uint64_t id_a, const Vec3& point_b, const Vec3& point_c) {
         const auto& point_a = vertices_[id_a].position;
 
-        auto normal = (point_b - point_a).VectorProd(point_c - point_a);
+        auto normal = -(point_b - point_a).VectorProd(point_c - point_a);
         if (!normal.IsZero()) {
             normal.Normalize();
         }
@@ -228,6 +234,22 @@ VerticesObject& VerticesObject::GenerateNormals(bool clockwise) {
     }
 
     return *this;
+}
+
+VerticesObject& VerticesObject::Merge(const VerticesObject& other) {
+    assert(object_type_ == other.object_type_ && "Can not merge objects of different types");
+    assert((object_type_ == Type::Lines || object_type_ == Type::Triangles) && "Invalid object type for merge");
+
+    const auto number_vertices = vertices_.size();
+    vertices_.insert(vertices_.end(), other.GetVertices().begin(), other.GetVertices().end());
+
+    auto new_indices = indices_;
+    new_indices.reserve(new_indices.size() + other.GetNumberIndices());
+    for (const auto other_index : other.GetIndices()) {
+        new_indices.emplace_back(other_index + number_vertices);
+    }
+
+    return SetIndices(new_indices);
 }
 
 bool VerticesObject::ValidateIdicesValues(const std::vector<uint64_t>& indices) const {
