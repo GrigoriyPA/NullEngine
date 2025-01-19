@@ -1,7 +1,6 @@
 #include "model.hpp"
 
 #include <null_engine/drawable_objects/primitive_objects.hpp>
-#include <null_engine/renderer/camera/camera.hpp>
 #include <null_engine/scene/animations/primitive_animations.hpp>
 #include <null_engine/scene/lights/light.hpp>
 #include <null_engine/tests/tests_constants.hpp>
@@ -16,6 +15,9 @@ constexpr const char* kDiffuseTexturePath = "../../assets/textures/box_diffuse.p
 constexpr const char* kSpecularTexturePath = "../../assets/textures/box_specular.png";
 constexpr const char* kEmissionTexturePath = "../../assets/textures/box_emission.jpg";
 
+constexpr LightStrength kLightStrenght = {.ambient = 0.2, .diffuse = 0.6, .specular = 0.8};
+constexpr AttenuationSettings kLightAttenuation = {.constant = 1.0, .quadratic = 0.1};
+
 ModelAssetes LoadAssets() {
     ModelAssetes assets;
     assets.textures.emplace_back(Texture::LoadFromFile(kDiffuseTexturePath));
@@ -27,8 +29,7 @@ ModelAssetes LoadAssets() {
 
 void AddDirectLight(Scene& scene) {
     const Vec3 light_direction(2.0, -1.0, 3.0);
-    const LightStrength light_strength = {.ambient = 0.2, .diffuse = 0.6, .specular = 0.8};
-    const DirectLight light(light_direction, light_strength);
+    const DirectLight light(light_direction, kLightStrenght);
 
     scene.AddLight(light);
 
@@ -39,9 +40,7 @@ void AddDirectLight(Scene& scene) {
 
 void AddPointLight(Scene& scene) {
     const Vec3 light_position(-1.0, 1.0, 1.0);
-    const LightStrength light_strength = {.ambient = 0.2, .diffuse = 0.6, .specular = 0.8};
-    const AttenuationSettings light_attenuation = {.constant = 1.0, .quadratic = 0.1};
-    const PointLight light(light_position, light_strength, light_attenuation);
+    const PointLight light(light_position, kLightStrenght, kLightAttenuation);
 
     scene.AddLight(light);
 
@@ -50,15 +49,15 @@ void AddPointLight(Scene& scene) {
 }
 
 void AddSpotLight(Scene& scene) {
-    const SpotLightSettings light_settings = {
-        .position = Vec3(-1.0, 1.0, 1.0),
-        .direction = Vec3(1.0, -1.0, 1.0),
-        .light_angle = std::numbers::pi / 6.0,
-        .light_angle_ratio = 1.2
-    };
-    const LightStrength light_strength = {.ambient = 0.2, .diffuse = 0.6, .specular = 0.8};
-    const AttenuationSettings light_attenuation = {.constant = 1.0, .quadratic = 0.1};
-    const SpotLight light(light_settings, light_strength, light_attenuation);
+    const SpotLight light(
+        {
+            .position = Vec3(-1.0, 1.0, 1.0),
+            .direction = Vec3(1.0, -1.0, 1.0),
+            .light_angle = std::numbers::pi / 6.0,
+            .light_angle_ratio = 1.2,
+        },
+        kLightStrenght, kLightAttenuation
+    );
 
     scene.AddLight(light);
 
@@ -70,10 +69,8 @@ void SetRotationAnimation(AnimatorRegistry& animator_registry, SceneObject& obje
     const auto rotation_axis = Vec3::Ident(1.0);
     const auto rotation_speed = std::numbers::pi / 3.0;
     auto animator = std::make_unique<RotationAnimation>(rotation_axis, rotation_speed);
-    auto animation = Animation::Make();
-    animator->SubscribeOnAnimation(animation->GetTransformPort());
+    animator->SubscribeOnAnimation(object.GetTransformPort());
     animator_registry.AddAnimator(std::move(animator));
-    object.SetAnimation(std::move(animation));
 }
 
 void SetTranslationAnimation(AnimatorRegistry& animator_registry, SceneObject& object) {
@@ -81,13 +78,11 @@ void SetTranslationAnimation(AnimatorRegistry& animator_registry, SceneObject& o
     const Vec3 end_pos(0.0, 0.0, 3.0);
     const auto speed = (end_pos - start_pos).Length() / 5.0;
     auto animator = std::make_unique<TranslationAnimation>(start_pos, end_pos, speed);
-    auto animation = Animation::Make();
-    animator->SubscribeOnAnimation(animation->GetTransformPort());
+    animator->SubscribeOnAnimation(object.GetTransformPort());
     animator_registry.AddAnimator(std::move(animator));
-    object.SetAnimation(std::move(animation));
 }
 
-Scene CreateScene(AnimatorRegistry& animator_registry, const ModelAssetes& assets) {
+Scene CreateScene(AnimatorRegistry& animator_registry, const ModelAssetes& assets, const PerspectiveCamera& camera) {
     const auto cube_instance = Mat4::Translation(0.0, 0.0, 2.0);
     SceneObject cube(
         CreateCube().SetMaterial({
@@ -99,19 +94,35 @@ Scene CreateScene(AnimatorRegistry& animator_registry, const ModelAssetes& asset
     );
     SetRotationAnimation(animator_registry, cube);
 
+    auto camera_light = SceneLight::Make(SpotLight(
+        {
+            .light_angle = std::numbers::pi / 6.0,
+            .light_angle_ratio = 1.2,
+        },
+        kLightStrenght, kLightAttenuation
+    ));
+    camera.SubscribeOnCameraTransform(camera_light->GetTransformPort());
+
     Scene scene;
     scene.AddObject(std::move(cube));
-    AddSpotLight(scene);
+    scene.AddLight(std::move(camera_light));
 
     return scene;
 }
 
-AnyMovableCamera CreateCamera(uint64_t view_width, uint64_t view_height) {
-    const FloatType fov = std::numbers::pi / 2.0;
-    const FloatType min_distance = 0.1;
-    const FloatType max_distance = 250;
+PerspectiveCamera CreateCamera(uint64_t view_width, uint64_t view_height) {
     return PerspectiveCamera(
-        fov, static_cast<FloatType>(view_width) / static_cast<FloatType>(view_height), min_distance, max_distance
+        {
+            .position = Vec3(),
+            .direction = Vec3(0.0, 0.0, 1.0),
+            .horizon = Vec3(1.0, 0.0, 0.0),
+        },
+        {
+            .fov = std::numbers::pi / 2.0,
+            .ratio = static_cast<FloatType>(view_width) / static_cast<FloatType>(view_height),
+            .min_distance = 0.1,
+            .max_distance = 250.0,
+        }
     );
 }
 
@@ -119,8 +130,8 @@ AnyMovableCamera CreateCamera(uint64_t view_width, uint64_t view_height) {
 
 Model::Model(uint64_t view_width, uint64_t view_height)
     : assets_(LoadAssets())
-    , scene_(CreateScene(animator_registry_, assets_))
     , camera_(CreateCamera(view_width, view_height))
+    , scene_(CreateScene(animator_registry_, assets_, camera_))
     , renderer_({view_width, view_height})
     , in_texture_port_(std::bind(&Model::OnRenderedTexture, this, std::placeholders::_1)) {
     renderer_.SubscribeToTextures(&in_texture_port_);
@@ -137,10 +148,7 @@ void Model::DoRendering() {
 }
 
 void Model::MoveCamera(const CameraChange& camera_change) {
-    camera_.Move(camera_change.move.direct_move, camera_change.move.horizon_move, camera_change.move.vertical_move);
-    camera_.Rotate(
-        camera_change.rotate.yaw_rotation, camera_change.rotate.pitch_rotation, camera_change.rotate.roll_rotation
-    );
+    camera_.GetChangePort()->OnEvent(camera_change);
 }
 
 void Model::Refresh(FloatType delta_time) {

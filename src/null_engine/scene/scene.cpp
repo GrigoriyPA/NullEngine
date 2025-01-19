@@ -60,13 +60,20 @@ const std::vector<SceneObject>& Scene::GetObjects() const {
     return objects_;
 }
 
-const AnyLight& Scene::GetLight(size_t index) const {
+AnyLight Scene::GetLight(size_t index) const {
     assert(index < lights_.size() && "Scene light index too large");
-    return lights_[index];
+    return lights_[index]->GetLight();
 }
 
-const std::vector<AnyLight>& Scene::GetLights() const {
-    return lights_;
+std::vector<AnyLight> Scene::GetLights() const {
+    std::vector<AnyLight> result;
+    result.reserve(lights_.size());
+    for (const auto& light : lights_) {
+        if (light->Enabled()) {
+            result.emplace_back(light->GetLight());
+        }
+    }
+    return result;
 }
 
 Scene& Scene::AddObject(const VerticesObject& object) {
@@ -79,8 +86,13 @@ Scene& Scene::AddObject(SceneObject object) {
     return *this;
 }
 
-Scene& Scene::AddLight(const AnyLight& light) {
-    lights_.emplace_back(light);
+Scene& Scene::AddLight(const AnyMovableLight& light) {
+    lights_.emplace_back(SceneLight::Make(light));
+    return *this;
+}
+
+Scene& Scene::AddLight(SceneLight::Ptr light) {
+    lights_.emplace_back(std::move(light));
     return *this;
 }
 

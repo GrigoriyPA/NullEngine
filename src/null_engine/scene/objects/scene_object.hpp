@@ -39,6 +39,8 @@ public:
 
     explicit SceneObject(const VerticesObject& object, const Mat4& instance = Mat4());
 
+    InPort<Mat4>* GetTransformPort();
+
     bool HasObject() const;
 
     const VerticesObject& GetObject() const;
@@ -52,8 +54,6 @@ public:
     const SceneObject& GetChild(size_t child_id) const;
 
     SceneObject& AddInstance(const Mat4& instance);
-
-    SceneObject& SetAnimation(Animation::Ptr animation);
 
     SceneObject& AddChild(SceneObject object);
 
@@ -69,7 +69,7 @@ public:
 
 private:
     std::vector<Mat4> instances_;
-    Animation::Ptr animation_;
+    Animation::Ptr animation_ = Animation::Make();
     std::optional<VerticesObject> object_;
     std::vector<SceneObject> children_;
 };

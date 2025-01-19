@@ -7,93 +7,87 @@ namespace null_engine {
 
 namespace detail {
 
-CameraBase::CameraBase()
-    : position_()
-    , direction_(0.0, 0.0, 1.0)
-    , horizon_(1.0, 0.0, 0.0) {
+CameraBase::CameraBase(const CameraOrientation& orientation)
+    : orientation_(orientation)
+    , in_change_port_(std::bind(&CameraBase::OnCameraChange, this, std::placeholders::_1)) {
+}
+
+InPort<CameraChange>* CameraBase::GetChangePort() {
+    return &in_change_port_;
+}
+
+void CameraBase::SubscribeOnCameraTransform(InPort<Mat4>* observer_port) const {
+    out_transform_port_->Subscribe(observer_port, GetCameraTransform());
 }
 
 Vec3 CameraBase::GetViewPos() const {
-    return position_;
+    return orientation_.position;
 }
 
 Vec3 CameraBase::GetDirection() const {
-    return Vec3::Normalize(direction_);
+    return Vec3::Normalize(orientation_.direction);
 }
 
 Vec3 CameraBase::GetHorizon() const {
-    return Vec3::Normalize(horizon_);
+    return Vec3::Normalize(orientation_.horizon);
 }
 
 Vec3 CameraBase::GetVertical() const {
-    return horizon_.VectorProd(direction_).Normalize();
+    return orientation_.horizon.VectorProd(orientation_.direction).Normalize();
 }
 
 Mat4 CameraBase::GetCameraTransform() const {
-    const auto vertical = horizon_.VectorProd(direction_);
-
-    return Mat4::Basis(horizon_, vertical, direction_).Transpose() * Mat4::Translation(-position_);
+    return Mat4::Translation(orientation_.position) * GetOrientationTransform();
 }
 
-CameraBase& CameraBase::SetPosition(Vec3 position) {
-    position_ = position;
-
-    return *this;
+Mat4 CameraBase::GetOrientationTransform() const {
+    return Mat4::Basis(orientation_.horizon, GetVertical(), orientation_.direction);
 }
 
-CameraBase& CameraBase::SetDirection(Vec3 direction) {
-    direction_ = direction;
-    horizon_ = direction_.Horizon();
-
-    return *this;
+void CameraBase::Move(Vec3 translation) {
+    orientation_.position += translation;
 }
 
-CameraBase& CameraBase::SetOrientation(Vec3 direction, Vec3 horizon) {
-    assert(Equal(direction.ScalarProd(horizon), 0.0) && "Direction and horizon should be orthogonal");
-
-    direction_ = direction;
-    horizon_ = horizon;
-
-    return *this;
-}
-
-void CameraBase::MoveGlobal(Vec3 translation) {
-    position_ += translation;
-}
-
-void CameraBase::Move(FloatType direct_move, FloatType horizon_move, FloatType vertical_move) {
-    MoveGlobal(direction_ * direct_move + horizon_ * horizon_move + GetVertical() * vertical_move);
-}
-
-void CameraBase::RotateGlobal(Vec3 axis, FloatType angle) {
+void CameraBase::Rotate(Vec3 axis, FloatType angle) {
     const auto transform = Mat4::Rotation(axis, angle);
 
-    direction_ = transform.Apply(direction_).XYZ();
-    horizon_ = transform.Apply(horizon_).XYZ();
+    orientation_.direction = transform.Apply(orientation_.direction).XYZ();
+    orientation_.horizon = transform.Apply(orientation_.horizon).XYZ();
 }
 
-void CameraBase::Rotate(FloatType yaw_rotation, FloatType pitch_rotation, FloatType roll_rotation) {
-    RotateGlobal(GetVertical(), yaw_rotation);
-    RotateGlobal(horizon_, pitch_rotation);
-    RotateGlobal(direction_, roll_rotation);
+void CameraBase::OnCameraChange(const CameraChange& cmaera_change) {
+    const auto& rotate = cmaera_change.rotate;
+
+    Rotate(GetVertical(), rotate.yaw);
+    Rotate(orientation_.horizon, rotate.pitch);
+    Rotate(orientation_.direction, rotate.roll);
+
+    const auto& move = cmaera_change.move;
+    Move(orientation_.direction * move.direct + orientation_.horizon * move.horizon + GetVertical() * move.vertical);
+
+    out_transform_port_->Notify(GetCameraTransform());
 }
 
 }  // namespace detail
 
-DirectCamera::DirectCamera(FloatType width, FloatType height, FloatType depth)
-    : ndc_transform_(Mat4::BoxProjection(width, height, depth)) {
+DirectCamera::DirectCamera(const CameraOrientation& orientation, const Settings& settings)
+    : Base(orientation)
+    , ndc_transform_(Mat4::BoxProjection(settings.width, settings.height, settings.depth)) {
 }
 
 Mat4 DirectCamera::GetNdcTransform() const {
-    return ndc_transform_ * GetCameraTransform();
+    return ndc_transform_ * Mat4::Transpose(GetOrientationTransform()) * Mat4::Translation(-GetViewPos());
 }
 
-PerspectiveCamera::PerspectiveCamera(FloatType fov, FloatType ratio, FloatType min_distance, FloatType max_distance)
-    : ndc_transform_(Mat4::PerspectiveProjection(fov, ratio, min_distance, max_distance)) {
+PerspectiveCamera::PerspectiveCamera(const CameraOrientation& orientation, const Settings& settings)
+    : Base(orientation)
+    , ndc_transform_(
+          Mat4::PerspectiveProjection(settings.fov, settings.ratio, settings.min_distance, settings.max_distance)
+      ) {
 }
 
 Mat4 PerspectiveCamera::GetNdcTransform() const {
-    return ndc_transform_ * GetCameraTransform();
+    return ndc_transform_ * Mat4::Transpose(GetOrientationTransform()) * Mat4::Translation(-GetViewPos());
 }
 
 }  // namespace null_engine

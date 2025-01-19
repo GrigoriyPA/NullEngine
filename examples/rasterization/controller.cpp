@@ -26,17 +26,14 @@ void Controller::Apply() {
 }
 
 void Controller::OnMouseChange(const MouseChange& change) const {
-    model_->MoveCamera({.rotate = {.yaw_rotation = change.yaw_rotation, .pitch_rotation = change.pitch_rotation}});
+    model_->MoveCamera({.rotate = {.yaw = change.yaw_rotation, .pitch = change.pitch_rotation}});
 }
 
 void Controller::OnKeyboardChange(const KeyboardChange& change) const {
-    model_->MoveCamera(
-        {.move =
-             {.direct_move = change.direct_move,
-              .horizon_move = change.horizon_move,
-              .vertical_move = change.vertical_move},
-         .rotate = {.roll_rotation = change.roll_rotation}}
-    );
+    model_->MoveCamera({
+        .move = {.direct = change.direct_move, .horizon = change.horizon_move, .vertical = change.vertical_move},
+        .rotate = {.roll = change.roll_rotation},
+    });
 }
 
 }  // namespace null_engine::tests

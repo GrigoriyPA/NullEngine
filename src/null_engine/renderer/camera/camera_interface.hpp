@@ -22,24 +22,6 @@ struct ICamera {
     using Members = folly::PolyMembers<&T::GetViewPos, &T::GetNdcTransform>;
 };
 
-using AnyCamera = folly::Poly<ICamera>;
-
-struct IMovableCamera : folly::PolyExtends<ICamera> {
-    template <class Base>
-    struct Interface : Base {
-        void Move(FloatType direct_move, FloatType horizon_move, FloatType vertical_move) {
-            folly::poly_call<0>(*this, direct_move, horizon_move, vertical_move);
-        }
-
-        void Rotate(FloatType yaw_rotation, FloatType pitch_rotation, FloatType roll_rotation) {
-            folly::poly_call<1>(*this, yaw_rotation, pitch_rotation, roll_rotation);
-        }
-    };
-
-    template <class T>
-    using Members = folly::PolyMembers<&T::Move, &T::Rotate>;
-};
-
-using AnyMovableCamera = folly::Poly<IMovableCamera>;
+using AnyCameraRef = folly::Poly<const ICamera&>;
 
 }  // namespace null_engine

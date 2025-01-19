@@ -1,5 +1,6 @@
 #pragma once
 
+#include <null_engine/renderer/camera/camera.hpp>
 #include <null_engine/renderer/renderer.hpp>
 #include <null_engine/scene/animations/animator.hpp>
 
@@ -13,23 +14,6 @@ struct ModelAssetes {
 
 class Model {
     friend class Controller;
-
-    struct CameraChange {
-        struct Move {
-            FloatType direct_move = 0.0;
-            FloatType horizon_move = 0.0;
-            FloatType vertical_move = 0.0;
-        };
-
-        struct Rotation {
-            FloatType yaw_rotation = 0.0;
-            FloatType pitch_rotation = 0.0;
-            FloatType roll_rotation = 0.0;
-        };
-
-        Move move;
-        Rotation rotate;
-    };
 
 public:
     Model(uint64_t view_width, uint64_t view_height);
@@ -47,8 +31,8 @@ private:
 
     ModelAssetes assets_;
     AnimatorRegistry animator_registry_;
+    PerspectiveCamera camera_;
     Scene scene_;
-    AnyMovableCamera camera_;
     Renderer renderer_;
     InPort<TextureData> in_texture_port_;
     OutPort<DrawViewEvent>::Ptr out_draw_event_port_ = OutPort<DrawViewEvent>::Make();

@@ -9,7 +9,7 @@ namespace null_engine {
 
 struct RenderEvent {
     const Scene& scene;
-    const AnyCamera& camera;
+    AnyCameraRef camera;
 };
 
 struct RendererSettings {

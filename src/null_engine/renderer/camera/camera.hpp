@@ -1,14 +1,42 @@
 #pragma once
 
 #include <null_engine/util/geometry/matrix4.hpp>
+#include <null_engine/util/mvc/ports.hpp>
 
 namespace null_engine {
+
+struct CameraChange {
+    struct Move {
+        FloatType direct = 0.0;
+        FloatType horizon = 0.0;
+        FloatType vertical = 0.0;
+    };
+
+    struct Rotation {
+        FloatType yaw = 0.0;
+        FloatType pitch = 0.0;
+        FloatType roll = 0.0;
+    };
+
+    Move move;
+    Rotation rotate;
+};
+
+struct CameraOrientation {
+    Vec3 position;
+    Vec3 direction;
+    Vec3 horizon;
+};
 
 namespace detail {
 
 class CameraBase {
 public:
-    CameraBase();
+    explicit CameraBase(const CameraOrientation& orientation);
+
+    InPort<CameraChange>* GetChangePort();
+
+    void SubscribeOnCameraTransform(InPort<Mat4>* observer_port) const;
 
     Vec3 GetViewPos() const;
 
@@ -20,31 +48,33 @@ public:
 
     Mat4 GetCameraTransform() const;
 
-    CameraBase& SetPosition(Vec3 position);
-
-    CameraBase& SetDirection(Vec3 direction);
-
-    CameraBase& SetOrientation(Vec3 direction, Vec3 horizon);
-
-    void MoveGlobal(Vec3 translation);
-
-    void Move(FloatType direct_move, FloatType horizon_move, FloatType vertical_move);
-
-    void RotateGlobal(Vec3 axis, FloatType angle);
-
-    void Rotate(FloatType yaw_rotation, FloatType pitch_rotation, FloatType roll_rotation);
+    Mat4 GetOrientationTransform() const;
 
 private:
-    Vec3 position_;
-    Vec3 direction_;
-    Vec3 horizon_;
+    void Move(Vec3 translation);
+
+    void Rotate(Vec3 axis, FloatType angle);
+
+    void OnCameraChange(const CameraChange& cmaera_change);
+
+    CameraOrientation orientation_;
+    InPort<CameraChange> in_change_port_;
+    OutPort<Mat4>::Ptr out_transform_port_ = OutPort<Mat4>::Make();
 };
 
 }  // namespace detail
 
 class DirectCamera : public detail::CameraBase {
+    using Base = detail::CameraBase;
+
 public:
-    DirectCamera(FloatType width, FloatType height, FloatType depth);
+    struct Settings {
+        FloatType width;
+        FloatType height;
+        FloatType depth;
+    };
+
+    DirectCamera(const CameraOrientation& orientation, const Settings& settings);
 
     Mat4 GetNdcTransform() const;
 
@@ -53,8 +83,17 @@ private:
 };
 
 class PerspectiveCamera : public detail::CameraBase {
+    using Base = detail::CameraBase;
+
 public:
-    PerspectiveCamera(FloatType fov, FloatType ratio, FloatType min_distance, FloatType max_distance);
+    struct Settings {
+        FloatType fov;
+        FloatType ratio;
+        FloatType min_distance;
+        FloatType max_distance;
+    };
+
+    PerspectiveCamera(const CameraOrientation& orientation, const Settings& settings);
 
     Mat4 GetNdcTransform() const;
 

@@ -12,6 +12,8 @@ public:
 
     Vec3 CalculateLighting(const LightingMaterialSettings& material) const;
 
+    void ApplyTransform(const Mat4& transform);
+
 private:
     FloatType strength_;
 };
@@ -29,6 +31,8 @@ public:
     Vec3 CalculateLighting(const LightingMaterialSettings& material) const;
 
     VerticesObject VisualizeLight(Vec3 position, Vec3 color = Vec3::Ident(1.0), FloatType scale = 1.0) const;
+
+    void ApplyTransform(const Mat4& transform);
 
 private:
     Vec3 inversed_direction_;
@@ -49,28 +53,30 @@ public:
 
     VerticesObject VisualizeLight(Vec3 color = Vec3::Ident(1.0), FloatType scale = 1.0) const;
 
+    void ApplyTransform(const Mat4& transform);
+
 private:
     Vec3 position_;
     LightStrength strength_;
     AttenuationSettings attenuation_;
 };
 
-struct SpotLightSettings {
-    Vec3 position;
-    Vec3 direction;
-    FloatType light_angle;
-    FloatType light_angle_ratio = 1.1;
-};
-
 class SpotLight {
 public:
-    SpotLight(
-        const SpotLightSettings& settings, const LightStrength& strength, const AttenuationSettings& attenuation = {}
-    );
+    struct Settings {
+        Vec3 position;
+        Vec3 direction = Vec3(0.0, 0.0, 1.0);
+        FloatType light_angle;
+        FloatType light_angle_ratio = 1.1;
+    };
+
+    SpotLight(const Settings& settings, const LightStrength& strength, const AttenuationSettings& attenuation = {});
 
     Vec3 CalculateLighting(const LightingMaterialSettings& material) const;
 
     VerticesObject VisualizeLight(Vec3 color = Vec3::Ident(1.0), FloatType scale = 1.0) const;
+
+    void ApplyTransform(const Mat4& transform);
 
 private:
     Vec3 position_;

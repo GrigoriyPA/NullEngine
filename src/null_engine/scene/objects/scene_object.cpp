@@ -84,6 +84,10 @@ SceneObject::SceneObject(const VerticesObject& object, const Mat4& instance)
     , object_(object) {
 }
 
+InPort<Mat4>* SceneObject::GetTransformPort() {
+    return animation_->GetTransformPort();
+}
+
 bool SceneObject::HasObject() const {
     return object_.has_value();
 }
@@ -112,11 +116,6 @@ const SceneObject& SceneObject::GetChild(size_t child_id) const {
 
 SceneObject& SceneObject::AddInstance(const Mat4& instance) {
     instances_.emplace_back(instance);
-    return *this;
-}
-
-SceneObject& SceneObject::SetAnimation(Animation::Ptr animation) {
-    animation_ = std::move(animation);
     return *this;
 }
 

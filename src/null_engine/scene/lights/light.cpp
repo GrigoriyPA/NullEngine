@@ -42,6 +42,9 @@ Vec3 AmbientLight::CalculateLighting(const LightingMaterialSettings& material) c
     return strength_ * material.diffuse_color;
 }
 
+void AmbientLight::ApplyTransform(const Mat4& transform) {
+}
+
 DirectLight::DirectLight(Vec3 direction, const LightStrength& strength)
     : inversed_direction_(-Vec3::Normalize(direction))
     , strength_(strength) {
@@ -63,6 +66,10 @@ Vec3 DirectLight::CalculateLighting(const LightingMaterialSettings& material) co
 
 VerticesObject DirectLight::VisualizeLight(Vec3 position, Vec3 color, FloatType scale) const {
     return VisualizeDirectedLight(position, -inversed_direction_, color, scale);
+}
+
+void DirectLight::ApplyTransform(const Mat4& transform) {
+    inversed_direction_ = Mat4::ToMat3(transform).Apply(inversed_direction_).Normalize();
 }
 
 PointLight::PointLight(Vec3 position, const LightStrength& strength, const AttenuationSettings& attenuation)
@@ -100,9 +107,11 @@ VerticesObject PointLight::VisualizeLight(Vec3 color, FloatType scale) const {
     return result;
 }
 
-SpotLight::SpotLight(
-    const SpotLightSettings& settings, const LightStrength& strength, const AttenuationSettings& attenuation
-)
+void PointLight::ApplyTransform(const Mat4& transform) {
+    position_ = transform.Apply(position_).XYZ();
+}
+
+SpotLight::SpotLight(const Settings& settings, const LightStrength& strength, const AttenuationSettings& attenuation)
     : position_(settings.position)
     , inversed_direction_(-Vec3::Normalize(settings.direction))
     , strength_(strength)
@@ -143,6 +152,11 @@ Vec3 SpotLight::CalculateLighting(const LightingMaterialSettings& material) cons
 
 VerticesObject SpotLight::VisualizeLight(Vec3 color, FloatType scale) const {
     return VisualizeDirectedLight(position_, -inversed_direction_, color, scale);
+}
+
+void SpotLight::ApplyTransform(const Mat4& transform) {
+    inversed_direction_ = Mat4::ToMat3(transform).Apply(inversed_direction_).Normalize();
+    position_ = transform.Apply(position_).XYZ();
 }
 
 }  // namespace null_engine

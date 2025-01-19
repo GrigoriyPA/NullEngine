@@ -2,7 +2,7 @@
 
 #include <folly/Poly.h>
 
-#include <null_engine/util/geometry/vector3.hpp>
+#include <null_engine/util/geometry/matrix4.hpp>
 
 namespace null_engine {
 
@@ -28,5 +28,19 @@ struct ILight {
 };
 
 using AnyLight = folly::Poly<ILight>;
+
+struct IMovableLight : folly::PolyExtends<ILight> {
+    template <class Base>
+    struct Interface : Base {
+        void ApplyTransform(const Mat4& transform) {
+            folly::poly_call<0>(*this, transform);
+        }
+    };
+
+    template <class T>
+    using Members = folly::PolyMembers<&T::ApplyTransform>;
+};
+
+using AnyMovableLight = folly::Poly<IMovableLight>;
 
 }  // namespace null_engine
