@@ -49,6 +49,23 @@ void AddPointLight(Scene& scene) {
     scene.EmplaceObject(light.VisualizeLight(kWhite, visualization_scale));
 }
 
+void AddSpotLight(Scene& scene) {
+    const SpotLightSettings light_settings = {
+        .position = Vec3(-1.0, 1.0, 1.0),
+        .direction = Vec3(1.0, -1.0, 1.0),
+        .light_angle = std::numbers::pi / 6.0,
+        .light_angle_ratio = 1.2
+    };
+    const LightStrength light_strength = {.ambient = 0.2, .diffuse = 0.6, .specular = 0.8};
+    const AttenuationSettings light_attenuation = {.constant = 1.0, .quadratic = 0.1};
+    const SpotLight light(light_settings, light_strength, light_attenuation);
+
+    scene.AddLight(light);
+
+    const auto visualization_scale = 0.2;
+    scene.EmplaceObject(light.VisualizeLight(kWhite, visualization_scale));
+}
+
 void SetRotationAnimation(AnimatorRegistry& animator_registry, SceneObject& object) {
     const auto rotation_axis = Vec3::Ident(1.0);
     const auto rotation_speed = std::numbers::pi / 3.0;
@@ -71,20 +88,20 @@ void SetTranslationAnimation(AnimatorRegistry& animator_registry, SceneObject& o
 }
 
 Scene CreateScene(AnimatorRegistry& animator_registry, const ModelAssetes& assets) {
-    const Vec3 cube_translation(0.0, 0.0, 2.0);
+    const auto cube_instance = Mat4::Translation(0.0, 0.0, 2.0);
     SceneObject cube(
         CreateCube().SetMaterial({
             .diffuse_tex = TextureView(*assets.textures[0]),
             .specular_tex = TextureView(*assets.textures[1]),
             .shininess = 20,
         }),
-        Mat4::Translation(cube_translation)
+        cube_instance
     );
     SetRotationAnimation(animator_registry, cube);
 
     Scene scene;
     scene.AddObject(std::move(cube));
-    AddPointLight(scene);
+    AddSpotLight(scene);
 
     return scene;
 }

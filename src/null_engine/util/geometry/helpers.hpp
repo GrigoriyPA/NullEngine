@@ -10,4 +10,6 @@ bool Less(FloatType left, FloatType right);
 
 FloatType Module(FloatType left, FloatType right);
 
+FloatType Clamp(FloatType value, FloatType min_value, FloatType max_value);
+
 }  // namespace null_engine

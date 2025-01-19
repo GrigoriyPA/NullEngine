@@ -10,7 +10,7 @@ class AmbientLight {
 public:
     explicit AmbientLight(FloatType strength);
 
-    Vec3 CalculateLighting(const LightingMaterialSettings& settings) const;
+    Vec3 CalculateLighting(const LightingMaterialSettings& material) const;
 
 private:
     FloatType strength_;
@@ -24,9 +24,9 @@ struct LightStrength {
 
 class DirectLight {
 public:
-    DirectLight(const Vec3& direction, const LightStrength& strength);
+    DirectLight(Vec3 direction, const LightStrength& strength);
 
-    Vec3 CalculateLighting(const LightingMaterialSettings& settings) const;
+    Vec3 CalculateLighting(const LightingMaterialSettings& material) const;
 
     VerticesObject VisualizeLight(Vec3 position, Vec3 color = Vec3::Ident(1.0), FloatType scale = 1.0) const;
 
@@ -43,14 +43,40 @@ struct AttenuationSettings {
 
 class PointLight {
 public:
-    PointLight(const Vec3& position, const LightStrength& strength, const AttenuationSettings& attenuation = {});
+    PointLight(Vec3 position, const LightStrength& strength, const AttenuationSettings& attenuation = {});
 
-    Vec3 CalculateLighting(const LightingMaterialSettings& settings) const;
+    Vec3 CalculateLighting(const LightingMaterialSettings& material) const;
 
     VerticesObject VisualizeLight(Vec3 color = Vec3::Ident(1.0), FloatType scale = 1.0) const;
 
 private:
     Vec3 position_;
+    LightStrength strength_;
+    AttenuationSettings attenuation_;
+};
+
+struct SpotLightSettings {
+    Vec3 position;
+    Vec3 direction;
+    FloatType light_angle;
+    FloatType light_angle_ratio = 1.1;
+};
+
+class SpotLight {
+public:
+    SpotLight(
+        const SpotLightSettings& settings, const LightStrength& strength, const AttenuationSettings& attenuation = {}
+    );
+
+    Vec3 CalculateLighting(const LightingMaterialSettings& material) const;
+
+    VerticesObject VisualizeLight(Vec3 color = Vec3::Ident(1.0), FloatType scale = 1.0) const;
+
+private:
+    Vec3 position_;
+    Vec3 inversed_direction_;
+    FloatType cut_in_;
+    FloatType cut_out_;
     LightStrength strength_;
     AttenuationSettings attenuation_;
 };
