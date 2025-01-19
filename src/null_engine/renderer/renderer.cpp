@@ -23,6 +23,7 @@ void Renderer::OnRenderEvent(const RenderEvent& render_event) {
     ClearBuffer();
 
     fragment_shader_.SetViewPos(render_event.camera.GetViewPos());
+    fragment_shader_.SetLights(render_event.scene.GetLights());
     camera_transform_ = render_event.camera.GetNdcTransform();
 
     for (const auto& [object, instances] : render_event.scene) {

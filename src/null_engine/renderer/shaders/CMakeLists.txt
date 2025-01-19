@@ -8,5 +8,6 @@ add_library(${TARGET_NAME}
 target_link_libraries(${TARGET_NAME}
     null-engine-drawable-objects-common
     null-engine-drawable-objects-material
+    null-engine-scene-lights
     null-engine-util-geometry
 )

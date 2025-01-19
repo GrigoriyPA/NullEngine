@@ -23,7 +23,6 @@ struct ICamera {
 };
 
 using AnyCamera = folly::Poly<ICamera>;
-using AnyCameraRef = folly::Poly<ICamera&>;
 
 struct IMovableCamera : folly::PolyExtends<ICamera> {
     template <class Base>
@@ -42,6 +41,5 @@ struct IMovableCamera : folly::PolyExtends<ICamera> {
 };
 
 using AnyMovableCamera = folly::Poly<IMovableCamera>;
-using AnyMovableCameraRef = folly::Poly<IMovableCamera&>;
 
 }  // namespace null_engine

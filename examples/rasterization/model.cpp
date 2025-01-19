@@ -3,6 +3,7 @@
 #include <null_engine/drawable_objects/primitive_objects.hpp>
 #include <null_engine/renderer/camera/camera.hpp>
 #include <null_engine/scene/animations/primitive_animations.hpp>
+#include <null_engine/scene/lights/light.hpp>
 #include <null_engine/tests/tests_constants.hpp>
 #include <null_engine/tests/tests_helpers.hpp>
 #include <numbers>
@@ -11,18 +12,40 @@ namespace null_engine::tests {
 
 namespace {
 
-constexpr const char* kTexturePath = "../../assets/textures/box_diffuse.png";
+constexpr const char* kDiffuseTexturePath = "../../assets/textures/box_diffuse.png";
+constexpr const char* kSpecularTexturePath = "../../assets/textures/box_specular.png";
+constexpr const char* kEmissionTexturePath = "../../assets/textures/box_emission.jpg";
 
 ModelAssetes LoadAssets() {
-    return {.texture = Texture::LoadFromFile(kTexturePath)};
+    ModelAssetes assets;
+    assets.textures.emplace_back(Texture::LoadFromFile(kDiffuseTexturePath));
+    assets.textures.emplace_back(Texture::LoadFromFile(kSpecularTexturePath));
+    assets.textures.emplace_back(Texture::LoadFromFile(kEmissionTexturePath));
+
+    return assets;
+}
+
+void AddDirectLight(Scene& scene) {
+    const Vec3 light_direction(2.0, -1.0, 3.0);
+    const LightStrength light_strength = {.ambient = 0.2, .diffuse = 0.6, .specular = 0.8};
+    const DirectLight light(light_direction, light_strength);
+
+    scene.AddLight(DirectLight(light_direction, light_strength));
+
+    const Vec3 visualization_pos = Vec3(0.0, 0.0, 2.0) - light_direction * 0.5;
+    const auto visualization_scale = 0.2;
+    scene.EmplaceObject(light.VisualizeLight(visualization_pos, kWhite, visualization_scale));
 }
 
 Scene CreateScene(AnimatorRegistry& animator_registry, const ModelAssetes& assets) {
-    Scene scene;
-
     const Vec3 cube_translation(0.0, 0.0, 2.0);
     SceneObject cube(
-        CreateCube().SetMaterial({.diffuse_tex = TextureView(*assets.texture)}), Mat4::Translation(cube_translation)
+        CreateCube().SetMaterial({
+            .diffuse_tex = TextureView(*assets.textures[0]),
+            .specular_tex = TextureView(*assets.textures[1]),
+            .shininess = 20,
+        }),
+        Mat4::Translation(cube_translation)
     );
 
     const auto rotation_axis = Vec3::Ident(1.0);
@@ -33,7 +56,9 @@ Scene CreateScene(AnimatorRegistry& animator_registry, const ModelAssetes& asset
     animator_registry.AddAnimator(std::move(animator));
     cube.SetAnimation(std::move(animation));
 
+    Scene scene;
     scene.AddObject(std::move(cube));
+    AddDirectLight(scene);
 
     return scene;
 }

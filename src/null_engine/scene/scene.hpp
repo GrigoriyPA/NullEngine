@@ -1,5 +1,6 @@
 #pragma once
 
+#include <null_engine/scene/lights/light_interface.hpp>
 #include <null_engine/scene/objects/scene_object.hpp>
 
 namespace null_engine {
@@ -30,7 +31,15 @@ public:
 
     size_t GetNumberObjects() const;
 
+    size_t GetNumberLights() const;
+
     const SceneObject& GetObject(size_t index) const;
+
+    const std::vector<SceneObject>& GetObjects() const;
+
+    const AnyLight& GetLight(size_t index) const;
+
+    const std::vector<AnyLight>& GetLights() const;
 
     Scene& AddObject(const VerticesObject& object);
 
@@ -42,12 +51,15 @@ public:
         return *this;
     }
 
+    Scene& AddLight(const AnyLight& light);
+
     Iterator begin() const;
 
     Iterator end() const;
 
 private:
     std::vector<SceneObject> objects_;
+    std::vector<AnyLight> lights_;
 };
 
 }  // namespace null_engine

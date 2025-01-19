@@ -1,0 +1,38 @@
+#pragma once
+
+#include <null_engine/drawable_objects/vertices_object.hpp>
+
+#include "light_interface.hpp"
+
+namespace null_engine {
+
+class AmbientLight {
+public:
+    explicit AmbientLight(FloatType strength);
+
+    Vec3 CalculateLighting(const LightingMaterialSettings& settings) const;
+
+private:
+    FloatType strength_;
+};
+
+struct LightStrength {
+    FloatType ambient;
+    FloatType diffuse;
+    FloatType specular;
+};
+
+class DirectLight {
+public:
+    DirectLight(const Vec3& direction, const LightStrength& strength);
+
+    Vec3 CalculateLighting(const LightingMaterialSettings& settings) const;
+
+    VerticesObject VisualizeLight(Vec3 position, Vec3 color = Vec3::Ident(1.0), FloatType scale = 1.0) const;
+
+private:
+    Vec3 inversed_direction_;
+    LightStrength strength_;
+};
+
+}  // namespace null_engine

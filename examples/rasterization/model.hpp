@@ -8,7 +8,7 @@
 namespace null_engine::tests {
 
 struct ModelAssetes {
-    Texture::Ptr texture;
+    std::vector<Texture::Ptr> textures;
 };
 
 class Model {

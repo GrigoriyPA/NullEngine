@@ -47,9 +47,26 @@ size_t Scene::GetNumberObjects() const {
     return objects_.size();
 }
 
+size_t Scene::GetNumberLights() const {
+    return lights_.size();
+}
+
 const SceneObject& Scene::GetObject(size_t index) const {
     assert(index < objects_.size() && "Scene object index too large");
     return objects_[index];
+}
+
+const std::vector<SceneObject>& Scene::GetObjects() const {
+    return objects_;
+}
+
+const AnyLight& Scene::GetLight(size_t index) const {
+    assert(index < lights_.size() && "Scene light index too large");
+    return lights_[index];
+}
+
+const std::vector<AnyLight>& Scene::GetLights() const {
+    return lights_;
 }
 
 Scene& Scene::AddObject(const VerticesObject& object) {
@@ -59,6 +76,11 @@ Scene& Scene::AddObject(const VerticesObject& object) {
 
 Scene& Scene::AddObject(SceneObject object) {
     objects_.emplace_back(std::move(object));
+    return *this;
+}
+
+Scene& Scene::AddLight(const AnyLight& light) {
+    lights_.emplace_back(light);
     return *this;
 }
 
