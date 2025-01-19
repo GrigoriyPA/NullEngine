@@ -30,11 +30,44 @@ void AddDirectLight(Scene& scene) {
     const LightStrength light_strength = {.ambient = 0.2, .diffuse = 0.6, .specular = 0.8};
     const DirectLight light(light_direction, light_strength);
 
-    scene.AddLight(DirectLight(light_direction, light_strength));
+    scene.AddLight(light);
 
     const Vec3 visualization_pos = Vec3(0.0, 0.0, 2.0) - light_direction * 0.5;
     const auto visualization_scale = 0.2;
     scene.EmplaceObject(light.VisualizeLight(visualization_pos, kWhite, visualization_scale));
+}
+
+void AddPointLight(Scene& scene) {
+    const Vec3 light_position(-1.0, 1.0, 1.0);
+    const LightStrength light_strength = {.ambient = 0.2, .diffuse = 0.6, .specular = 0.8};
+    const AttenuationSettings light_attenuation = {.constant = 1.0, .quadratic = 0.1};
+    const PointLight light(light_position, light_strength, light_attenuation);
+
+    scene.AddLight(light);
+
+    const auto visualization_scale = 0.2;
+    scene.EmplaceObject(light.VisualizeLight(kWhite, visualization_scale));
+}
+
+void SetRotationAnimation(AnimatorRegistry& animator_registry, SceneObject& object) {
+    const auto rotation_axis = Vec3::Ident(1.0);
+    const auto rotation_speed = std::numbers::pi / 3.0;
+    auto animator = std::make_unique<RotationAnimation>(rotation_axis, rotation_speed);
+    auto animation = Animation::Make();
+    animator->SubscribeOnAnimation(animation->GetTransformPort());
+    animator_registry.AddAnimator(std::move(animator));
+    object.SetAnimation(std::move(animation));
+}
+
+void SetTranslationAnimation(AnimatorRegistry& animator_registry, SceneObject& object) {
+    const Vec3 start_pos;
+    const Vec3 end_pos(0.0, 0.0, 3.0);
+    const auto speed = (end_pos - start_pos).Length() / 5.0;
+    auto animator = std::make_unique<TranslationAnimation>(start_pos, end_pos, speed);
+    auto animation = Animation::Make();
+    animator->SubscribeOnAnimation(animation->GetTransformPort());
+    animator_registry.AddAnimator(std::move(animator));
+    object.SetAnimation(std::move(animation));
 }
 
 Scene CreateScene(AnimatorRegistry& animator_registry, const ModelAssetes& assets) {
@@ -47,18 +80,11 @@ Scene CreateScene(AnimatorRegistry& animator_registry, const ModelAssetes& asset
         }),
         Mat4::Translation(cube_translation)
     );
-
-    const auto rotation_axis = Vec3::Ident(1.0);
-    const auto rotation_speed = std::numbers::pi / 3.0;
-    auto animator = std::make_unique<RotationAnimation>(rotation_axis, rotation_speed);
-    auto animation = Animation::Make();
-    animator->SubscribeOnAnimation(animation->GetTransformPort());
-    animator_registry.AddAnimator(std::move(animator));
-    cube.SetAnimation(std::move(animation));
+    SetRotationAnimation(animator_registry, cube);
 
     Scene scene;
     scene.AddObject(std::move(cube));
-    AddDirectLight(scene);
+    AddPointLight(scene);
 
     return scene;
 }

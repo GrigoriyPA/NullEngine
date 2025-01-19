@@ -55,4 +55,39 @@ VerticesObject CreateNormalsVisualization(const VerticesObject& object, Vec3 col
     return result;
 }
 
+VerticesObject CreateDirectLightVisualization(Vec3 color) {
+    const uint64_t number_vertices = 6;
+    VerticesObject result(number_vertices, VerticesObject::Type::Lines);
+
+    const Vec3 direction(0.0, 0.0, 1.0);
+    const Vec3 horizon(1.0, 0.0, 0.0);
+    const Vec3 vertical(0.0, 1.0, 0.0);
+
+    result.SetPositions(
+        {horizon + vertical, -horizon - vertical, -horizon + vertical, horizon - vertical, Vec3(), 2.0 * direction}
+    );
+    result.SetParams(VertexParams{.color = color});
+
+    return result;
+}
+
+VerticesObject CreatePointLightVisualization(Vec3 color) {
+    const uint64_t number_vertices = 6;
+    VerticesObject result(number_vertices, VerticesObject::Type::Lines);
+
+    const Vec3 x_axis(1.0, 0.0, 0.0);
+    const Vec3 y_axis(0.0, 1.0, 0.0);
+    const Vec3 z_axis(0.0, 0.0, 1.0);
+
+    result.SetPositions({x_axis, -x_axis, y_axis, -y_axis, z_axis, -z_axis});
+    result.SetParams(VertexParams{.color = color});
+
+    const auto rotation_angle = std::numbers::pi / 4.0;
+    const auto y_rotation = Mat4::Rotation(y_axis, rotation_angle);
+    const auto z_rotation = Mat4::Rotation(z_axis, rotation_angle);
+    result.Merge(VerticesObject(result).Transform(z_rotation * y_rotation));
+
+    return result;
+}
+
 }  // namespace null_engine

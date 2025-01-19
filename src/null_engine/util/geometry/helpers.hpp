@@ -8,4 +8,6 @@ bool Equal(FloatType left, FloatType right);
 
 bool Less(FloatType left, FloatType right);
 
+FloatType Module(FloatType left, FloatType right);
+
 }  // namespace null_engine
