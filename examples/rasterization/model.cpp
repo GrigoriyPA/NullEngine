@@ -15,7 +15,7 @@ constexpr const char* kDiffuseTexturePath = "../../assets/textures/box_diffuse.p
 constexpr const char* kSpecularTexturePath = "../../assets/textures/box_specular.png";
 constexpr const char* kEmissionTexturePath = "../../assets/textures/box_emission.jpg";
 
-constexpr LightStrength kLightStrenght = {.ambient = 0.2, .diffuse = 0.6, .specular = 0.8};
+constexpr LightStrength kLightStrength = {.ambient = 0.2, .diffuse = 0.6, .specular = 0.8};
 constexpr AttenuationSettings kLightAttenuation = {.constant = 1.0, .quadratic = 0.1};
 
 ModelAssetes LoadAssets() {
@@ -29,7 +29,7 @@ ModelAssetes LoadAssets() {
 
 void AddDirectLight(Scene& scene) {
     const Vec3 light_direction(2.0, -1.0, 3.0);
-    const DirectLight light(light_direction, kLightStrenght);
+    const DirectLight light(light_direction, kLightStrength);
 
     scene.AddLight(light);
 
@@ -40,7 +40,7 @@ void AddDirectLight(Scene& scene) {
 
 void AddPointLight(Scene& scene) {
     const Vec3 light_position(-1.0, 1.0, 1.0);
-    const PointLight light(light_position, kLightStrenght, kLightAttenuation);
+    const PointLight light(light_position, kLightStrength, kLightAttenuation);
 
     scene.AddLight(light);
 
@@ -56,7 +56,7 @@ void AddSpotLight(Scene& scene) {
             .light_angle = std::numbers::pi / 6.0,
             .light_angle_ratio = 1.2,
         },
-        kLightStrenght, kLightAttenuation
+        kLightStrength, kLightAttenuation
     );
 
     scene.AddLight(light);
@@ -99,7 +99,7 @@ Scene CreateScene(AnimatorRegistry& animator_registry, const ModelAssetes& asset
             .light_angle = std::numbers::pi / 6.0,
             .light_angle_ratio = 1.2,
         },
-        kLightStrenght, kLightAttenuation
+        kLightStrength, kLightAttenuation
     ));
     camera.SubscribeOnCameraTransform(camera_light->GetTransformPort());
 
