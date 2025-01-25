@@ -2,15 +2,15 @@
 
 namespace null_engine {
 
-void Animator::SubscribeOnAnimation(InPort<Mat4>* observer_port) const {
+void Animator::SubscribeOnAnimation(InPort<Transform>* observer_port) const {
     out_transform_port_->Subscribe(observer_port, current_transform_);
 }
 
-const Mat4& Animator::GetCurrentTransform() const {
+const Transform& Animator::GetCurrentTransform() const {
     return current_transform_;
 }
 
-void Animator::UpdateTransform(const Mat4& transform) {
+void Animator::UpdateTransform(const Transform& transform) {
     current_transform_ = transform;
     out_transform_port_->Notify(transform);
 }

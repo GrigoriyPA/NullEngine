@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vector2.hpp"
+#include "vector.hpp"
 
 namespace null_engine {
 

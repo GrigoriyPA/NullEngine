@@ -11,8 +11,8 @@ SceneLight::Ptr SceneLight::Make(const AnyMovableLight& light) {
     return std::make_unique<SceneLight>(light);
 }
 
-InPort<Mat4>* SceneLight::GetTransformPort() {
-    return animation_.GetTransformPort();
+InPort<Transform>* SceneLight::GetTransformPort() {
+    return transform_.GetInPort();
 }
 
 InPort<SceneLightEvent>* SceneLight::GetEventsPort() {
@@ -25,7 +25,9 @@ bool SceneLight::Enabled() const {
 
 AnyLight SceneLight::GetLight() const {
     auto result = light_;
-    result.ApplyTransform(animation_.GetTransform());
+    if (const auto& transform = transform_.GetState()) {
+        result.ApplyTransform(*transform);
+    }
     return result;
 }
 

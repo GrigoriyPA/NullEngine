@@ -49,8 +49,8 @@ private:
     RasterizerBuffer buffer_;
     Rasterizer rasterizer_;
     FragmentShader fragment_shader_;
-    Mat4 camera_transform_;
-    Mat4 object_transform_;
+    ProjectiveTransform camera_transform_;
+    Transform object_transform_;
     InPort<RenderEvent> in_render_port_;
     OutPort<TextureData>::Ptr out_texture_port_ = OutPort<TextureData>::Make();
 };

@@ -12,29 +12,32 @@ Vec3 FragmentShader::GetPointColor(const InterpolationParams& params) const {
         diffuse_color = material_.diffuse_tex.GetColor(params.tex_coords);
     }
 
-    Vec3 result_color;
+    Vec3 result_color(0.0, 0.0, 0.0);
     if (material_.emission_tex.HasTexture()) {
         result_color = material_.emission_tex.GetColor(params.tex_coords);
     }
 
-    if (!number_lights_ || params.normal.IsZero()) {
+    if (!number_lights_ || params.normal.isZero()) {
         return diffuse_color + result_color;
     }
 
     LightingMaterialSettings light_settings{
         .frag_pos = params.frag_pos,
-        .view_direction = Vec3::Normalize(view_pos_ - params.frag_pos),
-        .normal = Vec3::Normalize(params.normal),
-        .diffuse_color = diffuse_color,
-        .shininess = material_.shininess
+        .view_direction = (view_pos_ - params.frag_pos).normalized(),
+        .normal = params.normal.normalized(),
+        .diffuse_color = diffuse_color
     };
 
     if (material_.specular_tex.HasTexture()) {
         light_settings.specular_color = material_.specular_tex.GetColor(params.tex_coords);
+        light_settings.shininess = material_.shininess;
     }
 
-    for (uint32_t i = 0; i < number_lights_; ++i) {
-        result_color += lights_[i].CalculateLighting(light_settings);
+    for (uint32_t i = 0; i < kMaxNumberLights; ++i) {
+        if (i == number_lights_) {
+            break;
+        }
+        result_color += lights_[0].CalculateLighting(light_settings);
     }
     return result_color;
 }

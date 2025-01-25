@@ -1,6 +1,5 @@
 #include "vertex_shader.hpp"
 
-#include <cassert>
 #include <null_engine/util/geometry/helpers.hpp>
 
 namespace null_engine::detail {
@@ -66,21 +65,21 @@ InterpVertex& InterpVertex::operator/=(FloatType scale) {
 }
 
 std::vector<InterpVertex> ConvertObjectVerices(
-    const Mat4& camera_transform, const Mat4& object_transform, const std::vector<Vertex>& verices
+    const ProjectiveTransform& camera_transform, const Transform& object_transform, const std::vector<Vertex>& verices
 ) {
     const auto ndc_transform = camera_transform * object_transform;
-    const auto normal_transform = Mat4::NormalTransform(object_transform);
+    const auto normal_transform = NormalTransform(object_transform);
 
     std::vector<InterpVertex> result;
     result.reserve(verices.size());
     for (const auto& [position, params] : verices) {
         result.emplace_back(
-            ndc_transform.Apply(position),
+            ndc_transform * Vec4(position.x(), position.y(), position.z(), 1.0),
             InterpolationParams{
                 .color = params.color,
-                .normal = normal_transform.Apply(params.normal),
+                .normal = normal_transform * params.normal,
                 .tex_coords = params.tex_coords,
-                .frag_pos = object_transform.Apply(position).XYZ()
+                .frag_pos = object_transform * position
             }
         );
     }

@@ -53,7 +53,7 @@ void Renderer::RenderPointsObject(const VerticesObject& object) {
     const auto& vertices = detail::ConvertObjectVerices(camera_transform_, object_transform_, object.GetVertices());
     for (uint64_t index : object.GetIndices()) {
         const auto& point = vertices[index];
-        if (!Equal(point.position.H(), 0.0)) {
+        if (!Equal(point.position.w(), 0.0)) {
             rasterizer_.DrawPoint(point, buffer_, fragment_shader_);
         }
     }

@@ -1,7 +1,6 @@
 set(TARGET_NAME null-engine-scene-animations)
 
 add_library(${TARGET_NAME}
-    animation.cpp
     animator.cpp
     primitive_animations.cpp
 )

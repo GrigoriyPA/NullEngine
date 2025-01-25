@@ -1,6 +1,5 @@
 #include "clipping.hpp"
 
-#include <cassert>
 #include <null_engine/util/generic/helpers.hpp>
 
 namespace null_engine::detail {
@@ -9,12 +8,11 @@ namespace {
 
 bool IsWisiblePoint(const InterpVertex& point, Vec3 view_pos) {
     const auto normal = point.params.normal;
-    if (normal.IsZero()) {
+    if (normal.isZero()) {
         return true;
     }
 
-    const auto direction = view_pos - point.params.frag_pos;
-    return normal.ScalarProd(direction) > 0.0;
+    return normal.dot(view_pos - point.params.frag_pos) > 0.0;
 }
 
 }  // anonymous namespace
@@ -35,7 +33,7 @@ LineClippingResult Clipper::ClipLines(std::vector<InterpVertex> vertices, std::v
     vertices_.swap(vertices);
     line_indices_.swap(indices);
 
-    for (auto plane_normal : clipping_planes_) {
+    for (const auto& plane_normal : clipping_planes_) {
         ClipLinesByPlane(plane_normal);
     }
 
@@ -52,7 +50,7 @@ TriangleClippingResult Clipper::ClipTriangles(
     vertices_.swap(vertices);
     triangle_indices_.swap(indices);
 
-    for (auto plane_normal : clipping_planes_) {
+    for (const auto& plane_normal : clipping_planes_) {
         ClipTrianglesByPlane(plane_normal);
     }
     if (settings_.clip_triangles_by_normals) {
@@ -74,8 +72,8 @@ void Clipper::ClipLinesByPlane(Vec4 plane_normal) {
     for (int64_t i = line_indices_.size() - 1; i >= 0; --i) {
         const auto [id_a, id_b] = line_indices_[i];
 
-        const auto prod_a = plane_normal.ScalarProd(vertices_[id_a].position);
-        const auto prod_b = plane_normal.ScalarProd(vertices_[id_b].position);
+        const auto prod_a = plane_normal.dot(vertices_[id_a].position);
+        const auto prod_b = plane_normal.dot(vertices_[id_b].position);
 
         const uint32_t number_inside = static_cast<uint32_t>(prod_a >= -kEps) + static_cast<uint32_t>(prod_b >= -kEps);
         if (number_inside == 2) {
@@ -101,9 +99,9 @@ void Clipper::ClipTrianglesByPlane(Vec4 plane_normal) {
     for (int64_t i = triangle_indices_.size() - 1; i >= 0; --i) {
         const auto [id_a, id_b, id_c] = triangle_indices_[i];
 
-        const auto prod_a = plane_normal.ScalarProd(vertices_[id_a].position);
-        const auto prod_b = plane_normal.ScalarProd(vertices_[id_b].position);
-        const auto prod_c = plane_normal.ScalarProd(vertices_[id_c].position);
+        const auto prod_a = plane_normal.dot(vertices_[id_a].position);
+        const auto prod_b = plane_normal.dot(vertices_[id_b].position);
+        const auto prod_c = plane_normal.dot(vertices_[id_c].position);
 
         const uint32_t number_inside = static_cast<uint32_t>(prod_a >= -kEps) + static_cast<uint32_t>(prod_b >= -kEps) +
                                        static_cast<uint32_t>(prod_c >= -kEps);

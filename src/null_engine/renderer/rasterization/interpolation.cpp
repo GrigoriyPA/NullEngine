@@ -1,6 +1,5 @@
 #include "interpolation.hpp"
 
-#include <cassert>
 #include <null_engine/util/geometry/helpers.hpp>
 
 namespace null_engine::detail {

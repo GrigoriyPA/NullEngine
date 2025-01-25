@@ -1,7 +1,5 @@
 #include "scene_object.hpp"
 
-#include <cassert>
-
 namespace null_engine {
 
 SceneObject::Iterator::Iterator(const SceneObject* self, size_t index)
@@ -32,15 +30,15 @@ SceneObject::Iterator& SceneObject::Iterator::operator++() {
 
 RenderObject SceneObject::Iterator::operator*() const {
     RenderObject result =
-        child_it_ ? **child_it_ : RenderObject{.vetices_object = self_->GetObject(), .instances = {Mat4()}};
+        child_it_ ? **child_it_ : RenderObject{.vetices_object = self_->GetObject(), .instances = {Ident()}};
 
-    const auto& animation_transform = self_->GetAnimationTransform();
+    const auto& object_transform = self_->GetTransform();
     const auto& instances = self_->GetInstances();
 
     const size_t result_size = result.instances.size();
     result.instances.reserve(result_size * instances.size());
     for (size_t i = 0; i < instances.size(); ++i) {
-        const auto transform = instances[i] * animation_transform;
+        const auto transform = instances[i] * object_transform;
         for (size_t r = 0; r < result_size; ++r) {
             auto& result_transform = result.instances[r];
             if (i + 1 < instances.size()) {
@@ -75,17 +73,17 @@ void SceneObject::Iterator::UpdateChildIt() {
     }
 }
 
-SceneObject::SceneObject(const Mat4& instance)
+SceneObject::SceneObject(const Transform& instance)
     : instances_(1, instance) {
 }
 
-SceneObject::SceneObject(const VerticesObject& object, const Mat4& instance)
+SceneObject::SceneObject(const VerticesObject& object, const Transform& instance)
     : instances_(1, instance)
     , object_(object) {
 }
 
-InPort<Mat4>* SceneObject::GetTransformPort() {
-    return animation_->GetTransformPort();
+InPort<Transform>* SceneObject::GetTransformPort() {
+    return transform_->GetInPort();
 }
 
 bool SceneObject::HasObject() const {
@@ -97,12 +95,12 @@ const VerticesObject& SceneObject::GetObject() const {
     return *object_;
 }
 
-const std::vector<Mat4>& SceneObject::GetInstances() const {
+const std::vector<Transform>& SceneObject::GetInstances() const {
     return instances_;
 }
 
-Mat4 SceneObject::GetAnimationTransform() const {
-    return animation_ ? animation_->GetTransform() : Mat4();
+Transform SceneObject::GetTransform() const {
+    return transform_->GetState().value_or(Ident());
 }
 
 size_t SceneObject::GetNumberChildren() const {
@@ -114,7 +112,7 @@ const SceneObject& SceneObject::GetChild(size_t child_id) const {
     return children_[child_id];
 }
 
-SceneObject& SceneObject::AddInstance(const Mat4& instance) {
+SceneObject& SceneObject::AddInstance(const Transform& instance) {
     instances_.emplace_back(instance);
     return *this;
 }

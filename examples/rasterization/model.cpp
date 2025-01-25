@@ -3,8 +3,7 @@
 #include <null_engine/drawable_objects/primitive_objects.hpp>
 #include <null_engine/scene/animations/primitive_animations.hpp>
 #include <null_engine/scene/lights/light.hpp>
-#include <null_engine/tests/tests_constants.hpp>
-#include <null_engine/tests/tests_helpers.hpp>
+#include <null_engine/util/interface/helpers/constants.hpp>
 #include <numbers>
 
 namespace null_engine::tests {
@@ -17,6 +16,9 @@ constexpr const char* kEmissionTexturePath = "../../assets/textures/box_emission
 
 constexpr LightStrength kLightStrength = {.ambient = 0.2, .diffuse = 0.6, .specular = 0.8};
 constexpr AttenuationSettings kLightAttenuation = {.constant = 1.0, .quadratic = 0.1};
+const CameraOrientation kCameraPos = {
+    .position = Vec3(0.0, 0.0, 0.0), .direction = Vec3(0.0, 0.0, 1.0), .horizon = Vec3(1.0, 0.0, 0.0)
+};
 
 ModelAssetes LoadAssets() {
     ModelAssetes assets;
@@ -66,7 +68,7 @@ void AddSpotLight(Scene& scene) {
 }
 
 void SetRotationAnimation(AnimatorRegistry& animator_registry, SceneObject& object) {
-    const auto rotation_axis = Vec3::Ident(1.0);
+    const auto rotation_axis = Vec3(1.0, 1.0, 1.0);
     const auto rotation_speed = std::numbers::pi / 3.0;
     auto animator = std::make_unique<RotationAnimation>(rotation_axis, rotation_speed);
     animator->SubscribeOnAnimation(object.GetTransformPort());
@@ -74,22 +76,24 @@ void SetRotationAnimation(AnimatorRegistry& animator_registry, SceneObject& obje
 }
 
 void SetTranslationAnimation(AnimatorRegistry& animator_registry, SceneObject& object) {
-    const Vec3 start_pos;
+    const Vec3 start_pos(0.0, 0.0, 0.0);
     const Vec3 end_pos(0.0, 0.0, 3.0);
-    const auto speed = (end_pos - start_pos).Length() / 5.0;
+    const auto speed = (start_pos - end_pos).norm() / 5.0;
     auto animator = std::make_unique<TranslationAnimation>(start_pos, end_pos, speed);
     animator->SubscribeOnAnimation(object.GetTransformPort());
     animator_registry.AddAnimator(std::move(animator));
 }
 
-Scene CreateScene(AnimatorRegistry& animator_registry, const ModelAssetes& assets, const PerspectiveCamera& camera) {
-    const auto cube_instance = Mat4::Translation(0.0, 0.0, 2.0);
+Scene CreateScene(AnimatorRegistry& animator_registry, const ModelAssetes& assets, const CameraBase& camera) {
+    const auto cube_instance = Translation(0.0, 0.0, 2.0);
     SceneObject cube(
-        CreateCube().SetMaterial({
-            .diffuse_tex = TextureView(*assets.textures[0]),
-            .specular_tex = TextureView(*assets.textures[1]),
-            .shininess = 20,
-        }),
+        CreateCube()
+            .SetMaterial({
+                .diffuse_tex = TextureView(*assets.textures[0]),
+                .specular_tex = TextureView(*assets.textures[1]),
+                .shininess = 20.0,
+            })
+            .SetColors(kWhite * 0.8),
         cube_instance
     );
     SetRotationAnimation(animator_registry, cube);
@@ -105,18 +109,18 @@ Scene CreateScene(AnimatorRegistry& animator_registry, const ModelAssetes& asset
 
     Scene scene;
     scene.AddObject(std::move(cube));
-    scene.AddLight(std::move(camera_light));
+    // scene.AddLight(std::move(camera_light));
+    // scene.AddLight(AmbientLight(0.6));
+    // AddDirectLight(scene);
+    AddPointLight(scene);
+    // AddSpotLight(scene);
 
     return scene;
 }
 
-PerspectiveCamera CreateCamera(uint64_t view_width, uint64_t view_height) {
+PerspectiveCamera CreatePerspectiveCamera(uint64_t view_width, uint64_t view_height) {
     return PerspectiveCamera(
-        {
-            .position = Vec3(),
-            .direction = Vec3(0.0, 0.0, 1.0),
-            .horizon = Vec3(1.0, 0.0, 0.0),
-        },
+        kCameraPos,
         {
             .fov = std::numbers::pi / 2.0,
             .ratio = static_cast<FloatType>(view_width) / static_cast<FloatType>(view_height),
@@ -126,11 +130,23 @@ PerspectiveCamera CreateCamera(uint64_t view_width, uint64_t view_height) {
     );
 }
 
+DirectCamera CreateDirectCamera() {
+    return DirectCamera(
+        kCameraPos,
+        {
+            .width = 2.0,
+            .height = 2.0,
+            .depth = 2.0,
+        }
+    );
+}
+
 }  // anonymous namespace
 
 Model::Model(uint64_t view_width, uint64_t view_height)
     : assets_(LoadAssets())
-    , camera_(CreateCamera(view_width, view_height))
+    // , camera_(CreateDirectCamera())
+    , camera_(CreatePerspectiveCamera(view_width, view_height))
     , scene_(CreateScene(animator_registry_, assets_, camera_))
     , renderer_({view_width, view_height})
     , in_texture_port_(std::bind(&Model::OnRenderedTexture, this, std::placeholders::_1)) {

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <null_engine/drawable_objects/material/material.hpp>
 #include <null_engine/scene/lights/light_interface.hpp>
 
@@ -22,7 +23,7 @@ public:
     void SetLights(const std::vector<AnyLight>& lights);
 
 private:
-    Vec3 view_pos_;
+    Vec3 view_pos_ = Vec3(0.0, 0.0, 0.0);
     Material material_;
     uint32_t number_lights_;
     std::array<AnyLight, kMaxNumberLights> lights_;

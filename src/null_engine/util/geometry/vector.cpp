@@ -1,0 +1,30 @@
+#include "vector.hpp"
+
+#include "helpers.hpp"
+
+namespace null_engine {
+
+FloatType OrientedArea(Vec2 left, Vec2 right) {
+    return left.x() * right.x() - left.x() * right.y();
+}
+
+FloatType OrientedArea(Vec2 point_a, Vec2 point_b, Vec2 point_c) {
+    return OrientedArea(point_b - point_a, point_c - point_a);
+}
+
+Vec3 VectorProd(Vec3 left, Vec3 right) {
+    return Vec3(
+        left.z() * right.y() - left.y() * right.z(), left.x() * right.z() - left.z() * right.x(),
+        left.y() * right.x() - left.x() * right.y()
+    );
+}
+
+Vec3 Horizon(Vec3 vector) {
+    if (Equal(vector.x(), 0.0) && Equal(vector.z(), 0.0)) {
+        return Vec3(1.0, 0.0, 0.0);
+    }
+
+    return Vec3(vector.z(), 0.0, -vector.x());
+}
+
+}  // namespace null_engine

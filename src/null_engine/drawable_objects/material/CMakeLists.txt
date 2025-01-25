@@ -6,5 +6,6 @@ add_library(${TARGET_NAME}
 
 target_link_libraries(${TARGET_NAME}
     null-engine-util-geometry
+    null-engine-util-interface-helpers
     sfml-graphics
 )

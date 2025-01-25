@@ -1,14 +1,13 @@
 #pragma once
 
 #include <null_engine/drawable_objects/vertices_object.hpp>
-#include <null_engine/scene/animations/animation.hpp>
-#include <optional>
+#include <null_engine/util/mvc/observer.hpp>
 
 namespace null_engine {
 
 struct RenderObject {
     const VerticesObject& vetices_object;
-    std::vector<Mat4> instances;
+    std::vector<Transform> instances;
 };
 
 class SceneObject {
@@ -35,25 +34,25 @@ public:
         std::unique_ptr<Iterator> child_it_;
     };
 
-    explicit SceneObject(const Mat4& instance);
+    explicit SceneObject(const Transform& instance);
 
-    explicit SceneObject(const VerticesObject& object, const Mat4& instance = Mat4());
+    explicit SceneObject(const VerticesObject& object, const Transform& instance = Ident());
 
-    InPort<Mat4>* GetTransformPort();
+    InPort<Transform>* GetTransformPort();
 
     bool HasObject() const;
 
     const VerticesObject& GetObject() const;
 
-    const std::vector<Mat4>& GetInstances() const;
+    const std::vector<Transform>& GetInstances() const;
 
-    Mat4 GetAnimationTransform() const;
+    Transform GetTransform() const;
 
     size_t GetNumberChildren() const;
 
     const SceneObject& GetChild(size_t child_id) const;
 
-    SceneObject& AddInstance(const Mat4& instance);
+    SceneObject& AddInstance(const Transform& instance);
 
     SceneObject& AddChild(SceneObject object);
 
@@ -68,8 +67,8 @@ public:
     Iterator end() const;
 
 private:
-    std::vector<Mat4> instances_;
-    Animation::Ptr animation_ = Animation::Make();
+    std::vector<Transform> instances_;
+    Observer<Transform>::Ptr transform_ = Observer<Transform>::Make();
     std::optional<VerticesObject> object_;
     std::vector<SceneObject> children_;
 };

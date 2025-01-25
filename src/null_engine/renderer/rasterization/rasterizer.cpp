@@ -1,6 +1,5 @@
 #include "rasterizer.hpp"
 
-#include <cassert>
 #include <null_engine/util/generic/helpers.hpp>
 
 namespace null_engine::detail {
@@ -86,10 +85,10 @@ private:
 };
 
 void PerspectiveDivision(Vec4& position) {
-    position.X() /= position.H();
-    position.Y() /= position.H();
-    position.Z() /= position.H();
-    position.H() = 1.0 / position.H();
+    position.x() /= position.w();
+    position.y() /= position.w();
+    position.z() /= position.w();
+    position.w() = 1.0 / position.w();
 }
 
 }  // anonymous namespace
@@ -142,7 +141,8 @@ void Rasterizer::DrawTriangle(
             walker_ac.MoveHorizontal();
             walker_ab.MoveHorizontal();
 
-            RasterizeHorizontalLine(HorizontalLine(walker_ac.GetVertex(), walker_ab.GetVertex()), buffer, shader);
+            HorizontalLine line(walker_ac.GetVertex(), walker_ab.GetVertex());
+            RasterizeHorizontalLine(line, buffer, shader);
         }
     }
 
@@ -160,7 +160,8 @@ void Rasterizer::DrawTriangle(
             walker_ac.MoveHorizontal();
             walker_bc.MoveHorizontal();
 
-            RasterizeHorizontalLine(HorizontalLine(walker_ac.GetVertex(), walker_bc.GetVertex()), buffer, shader);
+            HorizontalLine line(walker_ac.GetVertex(), walker_bc.GetVertex());
+            RasterizeHorizontalLine(line, buffer, shader);
         }
     }
 }
@@ -170,9 +171,9 @@ VertexInfo Rasterizer::GetVertexInfo(const InterpVertex& point) const {
     PerspectiveDivision(position);
 
     return {
-        .x = static_cast<int64_t>(std::floor((position.X() + 1.0) / pixel_width_)),
-        .y = static_cast<int64_t>(std::floor((1.0 - position.Y()) / pixel_height_)),
-        .interpolation = Interpolation(position.Z(), position.H(), point.params)
+        .x = static_cast<int64_t>(std::floor((position.x() + 1.0) / pixel_width_)),
+        .y = static_cast<int64_t>(std::floor((1.0 - position.y()) / pixel_height_)),
+        .interpolation = Interpolation(position.z(), position.w(), point.params)
     };
 }
 
@@ -213,11 +214,11 @@ void Rasterizer::UpdateViewPixel(const VertexInfo& vertex_info, RasterizerBuffer
     buffer.depth[point_offset] = vertex_info.interpolation.GetZ();
 
     auto color = shader.GetPointColor(vertex_info.interpolation.GetParams());
-    color = (color * 255.0).Clamp(0.0, 255.0);
+    color = (color * 255.0).cwiseMax(0.0).cwiseMin(255.0);
 
-    buffer.colors[4 * point_offset] = static_cast<uint8_t>(color.X());
-    buffer.colors[4 * point_offset + 1] = static_cast<uint8_t>(color.Y());
-    buffer.colors[4 * point_offset + 2] = static_cast<uint8_t>(color.Z());
+    buffer.colors[4 * point_offset] = static_cast<uint8_t>(color.x());
+    buffer.colors[4 * point_offset + 1] = static_cast<uint8_t>(color.y());
+    buffer.colors[4 * point_offset + 2] = static_cast<uint8_t>(color.z());
     buffer.colors[4 * point_offset + 3] = 255;
 }
 

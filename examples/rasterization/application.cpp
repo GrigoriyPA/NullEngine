@@ -18,7 +18,7 @@ constexpr uint64_t kViewHeight = 800;
 class Application::Impl {
 public:
     Impl()
-        : window_(sf::VideoMode(kViewWidth, kViewHeight), "Native quick start example")
+        : window_(sf::VideoMode(kViewWidth, kViewHeight), "Rasterisation example")
         , model_(kViewWidth, kViewHeight)
         , controller_(window_, &model_)
         , view_(window_) {

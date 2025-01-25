@@ -1,6 +1,9 @@
 #pragma once
 
-#include <null_engine/util/geometry/vector3.hpp>
+#include <memory>
+#include <null_engine/util/geometry/vector.hpp>
+#include <null_engine/util/interface/helpers/constants.hpp>
+#include <string>
 #include <vector>
 
 namespace null_engine {
@@ -37,7 +40,7 @@ class TextureView {
 public:
     TextureView() = default;
 
-    explicit TextureView(const Texture& texture, Vec3 outside_color = Vec3());
+    explicit TextureView(const Texture& texture, Vec3 outside_color = kBlack);
 
     bool HasTexture() const;
 
@@ -47,7 +50,7 @@ private:
     uint64_t width_ = 0;
     uint64_t height_ = 0;
     const Vec3* colors_ = nullptr;
-    Vec3 outside_color_;
+    Vec3 outside_color_ = kBlack;
 };
 
 }  // namespace null_engine

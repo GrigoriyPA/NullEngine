@@ -56,10 +56,8 @@ bool TextureView::HasTexture() const {
 }
 
 Vec3 TextureView::GetColor(Vec2 position) const {
-    position *= Vec2(width_, height_);
-
-    const int64_t x = std::floor(position.X());
-    const int64_t y = std::floor(position.Y());
+    const int64_t x = std::floor(position.x() * width_);
+    const int64_t y = std::floor(position.y() * height_);
 
     if (0 <= x && x < width_ && 0 <= y && y < height_) {
         return colors_[x + y * width_];

@@ -1,7 +1,6 @@
 #pragma once
 
-#include <null_engine/scene/animations/animation.hpp>
-#include <null_engine/util/mvc/ports.hpp>
+#include <null_engine/util/mvc/observer.hpp>
 
 #include "light_interface.hpp"
 
@@ -17,7 +16,7 @@ public:
 
     static SceneLight::Ptr Make(const AnyMovableLight& light);
 
-    InPort<Mat4>* GetTransformPort();
+    InPort<Transform>* GetTransformPort();
 
     InPort<SceneLightEvent>* GetEventsPort();
 
@@ -30,7 +29,7 @@ private:
 
     AnyMovableLight light_;
     bool enabled_ = true;
-    Animation animation_;
+    Observer<Transform> transform_;
     InPort<SceneLightEvent> in_events_port_;
 };
 

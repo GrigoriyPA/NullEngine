@@ -1,6 +1,6 @@
 #pragma once
 
-#include <null_engine/util/geometry/matrix4.hpp>
+#include <null_engine/util/geometry/matrix.hpp>
 #include <null_engine/util/mvc/ports.hpp>
 
 namespace null_engine {
@@ -28,15 +28,13 @@ struct CameraOrientation {
     Vec3 horizon;
 };
 
-namespace detail {
-
 class CameraBase {
 public:
     explicit CameraBase(const CameraOrientation& orientation);
 
     InPort<CameraChange>* GetChangePort();
 
-    void SubscribeOnCameraTransform(InPort<Mat4>* observer_port) const;
+    void SubscribeOnCameraTransform(InPort<Transform>* observer_port) const;
 
     Vec3 GetViewPos() const;
 
@@ -46,9 +44,9 @@ public:
 
     Vec3 GetVertical() const;
 
-    Mat4 GetCameraTransform() const;
+    Transform GetCameraTransform() const;
 
-    Mat4 GetOrientationTransform() const;
+    Transform GetOrientationTransform() const;
 
 private:
     void Move(Vec3 translation);
@@ -59,13 +57,11 @@ private:
 
     CameraOrientation orientation_;
     InPort<CameraChange> in_change_port_;
-    OutPort<Mat4>::Ptr out_transform_port_ = OutPort<Mat4>::Make();
+    OutPort<Transform>::Ptr out_transform_port_ = OutPort<Transform>::Make();
 };
 
-}  // namespace detail
-
-class DirectCamera : public detail::CameraBase {
-    using Base = detail::CameraBase;
+class DirectCamera : public CameraBase {
+    using Base = CameraBase;
 
 public:
     struct Settings {
@@ -76,14 +72,14 @@ public:
 
     DirectCamera(const CameraOrientation& orientation, const Settings& settings);
 
-    Mat4 GetNdcTransform() const;
+    ProjectiveTransform GetNdcTransform() const;
 
 private:
-    const Mat4 ndc_transform_;
+    ProjectiveTransform ndc_transform_;
 };
 
-class PerspectiveCamera : public detail::CameraBase {
-    using Base = detail::CameraBase;
+class PerspectiveCamera : public CameraBase {
+    using Base = CameraBase;
 
 public:
     struct Settings {
@@ -95,10 +91,10 @@ public:
 
     PerspectiveCamera(const CameraOrientation& orientation, const Settings& settings);
 
-    Mat4 GetNdcTransform() const;
+    ProjectiveTransform GetNdcTransform() const;
 
 private:
-    const Mat4 ndc_transform_;
+    ProjectiveTransform ndc_transform_;
 };
 
 }  // namespace null_engine

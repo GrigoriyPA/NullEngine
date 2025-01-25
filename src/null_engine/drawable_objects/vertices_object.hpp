@@ -2,7 +2,7 @@
 
 #include <null_engine/drawable_objects/common/vertex.hpp>
 #include <null_engine/drawable_objects/material/material.hpp>
-#include <null_engine/util/geometry/matrix4.hpp>
+#include <null_engine/util/geometry/matrix.hpp>
 
 namespace null_engine {
 
@@ -58,13 +58,19 @@ public:
 
     VerticesObject& SetPositions(const std::vector<Vec3>& positions);
 
-    VerticesObject& SetParams(const std::vector<VertexParams>& params);
+    VerticesObject& SetColors(const std::vector<Vec3>& colors);
 
-    VerticesObject& SetParams(const VertexParams& params);
+    VerticesObject& SetColors(Vec3 color);
+
+    VerticesObject& SetNormals(const std::vector<Vec3>& normals);
+
+    VerticesObject& SetTexCoords(const std::vector<Vec2>& tex_coords);
+
+    VerticesObject& SetParams(const std::vector<VertexParams>& params);
 
     VerticesObject& SetIndices(const std::vector<uint64_t>& indices);
 
-    VerticesObject& Transform(const Mat4& transform);
+    VerticesObject& ApplyTransform(const Transform& transform);
 
     VerticesObject& GenerateNormals(bool clockwise = true);
 

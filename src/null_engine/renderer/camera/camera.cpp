@@ -1,11 +1,16 @@
 #include "camera.hpp"
 
-#include <cassert>
-#include <null_engine/util/geometry/helpers.hpp>
-
 namespace null_engine {
 
-namespace detail {
+namespace {
+
+ProjectiveTransform ComposeCameraTransform(
+    const ProjectiveTransform& ndc_transform, const Transform& orientation_transform, Vec3 view_pos
+) {
+    return ndc_transform * Transform(orientation_transform.matrix().transpose()) * Translation(-view_pos);
+}
+
+}  // anonymous namespace
 
 CameraBase::CameraBase(const CameraOrientation& orientation)
     : orientation_(orientation)
@@ -16,7 +21,7 @@ InPort<CameraChange>* CameraBase::GetChangePort() {
     return &in_change_port_;
 }
 
-void CameraBase::SubscribeOnCameraTransform(InPort<Mat4>* observer_port) const {
+void CameraBase::SubscribeOnCameraTransform(InPort<Transform>* observer_port) const {
     out_transform_port_->Subscribe(observer_port, GetCameraTransform());
 }
 
@@ -25,23 +30,23 @@ Vec3 CameraBase::GetViewPos() const {
 }
 
 Vec3 CameraBase::GetDirection() const {
-    return Vec3::Normalize(orientation_.direction);
+    return orientation_.direction.normalized();
 }
 
 Vec3 CameraBase::GetHorizon() const {
-    return Vec3::Normalize(orientation_.horizon);
+    return orientation_.horizon.normalized();
 }
 
 Vec3 CameraBase::GetVertical() const {
-    return orientation_.horizon.VectorProd(orientation_.direction).Normalize();
+    return VectorProd(orientation_.horizon, orientation_.direction).normalized();
 }
 
-Mat4 CameraBase::GetCameraTransform() const {
-    return Mat4::Translation(orientation_.position) * GetOrientationTransform();
+Transform CameraBase::GetCameraTransform() const {
+    return Translation(orientation_.position) * GetOrientationTransform();
 }
 
-Mat4 CameraBase::GetOrientationTransform() const {
-    return Mat4::Basis(orientation_.horizon, GetVertical(), orientation_.direction);
+Transform CameraBase::GetOrientationTransform() const {
+    return Basis(orientation_.horizon, GetVertical(), orientation_.direction);
 }
 
 void CameraBase::Move(Vec3 translation) {
@@ -49,10 +54,10 @@ void CameraBase::Move(Vec3 translation) {
 }
 
 void CameraBase::Rotate(Vec3 axis, FloatType angle) {
-    const auto transform = Mat4::Rotation(axis, angle);
+    const auto transform = Rotation(axis, angle).linear();
 
-    orientation_.direction = transform.Apply(orientation_.direction).XYZ();
-    orientation_.horizon = transform.Apply(orientation_.horizon).XYZ();
+    orientation_.direction = transform * orientation_.direction;
+    orientation_.horizon = transform * orientation_.horizon;
 }
 
 void CameraBase::OnCameraChange(const CameraChange& cmaera_change) {
@@ -68,26 +73,23 @@ void CameraBase::OnCameraChange(const CameraChange& cmaera_change) {
     out_transform_port_->Notify(GetCameraTransform());
 }
 
-}  // namespace detail
-
 DirectCamera::DirectCamera(const CameraOrientation& orientation, const Settings& settings)
     : Base(orientation)
-    , ndc_transform_(Mat4::BoxProjection(settings.width, settings.height, settings.depth)) {
+    , ndc_transform_(BoxProjection(settings.width, settings.height, settings.depth)) {
 }
 
-Mat4 DirectCamera::GetNdcTransform() const {
-    return ndc_transform_ * Mat4::Transpose(GetOrientationTransform()) * Mat4::Translation(-GetViewPos());
+ProjectiveTransform DirectCamera::GetNdcTransform() const {
+    return ComposeCameraTransform(ndc_transform_, GetOrientationTransform(), GetViewPos());
 }
 
 PerspectiveCamera::PerspectiveCamera(const CameraOrientation& orientation, const Settings& settings)
     : Base(orientation)
-    , ndc_transform_(
-          Mat4::PerspectiveProjection(settings.fov, settings.ratio, settings.min_distance, settings.max_distance)
+    , ndc_transform_(PerspectiveProjection(settings.fov, settings.ratio, settings.min_distance, settings.max_distance)
       ) {
 }
 
-Mat4 PerspectiveCamera::GetNdcTransform() const {
-    return ndc_transform_ * Mat4::Transpose(GetOrientationTransform()) * Mat4::Translation(-GetViewPos());
+ProjectiveTransform PerspectiveCamera::GetNdcTransform() const {
+    return ComposeCameraTransform(ndc_transform_, GetOrientationTransform(), GetViewPos());
 }
 
 }  // namespace null_engine

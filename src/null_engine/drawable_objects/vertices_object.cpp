@@ -1,7 +1,5 @@
 #include "vertices_object.hpp"
 
-#include <cassert>
-
 namespace null_engine {
 
 VerticesObject::VerticesObject(uint64_t number_vertices, Type object_type)
@@ -105,18 +103,45 @@ VerticesObject& VerticesObject::SetPositions(const std::vector<Vec3>& positions)
     return *this;
 }
 
+VerticesObject& VerticesObject::SetColors(const std::vector<Vec3>& colors) {
+    assert(colors.size() == vertices_.size() && "Number of colors and verticies should be equal");
+
+    for (size_t i = 0; i < vertices_.size(); ++i) {
+        vertices_[i].params.color = colors[i];
+    }
+    return *this;
+}
+
+VerticesObject& VerticesObject::SetColors(Vec3 color) {
+    for (size_t i = 0; i < vertices_.size(); ++i) {
+        vertices_[i].params.color = color;
+    }
+    return *this;
+}
+
+VerticesObject& VerticesObject::SetNormals(const std::vector<Vec3>& normals) {
+    assert(normals.size() == vertices_.size() && "Number of normals and verticies should be equal");
+
+    for (size_t i = 0; i < vertices_.size(); ++i) {
+        vertices_[i].params.normal = normals[i];
+    }
+    return *this;
+}
+
+VerticesObject& VerticesObject::SetTexCoords(const std::vector<Vec2>& tex_coords) {
+    assert(tex_coords.size() == vertices_.size() && "Number of texture coordinates and verticies should be equal");
+
+    for (size_t i = 0; i < vertices_.size(); ++i) {
+        vertices_[i].params.tex_coords = tex_coords[i];
+    }
+    return *this;
+}
+
 VerticesObject& VerticesObject::SetParams(const std::vector<VertexParams>& params) {
     assert(params.size() == vertices_.size() && "Number of params and verticies should be equal");
 
     for (size_t i = 0; i < vertices_.size(); ++i) {
         vertices_[i].params = params[i];
-    }
-    return *this;
-}
-
-VerticesObject& VerticesObject::SetParams(const VertexParams& params) {
-    for (auto& vertex : vertices_) {
-        vertex.params = params;
     }
     return *this;
 }
@@ -191,11 +216,11 @@ VerticesObject& VerticesObject::SetIndices(const std::vector<uint64_t>& indices)
     return *this;
 }
 
-VerticesObject& VerticesObject::Transform(const Mat4& transform) {
-    const auto normal_transform = Mat4::NormalTransform(transform);
+VerticesObject& VerticesObject::ApplyTransform(const Transform& transform) {
+    const auto normal_transform = NormalTransform(transform);
     for (auto& [position, params] : vertices_) {
-        position = transform.Apply(position).XYZ();
-        params.normal = normal_transform.Apply(params.normal);
+        position = transform * position;
+        params.normal = normal_transform * params.normal;
     }
     return *this;
 }
@@ -208,11 +233,8 @@ VerticesObject& VerticesObject::GenerateNormals(bool clockwise) {
     const auto add_normal = [&](uint64_t id_a, const Vec3& point_b, const Vec3& point_c) {
         const auto& point_a = vertices_[id_a].position;
 
-        auto normal = -(point_b - point_a).VectorProd(point_c - point_a);
-        if (!normal.IsZero()) {
-            normal.Normalize();
-        }
-        vertices_[id_a].params.normal += clockwise ? normal : -normal;
+        auto normal = -(VectorProd(point_b - point_a, point_c - point_a)).normalized();
+        vertices_[id_a].params.normal += normal * static_cast<FloatType>(clockwise ? 1 : -1);
 
         ++traingles_per_vertex[id_a];
     };
@@ -228,8 +250,8 @@ VerticesObject& VerticesObject::GenerateNormals(bool clockwise) {
         if (const auto denom = traingles_per_vertex[i]) {
             normal /= denom;
         }
-        if (!normal.IsZero()) {
-            normal.Normalize();
+        if (!normal.isZero()) {
+            normal.normalize();
         }
     }
 

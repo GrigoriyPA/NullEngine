@@ -1,12 +1,18 @@
 #pragma once
 
+#include <cstdlib>
+
 #include "constants.hpp"
 
 namespace null_engine {
 
-bool Equal(FloatType left, FloatType right);
+inline bool Equal(FloatType left, FloatType right) {
+    return std::abs(right - left) <= kEps;
+}
 
-bool Less(FloatType left, FloatType right);
+inline bool Less(FloatType left, FloatType right) {
+    return left <= right && !Equal(left, right);
+}
 
 FloatType Module(FloatType left, FloatType right);
 

@@ -2,7 +2,7 @@
 
 #include <folly/Poly.h>
 
-#include <null_engine/util/geometry/matrix4.hpp>
+#include <null_engine/util/geometry/matrix.hpp>
 
 namespace null_engine {
 
@@ -13,7 +13,7 @@ struct ICamera {
             return folly::poly_call<0>(*this);
         }
 
-        Mat4 GetNdcTransform() const {
+        ProjectiveTransform GetNdcTransform() const {
             return folly::poly_call<1>(*this);
         }
     };

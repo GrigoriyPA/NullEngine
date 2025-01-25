@@ -12,18 +12,18 @@ VerticesObject CreateCube() {
         Vec3(0.5, 0.5, -0.5),
     };
 
-    const std::vector<VertexParams> cube_face_params = {
-        {.tex_coords = Vec2(1.0, 1.0)},
-        {.tex_coords = Vec2(0.0, 1.0)},
-        {.tex_coords = Vec2(0.0, 0.0)},
-        {.tex_coords = Vec2(1.0, 0.0)},
+    const std::vector<Vec2> cube_face_tex_coords = {
+        {Vec2(1.0, 1.0)},
+        {Vec2(0.0, 1.0)},
+        {Vec2(0.0, 0.0)},
+        {Vec2(1.0, 0.0)},
     };
 
     const std::vector<uint64_t> cube_face_inices = {0, 1, 2, 2, 3, 0};
 
     auto cube_face = VerticesObject(4, VerticesObject::Type::Triangles)
                          .SetPositions(cube_face_positions)
-                         .SetParams(cube_face_params)
+                         .SetTexCoords(cube_face_tex_coords)
                          .SetIndices(cube_face_inices)
                          .GenerateNormals();
 
@@ -31,15 +31,15 @@ VerticesObject CreateCube() {
 
     const auto y_axis = Vec3(0.0, 1.0, 0.0);
     const auto angle = std::numbers::pi / 2.0;
-    const auto y_rotation = Mat4::Rotation(y_axis, angle);
-    cube.Merge(cube_face.Transform(y_rotation));
-    cube.Merge(cube_face.Transform(y_rotation));
-    cube.Merge(cube_face.Transform(y_rotation));
+    const auto y_rotation = Rotation(y_axis, angle);
+    cube.Merge(cube_face.ApplyTransform(y_rotation));
+    cube.Merge(cube_face.ApplyTransform(y_rotation));
+    cube.Merge(cube_face.ApplyTransform(y_rotation));
 
     const auto z_axis = Vec3(0.0, 0.0, 1.0);
-    const auto z_rotation = Mat4::Rotation(z_axis, angle);
-    cube.Merge(cube_face.Transform(z_rotation));
-    cube.Merge(cube_face.Transform(z_rotation * z_rotation));
+    const auto z_rotation = Rotation(z_axis, angle);
+    cube.Merge(cube_face.ApplyTransform(z_rotation));
+    cube.Merge(cube_face.ApplyTransform(z_rotation * z_rotation));
 
     return cube;
 }
@@ -63,10 +63,15 @@ VerticesObject CreateDirectLightVisualization(Vec3 color) {
     const Vec3 horizon(1.0, 0.0, 0.0);
     const Vec3 vertical(0.0, 1.0, 0.0);
 
-    result.SetPositions(
-        {horizon + vertical, -horizon - vertical, -horizon + vertical, horizon - vertical, Vec3(), 2.0 * direction}
-    );
-    result.SetParams(VertexParams{.color = color});
+    result.SetPositions({
+        horizon + vertical,
+        -horizon - vertical,
+        -horizon + vertical,
+        horizon - vertical,
+        Vec3(0.0, 0.0, 0.0),
+        2.0 * direction,
+    });
+    result.SetColors(color);
 
     return result;
 }
@@ -80,12 +85,12 @@ VerticesObject CreatePointLightVisualization(Vec3 color) {
     const Vec3 z_axis(0.0, 0.0, 1.0);
 
     result.SetPositions({x_axis, -x_axis, y_axis, -y_axis, z_axis, -z_axis});
-    result.SetParams(VertexParams{.color = color});
+    result.SetColors(color);
 
     const auto rotation_angle = std::numbers::pi / 4.0;
-    const auto y_rotation = Mat4::Rotation(y_axis, rotation_angle);
-    const auto z_rotation = Mat4::Rotation(z_axis, rotation_angle);
-    result.Merge(VerticesObject(result).Transform(z_rotation * y_rotation));
+    const auto y_rotation = Rotation(y_axis, rotation_angle);
+    const auto z_rotation = Rotation(z_axis, rotation_angle);
+    result.Merge(VerticesObject(result).ApplyTransform(z_rotation * y_rotation));
 
     return result;
 }

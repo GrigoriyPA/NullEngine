@@ -1,21 +1,21 @@
 #pragma once
 
-#include <null_engine/util/geometry/matrix4.hpp>
+#include <null_engine/util/geometry/matrix.hpp>
 #include <null_engine/util/mvc/ports.hpp>
 
 namespace null_engine {
 
 class Animator {
 public:
-    void SubscribeOnAnimation(InPort<Mat4>* observer_port) const;
+    void SubscribeOnAnimation(InPort<Transform>* observer_port) const;
 
-    const Mat4& GetCurrentTransform() const;
+    const Transform& GetCurrentTransform() const;
 
-    void UpdateTransform(const Mat4& transform);
+    void UpdateTransform(const Transform& transform);
 
 private:
-    Mat4 current_transform_;
-    OutPort<Mat4>::Ptr out_transform_port_ = OutPort<Mat4>::Make();
+    Transform current_transform_ = Ident();
+    OutPort<Transform>::Ptr out_transform_port_ = OutPort<Transform>::Make();
 };
 
 class TimedAnimator : public Animator {

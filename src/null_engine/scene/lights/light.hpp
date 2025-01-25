@@ -1,6 +1,7 @@
 #pragma once
 
 #include <null_engine/drawable_objects/vertices_object.hpp>
+#include <null_engine/util/interface/helpers/constants.hpp>
 
 #include "light_interface.hpp"
 
@@ -12,7 +13,7 @@ public:
 
     Vec3 CalculateLighting(const LightingMaterialSettings& material) const;
 
-    void ApplyTransform(const Mat4& transform);
+    void ApplyTransform(const Transform& transform);
 
 private:
     FloatType strength_;
@@ -30,9 +31,9 @@ public:
 
     Vec3 CalculateLighting(const LightingMaterialSettings& material) const;
 
-    VerticesObject VisualizeLight(Vec3 position, Vec3 color = Vec3::Ident(1.0), FloatType scale = 1.0) const;
+    VerticesObject VisualizeLight(Vec3 position, Vec3 color = kWhite, FloatType scale = 1.0) const;
 
-    void ApplyTransform(const Mat4& transform);
+    void ApplyTransform(const Transform& transform);
 
 private:
     Vec3 inversed_direction_;
@@ -51,9 +52,9 @@ public:
 
     Vec3 CalculateLighting(const LightingMaterialSettings& material) const;
 
-    VerticesObject VisualizeLight(Vec3 color = Vec3::Ident(1.0), FloatType scale = 1.0) const;
+    VerticesObject VisualizeLight(Vec3 color = kWhite, FloatType scale = 1.0) const;
 
-    void ApplyTransform(const Mat4& transform);
+    void ApplyTransform(const Transform& transform);
 
 private:
     Vec3 position_;
@@ -64,7 +65,7 @@ private:
 class SpotLight {
 public:
     struct Settings {
-        Vec3 position;
+        Vec3 position = Vec3(0.0, 0.0, 0.0);
         Vec3 direction = Vec3(0.0, 0.0, 1.0);
         FloatType light_angle;
         FloatType light_angle_ratio = 1.1;
@@ -74,9 +75,9 @@ public:
 
     Vec3 CalculateLighting(const LightingMaterialSettings& material) const;
 
-    VerticesObject VisualizeLight(Vec3 color = Vec3::Ident(1.0), FloatType scale = 1.0) const;
+    VerticesObject VisualizeLight(Vec3 color = kWhite, FloatType scale = 1.0) const;
 
-    void ApplyTransform(const Mat4& transform);
+    void ApplyTransform(const Transform& transform);
 
 private:
     Vec3 position_;

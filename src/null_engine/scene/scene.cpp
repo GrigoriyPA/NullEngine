@@ -1,7 +1,5 @@
 #include "scene.hpp"
 
-#include <cassert>
-
 namespace null_engine {
 
 Scene::Iterator::Iterator(const Scene* self, size_t index)
@@ -77,7 +75,7 @@ std::vector<AnyLight> Scene::GetLights() const {
 }
 
 Scene& Scene::AddObject(const VerticesObject& object) {
-    objects_.emplace_back(object, Mat4());
+    objects_.emplace_back(object, Ident());
     return *this;
 }
 

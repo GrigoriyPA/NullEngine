@@ -1,17 +1,17 @@
 #pragma once
 
 #include <null_engine/drawable_objects/common/vertex.hpp>
-#include <null_engine/util/geometry/matrix4.hpp>
+#include <null_engine/util/geometry/matrix.hpp>
 #include <vector>
 
 namespace null_engine::detail {
 
 class InterpolationParams {
 public:
-    Vec3 color;
-    Vec3 normal;
-    Vec2 tex_coords;
-    Vec3 frag_pos;
+    Vec3 color = Vec3(0.0, 0.0, 0.0);
+    Vec3 normal = Vec3(0.0, 0.0, 0.0);
+    Vec2 tex_coords = Vec2(0.0, 0.0);
+    Vec3 frag_pos = Vec3(0.0, 0.0, 0.0);
 
     InterpolationParams& operator+=(const InterpolationParams& other);
 
@@ -24,7 +24,7 @@ public:
 
 class InterpVertex {
 public:
-    Vec4 position;
+    Vec4 position = Vec4(0.00, 0.0, 0.0, 0.0);
     InterpolationParams params;
 
     InterpVertex& operator+=(const InterpVertex& other);
@@ -37,7 +37,7 @@ public:
 };
 
 std::vector<InterpVertex> ConvertObjectVerices(
-    const Mat4& camera_transform, const Mat4& object_transform, const std::vector<Vertex>& verices
+    const ProjectiveTransform& camera_transform, const Transform& object_transform, const std::vector<Vertex>& verices
 );
 
 }  // namespace null_engine::detail
