@@ -1,6 +1,6 @@
 #include "fragment_shader.hpp"
 
-namespace null_engine::detail {
+namespace null_engine::native::detail {
 
 Vec3 FragmentShader::GetViewPos() const {
     return view_pos_;
@@ -59,4 +59,4 @@ void FragmentShader::SetLights(const std::vector<AnyLight>& lights) {
     }
 }
 
-}  // namespace null_engine::detail
+}  // namespace null_engine::native::detail

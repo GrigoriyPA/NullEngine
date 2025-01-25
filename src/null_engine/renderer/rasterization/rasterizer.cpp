@@ -1,8 +1,12 @@
 #include "rasterizer.hpp"
 
+#include <boost/compute/utility/dim.hpp>
+#include <boost/compute/utility/source.hpp>
 #include <null_engine/util/generic/helpers.hpp>
 
-namespace null_engine::detail {
+namespace null_engine {
+
+namespace native::detail {
 
 namespace {
 
@@ -222,4 +226,70 @@ void Rasterizer::UpdateViewPixel(const VertexInfo& vertex_info, RasterizerBuffer
     buffer.colors[4 * point_offset + 3] = 255;
 }
 
-}  // namespace null_engine::detail
+}  // namespace native::detail
+
+namespace multithread::detail {
+
+const std::string kSource = BOOST_COMPUTE_STRINGIZE_SOURCE(
+    // map value to color
+    float4 color(uint i) {
+        uchar c = i;
+        uchar x = 35;
+        uchar y = 25;
+        uchar z = 15;
+        uchar max = 255;
+
+        if (i == 256)
+            return (float4)(0, 0, 0, 255);
+        else
+            return (float4)(max - x * i, max - y * i, max - z * i, max) / 255.0f;
+    }
+
+    __kernel void mandelbrot(__write_only image2d_t image) {
+        const uint x_coord = get_global_id(0);
+        const uint y_coord = get_global_id(1);
+        const uint width = get_global_size(0);
+        const uint height = get_global_size(1);
+
+        float x_origin = ((float)x_coord / width) * 3.25f - 2.0f;
+        float y_origin = ((float)y_coord / height) * 2.5f - 1.25f;
+
+        float x = 0.0f;
+        float y = 0.0f;
+
+        uint i = 0;
+        while (x * x + y * y <= 4.0f && i < 256) {
+            float tmp = x * x - y * y + x_origin;
+            y = 2 * x * y + y_origin;
+            x = tmp;
+            i++;
+        }
+
+        int2 coord = {x_coord, y_coord};
+        write_imagef(image, coord, color(i));
+    };
+);
+
+Rasterizer::Rasterizer(uint64_t view_width, uint64_t view_height, compute::context context)
+    : view_width_(view_width)
+    , view_height_(view_height)
+    , context_(std::move(context))
+    , program_(compute::program::create_with_source(kSource, context_)) {
+    program_.build();
+
+    kernel_ = compute::kernel(program_, "mandelbrot");
+}
+
+void Rasterizer::DrawTriangles(
+    const std::vector<InterpVertex>& points, const std::vector<TriangleIndex>& indices, RasterizerBuffer& buffer
+) {
+    kernel_.set_arg(0, buffer.colors);
+
+    buffer.queue.enqueue_nd_range_kernel(
+        kernel_, compute::dim(0, 0), compute::dim(view_width_, view_height_), compute::dim(1, 1)
+    );
+}
+
+}  // namespace multithread::detail
+
+}  // namespace null_engine

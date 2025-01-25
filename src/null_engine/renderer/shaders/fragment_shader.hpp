@@ -6,9 +6,11 @@
 
 #include "vertex_shader.hpp"
 
-namespace null_engine::detail {
+namespace null_engine::native::detail {
 
 class FragmentShader {
+    using InterpolationParams = null_engine::detail::InterpolationParams;
+
 public:
     static constexpr uint8_t kMaxNumberLights = 1;
 
@@ -29,4 +31,4 @@ private:
     std::array<AnyLight, kMaxNumberLights> lights_;
 };
 
-}  // namespace null_engine::detail
+}  // namespace null_engine::native::detail

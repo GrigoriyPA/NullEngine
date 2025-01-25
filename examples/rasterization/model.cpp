@@ -1,5 +1,6 @@
 #include "model.hpp"
 
+#include <iostream>
 #include <null_engine/drawable_objects/primitive_objects.hpp>
 #include <null_engine/scene/animations/primitive_animations.hpp>
 #include <null_engine/scene/lights/light.hpp>
@@ -112,7 +113,7 @@ Scene CreateScene(AnimatorRegistry& animator_registry, const ModelAssetes& asset
     // scene.AddLight(std::move(camera_light));
     // scene.AddLight(AmbientLight(0.6));
     // AddDirectLight(scene);
-    AddPointLight(scene);
+    // AddPointLight(scene);
     // AddSpotLight(scene);
 
     return scene;
@@ -143,24 +144,39 @@ DirectCamera CreateDirectCamera() {
 
 }  // anonymous namespace
 
-Model::Model(uint64_t view_width, uint64_t view_height)
+Model::Model(uint64_t view_width, uint64_t view_height, bool multithread_rendering)
     : assets_(LoadAssets())
-    // , camera_(CreateDirectCamera())
+    , acceleration_context_(AccelerationContext::Create())
     , camera_(CreatePerspectiveCamera(view_width, view_height))
     , scene_(CreateScene(animator_registry_, assets_, camera_))
-    , renderer_({view_width, view_height})
-    , in_texture_port_(std::bind(&Model::OnRenderedTexture, this, std::placeholders::_1)) {
-    renderer_.SubscribeToTextures(&in_texture_port_);
+    , native_renderer_({view_width, view_height})
+    , multithread_renderer_({view_width, view_height}, acceleration_context_)
+    , multithread_rendering_(multithread_rendering)
+    , in_texture_port_(std::bind(&Model::OnNativeRenderedTexture, this, std::placeholders::_1))
+    , in_texture_id_port_(std::bind(&Model::OnMultithreadRenderedTexture, this, std::placeholders::_1)) {
+    native_renderer_.SubscribeToTextures(&in_texture_port_);
+    multithread_renderer_.SubscribeToTextures(&in_texture_id_port_);
+
+    std::cout << "Discovered device:\n" << acceleration_context_.GetDeviceDescription() << "\n";
 }
 
 void Model::SubscribeToDrawEvents(InPort<DrawViewEvent>* observer_port) const {
-    out_draw_event_port_->Subscribe(
-        observer_port, {.delta_time = current_delta_time_, .render_texture = current_texture_}
-    );
+    DrawViewEvent event = {.delta_time = current_delta_time_};
+    if (multithread_rendering_) {
+        event.render_texture = current_texture_id_;
+    } else {
+        event.render_texture = current_texture_;
+    }
+
+    out_draw_event_port_->Subscribe(observer_port, event);
 }
 
 void Model::DoRendering() {
-    renderer_.GetRenderPort()->OnEvent({.scene = scene_, .camera = camera_});
+    if (multithread_rendering_) {
+        multithread_renderer_.GetRenderPort()->OnEvent({.scene = scene_, .camera = camera_});
+    } else {
+        native_renderer_.GetRenderPort()->OnEvent({.scene = scene_, .camera = camera_});
+    }
 }
 
 void Model::MoveCamera(const CameraChange& camera_change) {
@@ -172,9 +188,14 @@ void Model::Refresh(FloatType delta_time) {
     animator_registry_.GetRefreshPort()->OnEvent(delta_time);
 }
 
-void Model::OnRenderedTexture(const TextureData& texture) {
+void Model::OnNativeRenderedTexture(const TextureData& texture) {
     current_texture_ = texture;
-    out_draw_event_port_->Notify({.delta_time = current_delta_time_, .render_texture = texture});
+    out_draw_event_port_->Notify({.delta_time = current_delta_time_, .render_texture = current_texture_});
+}
+
+void Model::OnMultithreadRenderedTexture(GLuint texture_id) {
+    current_texture_id_ = texture_id;
+    out_draw_event_port_->Notify({.delta_time = current_delta_time_, .render_texture = current_texture_id_});
 }
 
 }  // namespace null_engine::tests

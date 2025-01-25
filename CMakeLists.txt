@@ -22,6 +22,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
 target_link_libraries(${PROJECT_NAME}
+    null-engine-acceleration
     null-engine-drawable-objects
     null-engine-renderer
     null-engine-scene

@@ -5,6 +5,7 @@ add_library(${TARGET_NAME}
 )
 
 target_link_libraries(${TARGET_NAME}
+    Boost::compute
     null-engine-renderer-camera
     null-engine-renderer-clipping
     null-engine-renderer-rasterization
@@ -12,6 +13,7 @@ target_link_libraries(${TARGET_NAME}
     null-engine-scene
     null-engine-util-geometry
     null-engine-util-mvc
+    sfml-graphics
 )
 
 add_subdirectory(camera)

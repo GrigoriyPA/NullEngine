@@ -2,9 +2,12 @@
 
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Texture.hpp>
+#include <SFML/OpenGL.hpp>
 #include <null_engine/util/mvc/ports.hpp>
 
 namespace null_engine {
+
+namespace native {
 
 class TextureRenderingConsumer {
 public:
@@ -34,5 +37,23 @@ private:
     sf::Texture texture_;
     sf::Sprite sprite_;
 };
+
+}  // namespace native
+
+namespace multithread {
+
+class TextureRenderingConsumer {
+public:
+    TextureRenderingConsumer();
+
+    InPort<GLuint>* GetTexturePort();
+
+private:
+    void OnRenderedTexture(GLuint texture_id) const;
+
+    InPort<GLuint> in_texture_port_;
+};
+
+}  // namespace multithread
 
 }  // namespace null_engine

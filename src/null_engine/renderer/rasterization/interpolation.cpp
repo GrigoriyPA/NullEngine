@@ -2,7 +2,7 @@
 
 #include <null_engine/util/geometry/helpers.hpp>
 
-namespace null_engine::detail {
+namespace null_engine::native::detail {
 
 Interpolation::Interpolation(FloatType z, FloatType h, const InterpolationParams& params)
     : z_(z)
@@ -15,7 +15,7 @@ FloatType Interpolation::GetZ() const {
     return z_;
 }
 
-InterpolationParams Interpolation::GetParams() const {
+Interpolation::InterpolationParams Interpolation::GetParams() const {
     InterpolationParams result = params_;
     result /= h_;
     return result;
@@ -95,4 +95,4 @@ void HorizontalLine::Increment() {
     --number_pixels_;
 }
 
-}  // namespace null_engine::detail
+}  // namespace null_engine::native::detail

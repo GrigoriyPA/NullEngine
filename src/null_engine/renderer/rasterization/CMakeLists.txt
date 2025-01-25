@@ -6,7 +6,10 @@ add_library(${TARGET_NAME}
 )
 
 target_link_libraries(${TARGET_NAME}
+    Boost::compute
+    null-engine-drawable-objects
     null-engine-renderer-shaders
     null-engine-util-generic
     null-engine-util-geometry
+    sfml-graphics
 )

@@ -12,6 +12,7 @@ namespace {
 
 constexpr uint64_t kViewWidth = 800;
 constexpr uint64_t kViewHeight = 800;
+constexpr bool kMultithreadRendering = true;
 
 }  // anonymous namespace
 
@@ -19,7 +20,7 @@ class Application::Impl {
 public:
     Impl()
         : window_(sf::VideoMode(kViewWidth, kViewHeight), "Rasterisation example")
-        , model_(kViewWidth, kViewHeight)
+        , model_(kViewWidth, kViewHeight, kMultithreadRendering)
         , controller_(window_, &model_)
         , view_(window_) {
         model_.SubscribeToDrawEvents(view_.GetDrawEventsPort());

@@ -2,9 +2,11 @@
 
 #include <null_engine/renderer/shaders/vertex_shader.hpp>
 
-namespace null_engine::detail {
+namespace null_engine::native::detail {
 
 class Interpolation {
+    using InterpolationParams = null_engine::detail::InterpolationParams;
+
 public:
     Interpolation(FloatType z, FloatType h, const InterpolationParams& params);
 
@@ -78,4 +80,4 @@ private:
     DirValue<Interpolation> interpolation_;
 };
 
-}  // namespace null_engine::detail
+}  // namespace null_engine::native::detail
