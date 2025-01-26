@@ -5,7 +5,7 @@
 namespace null_engine {
 
 FloatType OrientedArea(Vec2 left, Vec2 right) {
-    return left.x() * right.x() - left.x() * right.y();
+    return left.y() * right.x() - left.x() * right.y();
 }
 
 FloatType OrientedArea(Vec2 point_a, Vec2 point_b, Vec2 point_c) {

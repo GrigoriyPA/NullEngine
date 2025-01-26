@@ -19,7 +19,7 @@ constexpr cl_int2 kClearBufferLocalSize = {.x = 256, .y = 1};
 
 const std::string kClearBufferSource = BOOST_COMPUTE_STRINGIZE_SOURCE(
 
-    __kernel void clear_buffer(int2 image_size, __write_only image2d_t image, float3 background_color) {
+    __kernel void ClearBuffer(int2 image_size, __write_only image2d_t image, float3 background_color) {
         const int ix = get_global_id(0);
         const int iy = get_global_id(1);
 
@@ -41,7 +41,7 @@ Renderer::Renderer(const RendererSettings& settings, AccelerationContext context
     , rasterizer_(view_width_, view_height_, context) {
     BuildProgram(clear_buffer_program_);
 
-    clear_buffer_kernel_ = compute::kernel(clear_buffer_program_, "clear_buffer");
+    clear_buffer_kernel_ = compute::kernel(clear_buffer_program_, "ClearBuffer");
     clear_buffer_kernel_.set_arg(0, view_size_);
     clear_buffer_kernel_.set_arg(1, buffer_.rasterizer_buffer.colors);
     clear_buffer_kernel_.set_arg(

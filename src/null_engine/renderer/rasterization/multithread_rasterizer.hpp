@@ -18,7 +18,7 @@ class Rasterizer {
     using InterpVertex = null_engine::detail::InterpVertex;
 
     struct VertexInfo {
-        cl_int2 pos;
+        cl_float2 pos;
     };
 
 public:
