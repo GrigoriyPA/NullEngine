@@ -24,7 +24,7 @@ public:
 
 class InterpVertex {
 public:
-    Vec4 position = Vec4(0.00, 0.0, 0.0, 0.0);
+    Vec4 position = Vec4(0.0, 0.0, 0.0, 0.0);
     InterpolationParams params;
 
     InterpVertex& operator+=(const InterpVertex& other);

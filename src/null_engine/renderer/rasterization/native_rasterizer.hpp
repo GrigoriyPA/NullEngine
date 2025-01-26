@@ -1,16 +1,10 @@
 #pragma once
 
-#include <SFML/OpenGL.hpp>
-#include <boost/compute/interop/opengl/opengl_texture.hpp>
-#include <null_engine/acceleration/acceleration_context.hpp>
-#include <null_engine/drawable_objects/vertices_object.hpp>
 #include <null_engine/renderer/shaders/fragment_shader.hpp>
 
 #include "interpolation.hpp"
 
-namespace null_engine {
-
-namespace native::detail {
+namespace null_engine::native::detail {
 
 struct RasterizerBuffer {
     std::vector<uint8_t> colors;
@@ -49,39 +43,6 @@ private:
 
     uint64_t view_width_;
     uint64_t view_height_;
-    FloatType pixel_height_;
-    FloatType pixel_width_;
 };
 
-}  // namespace native::detail
-
-namespace multithread::detail {
-
-struct RasterizerBuffer {
-    compute::opengl_texture colors;
-    compute::buffer depth;
-    compute::command_queue queue;
-};
-
-class Rasterizer {
-    using TriangleIndex = null_engine::detail::TriangleIndex;
-    using InterpVertex = null_engine::detail::InterpVertex;
-
-public:
-    Rasterizer(uint64_t view_width, uint64_t view_height, compute::context context);
-
-    void DrawTriangles(
-        const std::vector<InterpVertex>& points, const std::vector<TriangleIndex>& indices, RasterizerBuffer& buffer
-    );
-
-private:
-    uint64_t view_width_;
-    uint64_t view_height_;
-    compute::context context_;
-    compute::program program_;
-    compute::kernel kernel_;
-};
-
-}  // namespace multithread::detail
-
-}  // namespace null_engine
+}  // namespace null_engine::native::detail

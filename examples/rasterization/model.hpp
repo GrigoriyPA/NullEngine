@@ -2,7 +2,8 @@
 
 #include <null_engine/acceleration/acceleration_context.hpp>
 #include <null_engine/renderer/camera/camera.hpp>
-#include <null_engine/renderer/renderer.hpp>
+#include <null_engine/renderer/multithread_renderer.hpp>
+#include <null_engine/renderer/native_renderer.hpp>
 #include <null_engine/scene/animations/animator.hpp>
 
 #include "events.hpp"

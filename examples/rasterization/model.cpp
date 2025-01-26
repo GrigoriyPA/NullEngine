@@ -97,7 +97,7 @@ Scene CreateScene(AnimatorRegistry& animator_registry, const ModelAssetes& asset
             .SetColors(kWhite * 0.8),
         cube_instance
     );
-    SetRotationAnimation(animator_registry, cube);
+    // SetRotationAnimation(animator_registry, cube);
 
     auto camera_light = SceneLight::Make(SpotLight(
         {
