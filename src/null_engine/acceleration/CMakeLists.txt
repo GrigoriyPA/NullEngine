@@ -9,6 +9,7 @@ target_link_libraries(${TARGET_NAME}
     Boost::compute
     fmt::fmt
     null-engine-util-generic
+    null-engine-util-geometry
     OpenCL::OpenCL
     sfml-graphics
 )

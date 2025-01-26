@@ -4,29 +4,33 @@
 
 namespace null_engine {
 
-VerticesObject CreateCube() {
-    const std::vector<Vec3> cube_face_positions = {
-        Vec3(0.5, -0.5, -0.5),
-        Vec3(-0.5, -0.5, -0.5),
-        Vec3(-0.5, 0.5, -0.5),
-        Vec3(0.5, 0.5, -0.5),
+VerticesObject CreateQuad() {
+    const std::vector<Vec3> quad_positions = {
+        Vec3(0.5, -0.5, 0.0),
+        Vec3(-0.5, -0.5, 0.0),
+        Vec3(-0.5, 0.5, 0.0),
+        Vec3(0.5, 0.5, 0.0),
     };
 
-    const std::vector<Vec2> cube_face_tex_coords = {
+    const std::vector<Vec2> quad_tex_coords = {
         {Vec2(1.0, 1.0)},
         {Vec2(0.0, 1.0)},
         {Vec2(0.0, 0.0)},
         {Vec2(1.0, 0.0)},
     };
 
-    const std::vector<uint64_t> cube_face_inices = {0, 1, 2, 2, 3, 0};
+    const std::vector<uint64_t> quad_inices = {0, 1, 2, 2, 3, 0};
 
-    auto cube_face = VerticesObject(4, VerticesObject::Type::Triangles)
-                         .SetPositions(cube_face_positions)
-                         .SetTexCoords(cube_face_tex_coords)
-                         .SetIndices(cube_face_inices)
-                         .GenerateNormals();
+    auto quad = VerticesObject(4, VerticesObject::Type::Triangles)
+                    .SetPositions(quad_positions)
+                    .SetTexCoords(quad_tex_coords)
+                    .SetIndices(quad_inices);
 
+    return quad;
+}
+
+VerticesObject CreateCube() {
+    auto cube_face = CreateQuad().GenerateNormals().ApplyTransform(Translation(0.0, 0.0, -0.5));
     auto cube = cube_face;
 
     const auto y_axis = Vec3(0.0, 1.0, 0.0);

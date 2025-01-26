@@ -8,7 +8,7 @@ class Interpolation {
     using InterpolationParams = null_engine::detail::InterpolationParams;
 
 public:
-    Interpolation(FloatType z, FloatType h, const InterpolationParams& params);
+    Interpolation(FloatType z, FloatType w, const InterpolationParams& params);
 
     FloatType GetZ() const;
     InterpolationParams GetParams() const;
@@ -27,7 +27,7 @@ public:
 
 private:
     FloatType z_;
-    FloatType h_;
+    FloatType w_;
     InterpolationParams params_;
 };
 

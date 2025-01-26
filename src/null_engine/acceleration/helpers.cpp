@@ -39,4 +39,21 @@ void RunKernel(
     );
 }
 
+cl_float3 Vec3ToCl(Vec3 vactor) {
+    return {
+        .x = static_cast<cl_float>(vactor.x()),
+        .y = static_cast<cl_float>(vactor.y()),
+        .z = static_cast<cl_float>(vactor.z()),
+    };
+}
+
+cl_float4 Vec4ToCl(Vec4 vactor) {
+    return {
+        .x = static_cast<cl_float>(vactor.x()),
+        .y = static_cast<cl_float>(vactor.y()),
+        .z = static_cast<cl_float>(vactor.z()),
+        .w = static_cast<cl_float>(vactor.w()),
+    };
+}
+
 }  // namespace null_engine::multithread::detail

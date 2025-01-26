@@ -4,11 +4,11 @@
 
 namespace null_engine::native::detail {
 
-Interpolation::Interpolation(FloatType z, FloatType h, const InterpolationParams& params)
+Interpolation::Interpolation(FloatType z, FloatType w, const InterpolationParams& params)
     : z_(z)
-    , h_(h)
+    , w_(w)
     , params_(params) {
-    params_ *= h_;
+    params_ *= w_;
 }
 
 FloatType Interpolation::GetZ() const {
@@ -17,13 +17,13 @@ FloatType Interpolation::GetZ() const {
 
 Interpolation::InterpolationParams Interpolation::GetParams() const {
     InterpolationParams result = params_;
-    result /= h_;
+    result /= w_;
     return result;
 }
 
 Interpolation& Interpolation::operator+=(const Interpolation& other) {
     z_ += other.z_;
-    h_ += other.h_;
+    w_ += other.w_;
     params_ += other.params_;
     return *this;
 }
@@ -35,7 +35,7 @@ Interpolation operator+(Interpolation left, const Interpolation& right) {
 
 Interpolation& Interpolation::operator-=(const Interpolation& other) {
     z_ -= other.z_;
-    h_ -= other.h_;
+    w_ -= other.w_;
     params_ -= other.params_;
     return *this;
 }
@@ -47,7 +47,7 @@ Interpolation operator-(Interpolation left, const Interpolation& right) {
 
 Interpolation& Interpolation::operator*=(FloatType scale) {
     z_ *= scale;
-    h_ *= scale;
+    w_ *= scale;
     params_ *= scale;
     return *this;
 }
@@ -61,7 +61,7 @@ Interpolation& Interpolation::operator/=(FloatType scale) {
     assert(!Equal(scale, 0.0) && "Division by zero");
 
     z_ /= scale;
-    h_ /= scale;
+    w_ /= scale;
     params_ /= scale;
     return *this;
 }

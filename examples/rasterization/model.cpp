@@ -30,6 +30,11 @@ ModelAssetes LoadAssets() {
     return assets;
 }
 
+void AddAmbientLight(Scene& scene) {
+    const auto strength = 0.6;
+    scene.AddLight(AmbientLight(strength));
+}
+
 void AddDirectLight(Scene& scene) {
     const Vec3 light_direction(2.0, -1.0, 3.0);
     const DirectLight light(light_direction, kLightStrength);
@@ -68,6 +73,19 @@ void AddSpotLight(Scene& scene) {
     scene.EmplaceObject(light.VisualizeLight(kWhite, visualization_scale));
 }
 
+void AddCameraLight(const CameraBase& camera, Scene& scene) {
+    auto camera_light = SceneLight::Make(SpotLight(
+        {
+            .light_angle = std::numbers::pi / 6.0,
+            .light_angle_ratio = 1.2,
+        },
+        kLightStrength, kLightAttenuation
+    ));
+    camera.SubscribeOnCameraTransform(camera_light->GetTransformPort());
+
+    scene.AddLight(std::move(camera_light));
+}
+
 void SetRotationAnimation(AnimatorRegistry& animator_registry, SceneObject& object) {
     const auto rotation_axis = Vec3(1.0, 1.0, 1.0);
     const auto rotation_speed = std::numbers::pi / 3.0;
@@ -85,7 +103,24 @@ void SetTranslationAnimation(AnimatorRegistry& animator_registry, SceneObject& o
     animator_registry.AddAnimator(std::move(animator));
 }
 
-Scene CreateScene(AnimatorRegistry& animator_registry, const ModelAssetes& assets, const CameraBase& camera) {
+void AddQuad(AnimatorRegistry& animator_registry, const ModelAssetes& assets, Scene& scene) {
+    const auto quad_instance = Translation(0.0, 0.0, 2.0);
+    SceneObject quad(
+        CreateQuad()
+            .SetMaterial({
+                // .diffuse_tex = TextureView(*assets.textures[0]),
+                // .specular_tex = TextureView(*assets.textures[1]),
+                .shininess = 20.0,
+            })
+            .SetColors({kGreen, kBlue, kRed, kWhite}),
+        quad_instance
+    );
+    // SetRotationAnimation(animator_registry, quad);
+
+    scene.AddObject(std::move(quad));
+}
+
+void AddCube(AnimatorRegistry& animator_registry, const ModelAssetes& assets, Scene& scene) {
     const auto cube_instance = Translation(0.0, 0.0, 2.0);
     SceneObject cube(
         CreateCube()
@@ -99,19 +134,16 @@ Scene CreateScene(AnimatorRegistry& animator_registry, const ModelAssetes& asset
     );
     // SetRotationAnimation(animator_registry, cube);
 
-    auto camera_light = SceneLight::Make(SpotLight(
-        {
-            .light_angle = std::numbers::pi / 6.0,
-            .light_angle_ratio = 1.2,
-        },
-        kLightStrength, kLightAttenuation
-    ));
-    camera.SubscribeOnCameraTransform(camera_light->GetTransformPort());
-
-    Scene scene;
     scene.AddObject(std::move(cube));
-    // scene.AddLight(std::move(camera_light));
-    // scene.AddLight(AmbientLight(0.6));
+}
+
+Scene CreateScene(AnimatorRegistry& animator_registry, const ModelAssetes& assets, const CameraBase& camera) {
+    Scene scene;
+    AddQuad(animator_registry, assets, scene);
+    // AddCube(animator_registry, assets, scene);
+
+    // AddCameraLight(std::move(camera_light));
+    // AddAmbientLight(AmbientLight(0.6));
     // AddDirectLight(scene);
     // AddPointLight(scene);
     // AddSpotLight(scene);

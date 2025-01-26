@@ -16,13 +16,10 @@ namespace {
 constexpr cl_int2 kRasterizeLocalSize = {.x = 16, .y = 16};
 
 const std::string kRasterizeTriangleSource = BOOST_COMPUTE_STRINGIZE_SOURCE(
-    struct VertexInfo { float2 pos; };
-
-    float OrientedArea(float2 point_a, float2 point_b, float2 point_c) {
-        const float2 left = point_b - point_a;
-        const float2 right = point_c - point_a;
-        return left.y * right.x - left.x * right.y;
-    }
+    struct VertexInfo {
+        float4 pos;
+        float3 color;
+    };
 
     __kernel void TriangleRasterization(
         int2 image_size, __write_only image2d_t image, struct VertexInfo point_a, struct VertexInfo point_b,
@@ -34,17 +31,23 @@ const std::string kRasterizeTriangleSource = BOOST_COMPUTE_STRINGIZE_SOURCE(
         const float2 view_pos = (float2)((float)(ix) * 2.0f / (float)(image_size.x) - 1.0f,
                                          (float)(iy) * 2.0f / (float)(image_size.y) - 1.0f);
 
-        const float denom = 1.0 / OrientedArea(point_a.pos, point_b.pos, point_c.pos);
-        const float3 barycentric = denom * (float3)(OrientedArea(view_pos, point_b.pos, point_c.pos),
-                                                    OrientedArea(point_a.pos, view_pos, point_c.pos),
-                                                    OrientedArea(point_a.pos, point_b.pos, view_pos));
+        const float denom = 1.0 / OrientedArea(point_a.pos.xy, point_b.pos.xy, point_c.pos.xy);
+        const float3 barycentric = denom * (float3)(OrientedArea(view_pos, point_b.pos.xy, point_c.pos.xy),
+                                                    OrientedArea(point_a.pos.xy, view_pos, point_c.pos.xy),
+                                                    OrientedArea(point_a.pos.xy, point_b.pos.xy, view_pos));
 
-        if (barycentric.x <= 0.0 || barycentric.y <= 0.0 || barycentric.z <= 0.0) {
+        if (barycentric.x < -kEps || barycentric.y < -kEps || barycentric.z < -kEps) {
             return;
         }
 
+        const float3 pos_w = (float3)(point_a.pos.w, point_b.pos.w, point_c.pos.w);
+        const float3 perspective = barycentric * pos_w / dot(pos_w, barycentric);
+
+        const float3 color =
+            point_a.color * perspective.x + point_b.color * perspective.y + point_c.color * perspective.z;
+
         if (ix < image_size.x && iy < image_size.y) {
-            write_imagef(image, (int2)(ix, iy), (float4)(0.0f, 200.0f, 0.0f, 255.0));
+            write_imagef(image, (int2)(ix, iy), (float4)(color, 255.0));
         }
     };
 );
@@ -55,7 +58,7 @@ Rasterizer::Rasterizer(uint64_t view_width, uint64_t view_height, AccelerationCo
     : view_size_({.x = static_cast<cl_int>(view_width), .y = static_cast<cl_int>(view_height)})
     , context_(context.GetContext())
     , queue_(context.GetQueue())
-    , program_(compute::program::create_with_source(kRasterizeTriangleSource, context_)) {
+    , program_(compute::program::create_with_source({GetVectorFunctionsSource(), kRasterizeTriangleSource}, context_)) {
     BuildProgram(program_);
 
     kernel_ = compute::kernel(program_, "TriangleRasterization");
@@ -86,12 +89,10 @@ void Rasterizer::FillVerticesInfo(const std::vector<InterpVertex>& points) {
     for (auto [position, params] : points) {
         PerspectiveDivision(position);
 
-        const cl_float2 pos = {
-            .x = static_cast<cl_float>(position.x()),
-            .y = static_cast<cl_float>(position.y()),
-        };
-
-        vertices_info_.push_back({.pos = pos});
+        vertices_info_.push_back({
+            .pos = Vec4ToCl(position),
+            .color = Vec3ToCl(params.color),
+        });
     }
 }
 

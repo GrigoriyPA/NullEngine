@@ -44,9 +44,7 @@ Renderer::Renderer(const RendererSettings& settings, AccelerationContext context
     clear_buffer_kernel_ = compute::kernel(clear_buffer_program_, "ClearBuffer");
     clear_buffer_kernel_.set_arg(0, view_size_);
     clear_buffer_kernel_.set_arg(1, buffer_.rasterizer_buffer.colors);
-    clear_buffer_kernel_.set_arg(
-        2, cl_float3{.x = background_color_.x(), .y = background_color_.y(), .z = background_color_.z()}
-    );
+    clear_buffer_kernel_.set_arg(2, Vec3ToCl(background_color_));
 }
 
 void Renderer::SubscribeToTextures(InPort<GLuint>* observer_port) const {
