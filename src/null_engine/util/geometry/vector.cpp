@@ -40,6 +40,8 @@ std::string GetVectorFunctionsSource() {
         float OrientedArea(float2 point_a, float2 point_b, float2 point_c) {
             return VectorProd2d(point_b - point_a, point_c - point_a);
         }
+
+        bool IsZeroFloat3(float3 v) { return fabs(v.x) < kEps && fabs(v.y) < kEps && fabs(v.z) < kEps; }
     );
 }
 

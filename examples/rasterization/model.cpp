@@ -134,7 +134,7 @@ void AddCube(AnimatorRegistry& animator_registry, const ModelAssetes& assets, Sc
             .SetMaterial({
                 .diffuse_tex = TextureView(*assets.textures[0]),
                 .specular_tex = TextureView(*assets.textures[1]),
-                .emission_tex = TextureView(*assets.textures[2]),
+                // .emission_tex = TextureView(*assets.textures[2]),
                 .shininess = 20.0,
             })
             .SetColors(kWhite * 0.8),
@@ -151,7 +151,7 @@ Scene CreateScene(AnimatorRegistry& animator_registry, const ModelAssetes& asset
     AddCube(animator_registry, assets, scene);
 
     // AddCameraLight(std::move(camera_light));
-    // AddAmbientLight(AmbientLight(0.6));
+    AddAmbientLight(scene);
     // AddDirectLight(scene);
     // AddPointLight(scene);
     // AddSpotLight(scene);

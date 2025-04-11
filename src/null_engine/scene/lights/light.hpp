@@ -8,12 +8,18 @@
 namespace null_engine {
 
 class AmbientLight {
+    using LightDescription = ILight::LightDescription;
+
 public:
     explicit AmbientLight(FloatType strength);
 
     Vec3 CalculateLighting(const LightingMaterialSettings& material) const;
 
+    LightDescription GetDescription() const;
+
     void ApplyTransform(const Transform& transform);
+
+    static std::string GetKernelSource();
 
 private:
     FloatType strength_;
@@ -26,14 +32,20 @@ struct LightStrength {
 };
 
 class DirectLight {
+    using LightDescription = ILight::LightDescription;
+
 public:
     DirectLight(Vec3 direction, const LightStrength& strength);
 
     Vec3 CalculateLighting(const LightingMaterialSettings& material) const;
 
+    LightDescription GetDescription() const;
+
     VerticesObject VisualizeLight(Vec3 position, Vec3 color = kWhite, FloatType scale = 1.0) const;
 
     void ApplyTransform(const Transform& transform);
+
+    static std::string GetKernelSource();
 
 private:
     Vec3 inversed_direction_;
@@ -47,14 +59,20 @@ struct AttenuationSettings {
 };
 
 class PointLight {
+    using LightDescription = ILight::LightDescription;
+
 public:
     PointLight(Vec3 position, const LightStrength& strength, const AttenuationSettings& attenuation = {});
 
     Vec3 CalculateLighting(const LightingMaterialSettings& material) const;
 
+    LightDescription GetDescription() const;
+
     VerticesObject VisualizeLight(Vec3 color = kWhite, FloatType scale = 1.0) const;
 
     void ApplyTransform(const Transform& transform);
+
+    static std::string GetKernelSource();
 
 private:
     Vec3 position_;
@@ -63,6 +81,8 @@ private:
 };
 
 class SpotLight {
+    using LightDescription = ILight::LightDescription;
+
 public:
     struct Settings {
         Vec3 position = Vec3(0.0, 0.0, 0.0);
@@ -75,9 +95,13 @@ public:
 
     Vec3 CalculateLighting(const LightingMaterialSettings& material) const;
 
+    LightDescription GetDescription() const;
+
     VerticesObject VisualizeLight(Vec3 color = kWhite, FloatType scale = 1.0) const;
 
     void ApplyTransform(const Transform& transform);
+
+    static std::string GetKernelSource();
 
 private:
     Vec3 position_;
@@ -88,10 +112,10 @@ private:
     AttenuationSettings attenuation_;
 };
 
-namespace multithread {
+namespace multithread::detail {
 
 std::string GetLightsSource();
 
-}  // namespace multithread
+}  // namespace multithread::detail
 
 }  // namespace null_engine

@@ -1,11 +1,17 @@
 #include "light.hpp"
 
+#include <CL/cl_platform.h>
+
 #include <boost/compute/utility/source.hpp>
+#include <null_engine/acceleration/helpers.hpp>
 #include <null_engine/drawable_objects/primitive_objects.hpp>
 #include <null_engine/util/geometry/helpers.hpp>
 #include <numbers>
+#include <sstream>
 
 namespace null_engine {
+
+using namespace multithread::detail;
 
 namespace {
 
@@ -39,12 +45,98 @@ VerticesObject VisualizeDirectedLight(Vec3 position, Vec3 direction, Vec3 color,
 
 }  // anonymous namespace
 
+namespace multithread::detail {
+
+namespace {
+
+cl_float3 GetClStrength(const LightStrength& strength) {
+    return {
+        .x = strength.ambient,
+        .y = strength.diffuse,
+        .z = strength.specular,
+    };
+}
+
+cl_float3 GetClAttenuation(const AttenuationSettings& attenuation) {
+    return {
+        .x = attenuation.constant,
+        .y = attenuation.linear,
+        .z = attenuation.quadratic,
+    };
+}
+
+}  // anonymous namespace
+
+std::string GetLightsSource() {
+    std::stringstream lights_source;
+    lights_source << BOOST_COMPUTE_STRINGIZE_SOURCE(
+        enum LightType{
+            LT_NONE,
+            LT_AMBIENT,
+            LT_DIRECT,
+            LT_POINT,
+            LT_SPOT,
+        };
+
+        typedef struct {
+            int light_type;
+            float3 strength;
+            float3 attenuation;
+            float3 position;
+            float3 direction;
+            float2 angle;
+        } LightDescription;
+
+        typedef struct {
+            float3 frag_pos;
+            float3 view_direction;
+            float3 normal;
+            float3 diffuse_color;
+            float3 specular_color;
+            float shininess;
+        } LightingMaterialSettings;
+    );
+
+    lights_source << AmbientLight::GetKernelSource();
+
+    lights_source << BOOST_COMPUTE_STRINGIZE_SOURCE(
+        float3 CalculateLighting(LightDescription * light_desc, LightingMaterialSettings * material_desc) {
+            switch (light_desc->light_type) {
+                case LT_AMBIENT:
+                    return CalculateAmbientLight(light_desc->strength.x, material_desc);
+                default:
+                    return (float3)(0.0f, 0.0f, 0.0f);
+            }
+        }
+    );
+
+    return lights_source.str();
+}
+
+}  // namespace multithread::detail
+
 AmbientLight::AmbientLight(FloatType strength)
     : strength_(strength) {
 }
 
 Vec3 AmbientLight::CalculateLighting(const LightingMaterialSettings& material) const {
     return strength_ * material.diffuse_color;
+}
+
+std::string AmbientLight::GetKernelSource() {
+    return BOOST_COMPUTE_STRINGIZE_SOURCE(
+
+        float3 CalculateAmbientLight(float strength, LightingMaterialSettings* material) {
+            return strength * material->diffuse_color;
+        }
+    );
+}
+
+AmbientLight::LightDescription AmbientLight::GetDescription() const {
+    return {
+        .light_type = LightDescription::LT_AMBIENT,
+        .strength = {.x = strength_},
+    };
 }
 
 void AmbientLight::ApplyTransform(const Transform& transform) {
@@ -67,6 +159,18 @@ Vec3 DirectLight::CalculateLighting(const LightingMaterialSettings& material) co
     color += GetSpecularColor(inversed_direction_, strength_, material);
 
     return color;
+}
+
+std::string DirectLight::GetKernelSource() {
+    return "";
+}
+
+DirectLight::LightDescription DirectLight::GetDescription() const {
+    return {
+        .light_type = LightDescription::LT_DIRECT,
+        .strength = GetClStrength(strength_),
+        .direction = Vec3ToCl(inversed_direction_)
+    };
 }
 
 VerticesObject DirectLight::VisualizeLight(Vec3 position, Vec3 color, FloatType scale) const {
@@ -102,6 +206,19 @@ Vec3 PointLight::CalculateLighting(const LightingMaterialSettings& material) con
     color += GetSpecularColor(light_dir, strength_, material) * attenuation;
 
     return color;
+}
+
+std::string PointLight::GetKernelSource() {
+    return "";
+}
+
+PointLight::LightDescription PointLight::GetDescription() const {
+    return {
+        .light_type = LightDescription::LT_POINT,
+        .strength = GetClStrength(strength_),
+        .attenuation = GetClAttenuation(attenuation_),
+        .position = Vec3ToCl(position_)
+    };
 }
 
 VerticesObject PointLight::VisualizeLight(Vec3 color, FloatType scale) const {
@@ -155,6 +272,21 @@ Vec3 SpotLight::CalculateLighting(const LightingMaterialSettings& material) cons
     return color;
 }
 
+std::string SpotLight::GetKernelSource() {
+    return "";
+}
+
+SpotLight::LightDescription SpotLight::GetDescription() const {
+    return {
+        .light_type = LightDescription::LT_SPOT,
+        .strength = GetClStrength(strength_),
+        .attenuation = GetClAttenuation(attenuation_),
+        .position = Vec3ToCl(position_),
+        .direction = Vec3ToCl(inversed_direction_),
+        .angle = {.x = cut_in_, .y = cut_out_}
+    };
+}
+
 VerticesObject SpotLight::VisualizeLight(Vec3 color, FloatType scale) const {
     return VisualizeDirectedLight(position_, -inversed_direction_, color, scale);
 }
@@ -163,13 +295,5 @@ void SpotLight::ApplyTransform(const Transform& transform) {
     inversed_direction_ = (transform.linear() * inversed_direction_).normalized();
     position_ = transform * position_;
 }
-
-namespace multithread {
-
-std::string GetLightsSource() {
-    return BOOST_COMPUTE_STRINGIZE_SOURCE(enum LightType{LT_NONE};);
-}
-
-}  // namespace multithread
 
 }  // namespace null_engine

@@ -31,7 +31,7 @@ class Rasterizer {
 public:
     Rasterizer(uint64_t view_width, uint64_t view_height, AccelerationContext context);
 
-    void SetSceneInfo(const FragmentShader& shader, Vec3 view_pos);
+    void SetSceneInfo(const FragmentShader& shader, Vec3 view_pos, const std::vector<AnyLight>& lights);
 
     void SetMaterialInfo(const FragmentShader& shader, const Material& material);
 

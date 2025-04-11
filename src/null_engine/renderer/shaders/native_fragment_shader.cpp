@@ -37,7 +37,7 @@ Vec3 FragmentShader::GetPointColor(const InterpolationParams& params) const {
         if (i == number_lights_) {
             break;
         }
-        result_color += lights_[0].CalculateLighting(light_settings);
+        result_color += lights_[i].CalculateLighting(light_settings);
     }
     return result_color;
 }

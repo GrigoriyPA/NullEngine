@@ -59,7 +59,7 @@ void Renderer::OnRenderEvent(const RenderEvent& render_event) {
 
     view_pos_ = render_event.camera->GetViewPos();
     camera_transform_ = render_event.camera->GetNdcTransform();
-    rasterizer_.SetSceneInfo(fragment_shader_, view_pos_);
+    rasterizer_.SetSceneInfo(fragment_shader_, view_pos_, render_event.scene.GetLights());
 
     for (const auto& [object, instances] : render_event.scene) {
         rasterizer_.SetMaterialInfo(fragment_shader_, object.GetMaterial());

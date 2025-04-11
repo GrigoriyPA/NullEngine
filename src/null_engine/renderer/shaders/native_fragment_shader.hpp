@@ -12,7 +12,7 @@ class FragmentShader {
     using InterpolationParams = null_engine::detail::InterpolationParams;
 
 public:
-    static constexpr uint8_t kMaxNumberLights = 1;
+    static constexpr uint32_t kMaxNumberLights = 1;
 
     Vec3 GetViewPos() const;
 

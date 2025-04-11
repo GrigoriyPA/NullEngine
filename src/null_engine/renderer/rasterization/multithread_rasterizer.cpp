@@ -105,8 +105,8 @@ Rasterizer::Rasterizer(uint64_t view_width, uint64_t view_height, AccelerationCo
     kernel_.set_arg(KA_VIEW_SIZE, view_size_);
 }
 
-void Rasterizer::SetSceneInfo(const FragmentShader& shader, Vec3 view_pos) {
-    shader.FillSceneInfo(kernel_, KA_SHADER_PARAMS, view_pos);
+void Rasterizer::SetSceneInfo(const FragmentShader& shader, Vec3 view_pos, const std::vector<AnyLight>& lights) {
+    shader.FillSceneInfo(kernel_, KA_SHADER_PARAMS, view_pos, lights);
 }
 
 void Rasterizer::SetMaterialInfo(const FragmentShader& shader, const Material& material) {
