@@ -1,6 +1,7 @@
 #include "model.hpp"
 
 #include <iostream>
+#include <null_engine/drawable_objects/material/texture.hpp>
 #include <null_engine/drawable_objects/primitive_objects.hpp>
 #include <null_engine/scene/animations/primitive_animations.hpp>
 #include <null_engine/scene/lights/light.hpp>
@@ -21,11 +22,17 @@ const CameraOrientation kCameraPos = {
     .position = Vec3(0.0, 0.0, 0.0), .direction = Vec3(0.0, 0.0, 1.0), .horizon = Vec3(1.0, 0.0, 0.0)
 };
 
-ModelAssetes LoadAssets() {
+ModelAssetes LoadAssets(multithread::AccelerationContext context, bool multithread_rendering) {
     ModelAssetes assets;
     assets.textures.emplace_back(Texture::LoadFromFile(kDiffuseTexturePath));
     assets.textures.emplace_back(Texture::LoadFromFile(kSpecularTexturePath));
     assets.textures.emplace_back(Texture::LoadFromFile(kEmissionTexturePath));
+
+    if (multithread_rendering) {
+        for (auto& texture : assets.textures) {
+            texture->ToDevice(context);
+        }
+    }
 
     return assets;
 }
@@ -127,6 +134,7 @@ void AddCube(AnimatorRegistry& animator_registry, const ModelAssetes& assets, Sc
             .SetMaterial({
                 .diffuse_tex = TextureView(*assets.textures[0]),
                 .specular_tex = TextureView(*assets.textures[1]),
+                .emission_tex = TextureView(*assets.textures[2]),
                 .shininess = 20.0,
             })
             .SetColors(kWhite * 0.8),
@@ -139,8 +147,8 @@ void AddCube(AnimatorRegistry& animator_registry, const ModelAssetes& assets, Sc
 
 Scene CreateScene(AnimatorRegistry& animator_registry, const ModelAssetes& assets, const CameraBase& camera) {
     Scene scene;
-    AddQuad(animator_registry, assets, scene);
-    // AddCube(animator_registry, assets, scene);
+    // AddQuad(animator_registry, assets, scene);
+    AddCube(animator_registry, assets, scene);
 
     // AddCameraLight(std::move(camera_light));
     // AddAmbientLight(AmbientLight(0.6));
@@ -177,8 +185,8 @@ DirectCamera CreateDirectCamera() {
 }  // anonymous namespace
 
 Model::Model(uint64_t view_width, uint64_t view_height, bool multithread_rendering)
-    : assets_(LoadAssets())
-    , acceleration_context_(AccelerationContext::Create())
+    : acceleration_context_(AccelerationContext::Create())
+    , assets_(LoadAssets(acceleration_context_, multithread_rendering))
     , camera_(CreatePerspectiveCamera(view_width, view_height))
     , scene_(CreateScene(animator_registry_, assets_, camera_))
     , native_renderer_({view_width, view_height})

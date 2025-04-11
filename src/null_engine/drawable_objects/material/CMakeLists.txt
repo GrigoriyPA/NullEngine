@@ -5,7 +5,10 @@ add_library(${TARGET_NAME}
 )
 
 target_link_libraries(${TARGET_NAME}
+    Boost::compute
+    null-engine-acceleration
     null-engine-util-geometry
     null-engine-util-interface-helpers
+    OpenCL::OpenCL
     sfml-graphics
 )

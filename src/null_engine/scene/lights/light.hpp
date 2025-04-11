@@ -88,4 +88,10 @@ private:
     AttenuationSettings attenuation_;
 };
 
+namespace multithread {
+
+std::string GetLightsSource();
+
+}  // namespace multithread
+
 }  // namespace null_engine

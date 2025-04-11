@@ -1,5 +1,6 @@
 #include "light.hpp"
 
+#include <boost/compute/utility/source.hpp>
 #include <null_engine/drawable_objects/primitive_objects.hpp>
 #include <null_engine/util/geometry/helpers.hpp>
 #include <numbers>
@@ -162,5 +163,13 @@ void SpotLight::ApplyTransform(const Transform& transform) {
     inversed_direction_ = (transform.linear() * inversed_direction_).normalized();
     position_ = transform * position_;
 }
+
+namespace multithread {
+
+std::string GetLightsSource() {
+    return BOOST_COMPUTE_STRINGIZE_SOURCE(enum LightType{LT_NONE};);
+}
+
+}  // namespace multithread
 
 }  // namespace null_engine

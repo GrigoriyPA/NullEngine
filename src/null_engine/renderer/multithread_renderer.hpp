@@ -10,6 +10,7 @@ class Renderer : public RendererBase {
     using Base = RendererBase;
     using RasterizerBuffer = detail::RasterizerBuffer;
     using Rasterizer = detail::Rasterizer;
+    using FragmentShader = detail::FragmentShader;
 
     struct Buffer {
         GLuint rendering_texture = 0;
@@ -37,6 +38,7 @@ private:
     compute::kernel clear_buffer_kernel_;
     Buffer buffer_;
     Rasterizer rasterizer_;
+    FragmentShader fragment_shader_;
     Vec3 view_pos_;
     ProjectiveTransform camera_transform_;
     Transform object_transform_;

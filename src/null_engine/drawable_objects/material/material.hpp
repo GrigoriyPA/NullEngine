@@ -5,9 +5,9 @@
 namespace null_engine {
 
 struct Material {
-    TextureView diffuse_tex;
-    TextureView specular_tex;
-    TextureView emission_tex;
+    std::optional<TextureView> diffuse_tex;
+    std::optional<TextureView> specular_tex;
+    std::optional<TextureView> emission_tex;
     FloatType shininess = 1.0;
 };
 

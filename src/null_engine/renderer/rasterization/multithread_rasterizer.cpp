@@ -1,7 +1,13 @@
 #include "multithread_rasterizer.hpp"
 
+#include <CL/cl.h>
+#include <CL/cl_platform.h>
+#include <fmt/core.h>
+
 #include <boost/compute/utility/source.hpp>
 #include <null_engine/acceleration/helpers.hpp>
+#include <null_engine/renderer/shaders/multithread_fragment_shader.hpp>
+#include <sstream>
 
 #include "common.hpp"
 
@@ -15,21 +21,43 @@ namespace {
 
 constexpr cl_int2 kRasterizeLocalSize = {.x = 16, .y = 16};
 
-const std::string kRasterizeTriangleSource = BOOST_COMPUTE_STRINGIZE_SOURCE(
-    struct VertexInfo {
-        float4 pos;
-        float3 color;
-    };
+enum KernelArgs {
+    KA_VIEW_SIZE,
+    KA_VIEW,
+    KA_POINT_A,
+    KA_POINT_B,
+    KA_POINT_C,
+    KA_SHADER_PARAMS,
+};
 
-    __kernel void TriangleRasterization(
-        int2 image_size, __write_only image2d_t image, struct VertexInfo point_a, struct VertexInfo point_b,
-        struct VertexInfo point_c
-    ) {
-        const int ix = get_global_id(0);
-        const int iy = get_global_id(1);
+std::string GetRasterizerSource() {
+    std::stringstream rasterize_triangle_source;
+    rasterize_triangle_source << BOOST_COMPUTE_STRINGIZE_SOURCE(
+        typedef struct {
+            float4 pos;
+            float3 color;
+            float3 normal;
+            float2 tex_coords;
+            float3 frag_pos;
+        } VertexInfo;
 
-        const float2 view_pos = (float2)((float)(ix) * 2.0f / (float)(image_size.x) - 1.0f,
-                                         (float)(iy) * 2.0f / (float)(image_size.y) - 1.0f);
+        float3 weighted_sumf3(float3 a, float3 b, float3 c, float3 perspective) {
+            return a * perspective.x + b * perspective.y + c * perspective.z;
+        }
+
+        float2 weighted_sumf2(float2 a, float2 b, float2 c, float3 perspective) {
+            return a * perspective.x + b * perspective.y + c * perspective.z;
+        }
+    );
+
+    rasterize_triangle_source << "__kernel void TriangleRasterization(int2 view_size, __write_only image2d_t view, "
+                                 "VertexInfo point_a, VertexInfo point_b, VertexInfo point_c, "
+                              << FragmentShader::GetArguments() << ")";
+
+    rasterize_triangle_source << BOOST_COMPUTE_STRINGIZE_SOURCE({
+        const int2 i = (int2)(get_global_id(0), get_global_id(1));
+        const float2 view_pos = (float2)((float)(i.x) * 2.0f / (float)(view_size.x) - 1.0f,
+                                         (float)(i.y) * 2.0f / (float)(view_size.y) - 1.0f);
 
         const float denom = 1.0 / OrientedArea(point_a.pos.xy, point_b.pos.xy, point_c.pos.xy);
         const float3 barycentric = denom * (float3)(OrientedArea(view_pos, point_b.pos.xy, point_c.pos.xy),
@@ -43,14 +71,24 @@ const std::string kRasterizeTriangleSource = BOOST_COMPUTE_STRINGIZE_SOURCE(
         const float3 pos_w = (float3)(point_a.pos.w, point_b.pos.w, point_c.pos.w);
         const float3 perspective = barycentric * pos_w / dot(pos_w, barycentric);
 
-        const float3 color =
-            point_a.color * perspective.x + point_b.color * perspective.y + point_c.color * perspective.z;
+        InterpolationParams params = {
+            .color = weighted_sumf3(point_a.color, point_b.color, point_c.color, perspective),
+            .normal = weighted_sumf3(point_a.normal, point_b.normal, point_c.normal, perspective),
+            .tex_coords = weighted_sumf2(point_a.tex_coords, point_b.tex_coords, point_c.tex_coords, perspective),
+            .frag_pos = weighted_sumf3(point_a.frag_pos, point_b.frag_pos, point_c.frag_pos, perspective),
+        };
+    );
 
-        if (ix < image_size.x && iy < image_size.y) {
-            write_imagef(image, (int2)(ix, iy), (float4)(color, 255.0));
+    rasterize_triangle_source << FragmentShader::GetShaderCall("params", "color");
+
+    rasterize_triangle_source << BOOST_COMPUTE_STRINGIZE_SOURCE(
+        if (i.x < view_size.x && i.y < view_size.y) {
+            write_imagef(view, (int2)(i.x, i.y), (float4)(color, 1.0f));
         }
-    };
-);
+    });
+
+    return rasterize_triangle_source.str();
+}
 
 }  // anonymous namespace
 
@@ -58,11 +96,21 @@ Rasterizer::Rasterizer(uint64_t view_width, uint64_t view_height, AccelerationCo
     : view_size_({.x = static_cast<cl_int>(view_width), .y = static_cast<cl_int>(view_height)})
     , context_(context.GetContext())
     , queue_(context.GetQueue())
-    , program_(compute::program::create_with_source({GetVectorFunctionsSource(), kRasterizeTriangleSource}, context_)) {
+    , program_(compute::program::create_with_source(
+          {GetVectorFunctionsSource(), FragmentShader::GetSource(), GetRasterizerSource()}, context_
+      )) {
     BuildProgram(program_);
 
     kernel_ = compute::kernel(program_, "TriangleRasterization");
-    kernel_.set_arg(0, view_size_);
+    kernel_.set_arg(KA_VIEW_SIZE, view_size_);
+}
+
+void Rasterizer::SetSceneInfo(const FragmentShader& shader, Vec3 view_pos) {
+    shader.FillSceneInfo(kernel_, KA_SHADER_PARAMS, view_pos);
+}
+
+void Rasterizer::SetMaterialInfo(const FragmentShader& shader, const Material& material) {
+    shader.FillMaterialInfo(kernel_, KA_SHADER_PARAMS, material);
 }
 
 void Rasterizer::DrawTriangles(
@@ -72,13 +120,13 @@ void Rasterizer::DrawTriangles(
         return;
     }
 
-    kernel_.set_arg(1, buffer.colors);
+    kernel_.set_arg(KA_VIEW, buffer.colors);
 
     FillVerticesInfo(points);
     for (const auto [id_a, id_b, id_c] : indices) {
-        kernel_.set_arg(2, sizeof(VertexInfo), &vertices_info_[id_a]);
-        kernel_.set_arg(3, sizeof(VertexInfo), &vertices_info_[id_b]);
-        kernel_.set_arg(4, sizeof(VertexInfo), &vertices_info_[id_c]);
+        kernel_.set_arg(KA_POINT_A, sizeof(VertexInfo), &vertices_info_[id_a]);
+        kernel_.set_arg(KA_POINT_B, sizeof(VertexInfo), &vertices_info_[id_b]);
+        kernel_.set_arg(KA_POINT_C, sizeof(VertexInfo), &vertices_info_[id_c]);
         RunKernel(queue_, kernel_, view_size_, kRasterizeLocalSize);
     }
 }
@@ -92,6 +140,9 @@ void Rasterizer::FillVerticesInfo(const std::vector<InterpVertex>& points) {
         vertices_info_.push_back({
             .pos = Vec4ToCl(position),
             .color = Vec3ToCl(params.color),
+            .normal = Vec3ToCl(params.normal),
+            .tex_coords = Vec2ToCl(params.tex_coords),
+            .frag_pos = Vec3ToCl(params.frag_pos),
         });
     }
 }

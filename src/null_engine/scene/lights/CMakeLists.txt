@@ -6,6 +6,7 @@ add_library(${TARGET_NAME}
 )
 
 target_link_libraries(${TARGET_NAME}
+    Boost::compute
     null-engine-drawable-objects
     null-engine-scene-animations
     null-engine-util-geometry

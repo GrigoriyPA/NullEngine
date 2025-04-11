@@ -1,6 +1,6 @@
 #pragma once
 
-#include <null_engine/renderer/shaders/fragment_shader.hpp>
+#include <null_engine/renderer/shaders/native_fragment_shader.hpp>
 
 #include "interpolation.hpp"
 

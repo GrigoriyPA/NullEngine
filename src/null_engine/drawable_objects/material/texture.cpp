@@ -1,9 +1,14 @@
 #include "texture.hpp"
 
+#include <CL/cl_platform.h>
+
 #include <SFML/Graphics/Image.hpp>
 #include <cassert>
+#include <vector>
 
 namespace null_engine {
+
+namespace compute = boost::compute;
 
 Texture::Texture(uint64_t width, uint64_t height, const std::vector<Vec3>& colors)
     : width_(width)
@@ -33,6 +38,31 @@ const Vec3* Texture::GetColors() const {
     return colors_.data();
 }
 
+const Texture::Buffer& Texture::GetDeviceBuffer() const {
+    assert(image_buffer_ && "Compute image buffer was not initialized");
+    return *image_buffer_;
+}
+
+void Texture::ToDevice(multithread::AccelerationContext context) {
+    assert(!image_buffer_ && "Texture already attached to device");
+
+    std::vector<cl_float> pixels(width_ * height_ * 4, 1.0);
+    for (size_t i = 0; i < colors_.size(); ++i) {
+        pixels[4 * i] = colors_[i].x();
+        pixels[4 * i + 1] = colors_[i].y();
+        pixels[4 * i + 2] = colors_[i].z();
+    }
+
+    const compute::image_format format(CL_RGBA, CL_FLOAT);
+    image_buffer_ = compute::image2d(context.GetContext(), width_, height_, format);
+
+    size_t origin[3] = {0, 0, 0};
+    size_t region[3] = {width_, height_, 1};
+
+    auto queue = context.GetQueue();
+    queue.enqueue_write_image(*image_buffer_, origin, region, pixels.data(), 0, 0);
+}
+
 Texture::Ptr Texture::Monotonic(Vec3 color) {
     return std::make_unique<Texture>(1, 1, std::vector{color});
 }
@@ -45,14 +75,19 @@ Texture::Ptr Texture::LoadFromFile(const std::string& file) {
 }
 
 TextureView::TextureView(const Texture& texture, Vec3 outside_color)
-    : width_(texture.GetWidth())
+    : texture_(&texture)
+    , width_(texture.GetWidth())
     , height_(texture.GetHeight())
     , colors_(texture.GetColors())
     , outside_color_(outside_color) {
 }
 
-bool TextureView::HasTexture() const {
-    return colors_ != nullptr;
+uint64_t TextureView::GetWidth() const {
+    return width_;
+}
+
+uint64_t TextureView::GetHeight() const {
+    return height_;
 }
 
 Vec3 TextureView::GetColor(Vec2 position) const {
@@ -63,6 +98,10 @@ Vec3 TextureView::GetColor(Vec2 position) const {
         return colors_[x + y * width_];
     }
     return outside_color_;
+}
+
+const Texture::Buffer& TextureView::GetDeviceBuffer() const {
+    return texture_->GetDeviceBuffer();
 }
 
 }  // namespace null_engine

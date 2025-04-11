@@ -39,20 +39,27 @@ void RunKernel(
     );
 }
 
-cl_float3 Vec3ToCl(Vec3 vactor) {
+cl_float2 Vec2ToCl(Vec2 vector) {
     return {
-        .x = static_cast<cl_float>(vactor.x()),
-        .y = static_cast<cl_float>(vactor.y()),
-        .z = static_cast<cl_float>(vactor.z()),
+        .x = vector.x(),
+        .y = vector.y(),
     };
 }
 
-cl_float4 Vec4ToCl(Vec4 vactor) {
+cl_float3 Vec3ToCl(Vec3 vector) {
     return {
-        .x = static_cast<cl_float>(vactor.x()),
-        .y = static_cast<cl_float>(vactor.y()),
-        .z = static_cast<cl_float>(vactor.z()),
-        .w = static_cast<cl_float>(vactor.w()),
+        .x = static_cast<cl_float>(vector.x()),
+        .y = static_cast<cl_float>(vector.y()),
+        .z = static_cast<cl_float>(vector.z()),
+    };
+}
+
+cl_float4 Vec4ToCl(Vec4 vector) {
+    return {
+        .x = static_cast<cl_float>(vector.x()),
+        .y = static_cast<cl_float>(vector.y()),
+        .z = static_cast<cl_float>(vector.z()),
+        .w = static_cast<cl_float>(vector.w()),
     };
 }
 

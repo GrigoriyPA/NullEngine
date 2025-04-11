@@ -38,7 +38,8 @@ Renderer::Renderer(const RendererSettings& settings, AccelerationContext context
     , queue_(context.GetQueue())
     , clear_buffer_program_(compute::program::create_with_source(kClearBufferSource, context_))
     , buffer_(CreateBuffer())
-    , rasterizer_(view_width_, view_height_, context) {
+    , rasterizer_(view_width_, view_height_, context)
+    , fragment_shader_(context) {
     BuildProgram(clear_buffer_program_);
 
     clear_buffer_kernel_ = compute::kernel(clear_buffer_program_, "ClearBuffer");
@@ -58,8 +59,11 @@ void Renderer::OnRenderEvent(const RenderEvent& render_event) {
 
     view_pos_ = render_event.camera->GetViewPos();
     camera_transform_ = render_event.camera->GetNdcTransform();
+    rasterizer_.SetSceneInfo(fragment_shader_, view_pos_);
 
     for (const auto& [object, instances] : render_event.scene) {
+        rasterizer_.SetMaterialInfo(fragment_shader_, object.GetMaterial());
+
         for (const auto& instance_transform : instances) {
             object_transform_ = instance_transform;
 

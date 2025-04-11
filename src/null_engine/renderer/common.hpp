@@ -3,6 +3,7 @@
 #include <null_engine/renderer/camera/camera_interface.hpp>
 #include <null_engine/renderer/clipping/clipping.hpp>
 #include <null_engine/scene/scene.hpp>
+#include <null_engine/util/interface/helpers/constants.hpp>
 
 namespace null_engine {
 

@@ -1,4 +1,4 @@
-#include "fragment_shader.hpp"
+#include "native_fragment_shader.hpp"
 
 namespace null_engine::native::detail {
 
@@ -8,13 +8,13 @@ Vec3 FragmentShader::GetViewPos() const {
 
 Vec3 FragmentShader::GetPointColor(const InterpolationParams& params) const {
     Vec3 diffuse_color = params.color;
-    if (material_.diffuse_tex.HasTexture()) {
-        diffuse_color = material_.diffuse_tex.GetColor(params.tex_coords);
+    if (material_.diffuse_tex) {
+        diffuse_color = material_.diffuse_tex->GetColor(params.tex_coords);
     }
 
     Vec3 result_color(0.0, 0.0, 0.0);
-    if (material_.emission_tex.HasTexture()) {
-        result_color = material_.emission_tex.GetColor(params.tex_coords);
+    if (material_.emission_tex) {
+        result_color = material_.emission_tex->GetColor(params.tex_coords);
     }
 
     if (!number_lights_ || params.normal.isZero()) {
@@ -28,8 +28,8 @@ Vec3 FragmentShader::GetPointColor(const InterpolationParams& params) const {
         .diffuse_color = diffuse_color
     };
 
-    if (material_.specular_tex.HasTexture()) {
-        light_settings.specular_color = material_.specular_tex.GetColor(params.tex_coords);
+    if (material_.specular_tex) {
+        light_settings.specular_color = material_.specular_tex->GetColor(params.tex_coords);
         light_settings.shininess = material_.shininess;
     }
 

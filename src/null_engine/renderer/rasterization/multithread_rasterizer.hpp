@@ -1,9 +1,12 @@
 #pragma once
 
+#include <CL/cl_platform.h>
+
 #include <SFML/OpenGL.hpp>
 #include <boost/compute/interop/opengl/opengl_texture.hpp>
 #include <null_engine/acceleration/acceleration_context.hpp>
 #include <null_engine/drawable_objects/vertices_object.hpp>
+#include <null_engine/renderer/shaders/multithread_fragment_shader.hpp>
 #include <null_engine/renderer/shaders/vertex_shader.hpp>
 
 namespace null_engine::multithread::detail {
@@ -20,10 +23,17 @@ class Rasterizer {
     struct VertexInfo {
         cl_float4 pos;
         cl_float3 color;
+        cl_float3 normal;
+        cl_float2 tex_coords;
+        cl_float3 frag_pos;
     };
 
 public:
     Rasterizer(uint64_t view_width, uint64_t view_height, AccelerationContext context);
+
+    void SetSceneInfo(const FragmentShader& shader, Vec3 view_pos);
+
+    void SetMaterialInfo(const FragmentShader& shader, const Material& material);
 
     void DrawTriangles(
         const std::vector<InterpVertex>& points, const std::vector<TriangleIndex>& indices, RasterizerBuffer& buffer

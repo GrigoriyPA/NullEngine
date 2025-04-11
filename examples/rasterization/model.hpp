@@ -37,8 +37,8 @@ private:
 
     void OnMultithreadRenderedTexture(GLuint texture_id);
 
-    ModelAssetes assets_;
     AccelerationContext acceleration_context_;
+    ModelAssetes assets_;
     AnimatorRegistry animator_registry_;
     PerspectiveCamera camera_;
     Scene scene_;
