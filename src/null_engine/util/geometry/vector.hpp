@@ -1,5 +1,7 @@
 #pragma once
 
+#include <assimp/vector3.h>
+
 #include <Eigen/Dense>
 
 #include "constants.hpp"
@@ -17,6 +19,8 @@ FloatType OrientedArea(Vec2 point_a, Vec2 point_b, Vec2 point_c);
 Vec3 VectorProd(Vec3 left, Vec3 right);
 
 Vec3 Horizon(Vec3 vector);
+
+Vec3 VectorFromAssimp(const aiVector3D& vector);
 
 namespace multithread {
 

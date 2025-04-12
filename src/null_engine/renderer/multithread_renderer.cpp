@@ -1,5 +1,7 @@
 #include "multithread_renderer.hpp"
 
+#include <CL/cl_platform.h>
+
 #include <SFML/OpenGL.hpp>
 #include <boost/compute/interop/opengl/acquire.hpp>
 #include <boost/compute/utility/source.hpp>
@@ -45,7 +47,7 @@ Renderer::Renderer(const RendererSettings& settings, AccelerationContext context
     clear_buffer_kernel_ = compute::kernel(clear_buffer_program_, "ClearBuffer");
     clear_buffer_kernel_.set_arg(0, view_size_);
     clear_buffer_kernel_.set_arg(1, buffer_.rasterizer_buffer.colors);
-    clear_buffer_kernel_.set_arg(2, Vec3ToCl(background_color_));
+    clear_buffer_kernel_.set_arg(2, Vec3ToCl(background_color_ / 255.0));
 }
 
 void Renderer::SubscribeToTextures(InPort<GLuint>* observer_port) const {

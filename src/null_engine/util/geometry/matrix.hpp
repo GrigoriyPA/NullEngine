@@ -1,5 +1,7 @@
 #pragma once
 
+#include <assimp/matrix4x4.h>
+
 #include "vector.hpp"
 
 namespace null_engine {
@@ -33,5 +35,7 @@ ProjectiveTransform BoxProjection(FloatType width, FloatType height, FloatType d
 ProjectiveTransform PerspectiveProjection(
     FloatType fov, FloatType ratio, FloatType min_distance, FloatType max_distance
 );
+
+Transform TransformFromAssimp(const aiMatrix4x4& matrix);
 
 }  // namespace null_engine

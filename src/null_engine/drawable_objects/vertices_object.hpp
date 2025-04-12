@@ -68,6 +68,8 @@ public:
 
     VerticesObject& SetParams(const std::vector<VertexParams>& params);
 
+    VerticesObject& SetVertices(const std::vector<Vertex>& vertices);
+
     VerticesObject& SetIndices(const std::vector<uint64_t>& indices);
 
     VerticesObject& ApplyTransform(const Transform& transform);

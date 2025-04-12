@@ -8,6 +8,7 @@ set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/contrib/vcpkg/scripts/build
 
 project(${PROJECT_NAME})
 
+find_package(assimp CONFIG REQUIRED)
 find_package(folly REQUIRED)
 find_package(Eigen3 CONFIG REQUIRED)
 find_package(OpenCL CONFIG REQUIRED)

@@ -146,6 +146,12 @@ VerticesObject& VerticesObject::SetParams(const std::vector<VertexParams>& param
     return *this;
 }
 
+VerticesObject& VerticesObject::SetVertices(const std::vector<Vertex>& vertices) {
+    assert(vertices.size() == vertices_.size() && "Can not change number of vertices");
+    vertices_ = vertices;
+    return *this;
+}
+
 VerticesObject& VerticesObject::SetIndices(const std::vector<uint64_t>& indices) {
     assert(ValidateIdicesValues(indices) && "Vertex index too large");
 

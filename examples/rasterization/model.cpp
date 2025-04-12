@@ -5,6 +5,7 @@
 #include <null_engine/drawable_objects/primitive_objects.hpp>
 #include <null_engine/scene/animations/primitive_animations.hpp>
 #include <null_engine/scene/lights/light.hpp>
+#include <null_engine/util/geometry/matrix.hpp>
 #include <null_engine/util/interface/helpers/constants.hpp>
 #include <numbers>
 
@@ -15,6 +16,7 @@ namespace {
 constexpr const char* kDiffuseTexturePath = "../../assets/textures/box_diffuse.png";
 constexpr const char* kSpecularTexturePath = "../../assets/textures/box_specular.png";
 constexpr const char* kEmissionTexturePath = "../../assets/textures/box_emission.jpg";
+constexpr const char* k3dObjectPath = "../../assets/3d_objects/cube_usemtl.obj";
 
 constexpr LightStrength kLightStrength = {.ambient = 0.2, .diffuse = 0.6, .specular = 0.8};
 constexpr AttenuationSettings kLightAttenuation = {.constant = 1.0, .quadratic = 0.1};
@@ -146,16 +148,25 @@ void AddCube(AnimatorRegistry& animator_registry, const ModelAssetes& assets, Sc
     scene.AddObject(std::move(cube));
 }
 
-Scene CreateScene(AnimatorRegistry& animator_registry, const ModelAssetes& assets, const CameraBase& camera) {
+void LoadObjects(ObjectLoader& object_loader, Scene& scene) {
+    const auto object_instance = Translation(0.0, 0.0, 2.0);
+    scene.AddObject(object_loader.LoadFromFile(k3dObjectPath, object_instance));
+}
+
+Scene CreateScene(
+    AnimatorRegistry& animator_registry, ObjectLoader& object_loader, const ModelAssetes& assets,
+    const CameraBase& camera
+) {
     Scene scene;
     // AddQuad(animator_registry, assets, scene);
-    AddCube(animator_registry, assets, scene);
+    // AddCube(animator_registry, assets, scene);
+    LoadObjects(object_loader, scene);
 
     // AddCameraLight(std::move(camera_light));
     // AddAmbientLight(scene);
     // AddDirectLight(scene);
     // AddPointLight(scene);
-    AddSpotLight(scene);
+    // AddSpotLight(scene);
 
     return scene;
 }
@@ -187,9 +198,10 @@ DirectCamera CreateDirectCamera() {
 
 Model::Model(uint64_t view_width, uint64_t view_height, bool multithread_rendering)
     : acceleration_context_(AccelerationContext::Create())
+    , object_loader_({.verbose = true})
     , assets_(LoadAssets(acceleration_context_, multithread_rendering))
     , camera_(CreatePerspectiveCamera(view_width, view_height))
-    , scene_(CreateScene(animator_registry_, assets_, camera_))
+    , scene_(CreateScene(animator_registry_, object_loader_, assets_, camera_))
     , native_renderer_({view_width, view_height})
     , multithread_renderer_({view_width, view_height}, acceleration_context_)
     , multithread_rendering_(multithread_rendering)

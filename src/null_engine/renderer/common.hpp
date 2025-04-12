@@ -15,7 +15,7 @@ struct RenderEvent {
 struct RendererSettings {
     uint64_t view_width;
     uint64_t view_height;
-    Vec3 background_color = kBlack;
+    Vec3 background_color = kWhite * 0.6;
     ClipperSettings clipper_settings = {};
 };
 
