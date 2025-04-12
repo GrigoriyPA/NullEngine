@@ -24,9 +24,9 @@ const std::string kClearBufferSource = BOOST_COMPUTE_STRINGIZE_SOURCE(
         const int iy = get_global_id(1);
 
         if (ix < image_size.x && iy < image_size.y) {
-            write_imagef(image, (int2)(ix, iy), (float4)(background_color, 255.0f));
+            write_imagef(image, (int2)(ix, iy), (float4)(background_color, 1.0f));
         }
-    };
+    }
 );
 
 }  // anonymous namespace

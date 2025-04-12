@@ -65,6 +65,23 @@ cl_float3 GetClAttenuation(const AttenuationSettings& attenuation) {
     };
 }
 
+const std::string kLightUtils = BOOST_COMPUTE_STRINGIZE_SOURCE(
+    float3 GetSpecularColor(float3 light_dir, float strength, LightingMaterialSettings* material) {
+        if (fabs(material->shininess) < kEps) {
+            return (float3)(0.0, 0.0, 0.0);
+        }
+
+        const float normal_diff = fmax(dot(normalize(light_dir + material->view_direction), material->normal), 0.0f);
+        const float spec = pow(normal_diff, material->shininess);
+        return strength * spec * material->specular_color;
+    }
+
+    float GetAttenuation(float3 light_pos, float3 settings, LightingMaterialSettings* material) {
+        const float distance = length(light_pos - material->frag_pos);
+        return 1.0f / dot(settings, (float3)(1.0f, distance, distance * distance));
+    }
+);
+
 }  // anonymous namespace
 
 std::string GetLightsSource() {
@@ -97,13 +114,32 @@ std::string GetLightsSource() {
         } LightingMaterialSettings;
     );
 
+    lights_source << kLightUtils;
+
     lights_source << AmbientLight::GetKernelSource();
+
+    lights_source << DirectLight::GetKernelSource();
+
+    lights_source << PointLight::GetKernelSource();
+
+    lights_source << SpotLight::GetKernelSource();
 
     lights_source << BOOST_COMPUTE_STRINGIZE_SOURCE(
         float3 CalculateLighting(LightDescription * light_desc, LightingMaterialSettings * material_desc) {
             switch (light_desc->light_type) {
                 case LT_AMBIENT:
                     return CalculateAmbientLight(light_desc->strength.x, material_desc);
+                case LT_DIRECT:
+                    return CalculateDirectLight(light_desc->direction, light_desc->strength, material_desc);
+                case LT_POINT:
+                    return CalculatePointLight(
+                        light_desc->position, light_desc->strength, light_desc->attenuation, material_desc
+                    );
+                case LT_SPOT:
+                    return CalculateSpotLight(
+                        light_desc->position, light_desc->direction, light_desc->angle, light_desc->strength,
+                        light_desc->attenuation, material_desc
+                    );
                 default:
                     return (float3)(0.0f, 0.0f, 0.0f);
             }
@@ -162,7 +198,21 @@ Vec3 DirectLight::CalculateLighting(const LightingMaterialSettings& material) co
 }
 
 std::string DirectLight::GetKernelSource() {
-    return "";
+    return BOOST_COMPUTE_STRINGIZE_SOURCE(
+        float3 CalculateDirectLight(float3 inversed_direction, float3 strength, LightingMaterialSettings * material) {
+            float3 color = strength.x * material->diffuse_color;
+
+            const float normal_diff = dot(inversed_direction, material->normal);
+            if (normal_diff < 0.0f) {
+                return color;
+            }
+
+            color += strength.y * normal_diff * material->diffuse_color;
+            color += GetSpecularColor(inversed_direction, strength.z, material);
+
+            return color;
+        }
+    );
 }
 
 DirectLight::LightDescription DirectLight::GetDescription() const {
@@ -209,7 +259,31 @@ Vec3 PointLight::CalculateLighting(const LightingMaterialSettings& material) con
 }
 
 std::string PointLight::GetKernelSource() {
-    return "";
+    return BOOST_COMPUTE_STRINGIZE_SOURCE(
+
+        float3 CalculatePointLight(
+            float3 position, float3 strength, float3 attenuation_settings, LightingMaterialSettings * material
+        ) {
+            const float attenuation = GetAttenuation(position, attenuation_settings, material);
+            float3 color = strength.x * material->diffuse_color * attenuation;
+
+            float3 light_dir = position - material->frag_pos;
+            if (IsZeroFloat3(light_dir)) {
+                return color;
+            }
+            light_dir = normalize(light_dir);
+
+            const float normal_diff = dot(light_dir, material->normal);
+            if (normal_diff < 0.0f) {
+                return color;
+            }
+
+            color += strength.y * normal_diff * material->diffuse_color * attenuation;
+            color += GetSpecularColor(light_dir, strength.z, material) * attenuation;
+
+            return color;
+        }
+    );
 }
 
 PointLight::LightDescription PointLight::GetDescription() const {
@@ -273,7 +347,35 @@ Vec3 SpotLight::CalculateLighting(const LightingMaterialSettings& material) cons
 }
 
 std::string SpotLight::GetKernelSource() {
-    return "";
+    return BOOST_COMPUTE_STRINGIZE_SOURCE(
+
+        float3 CalculateSpotLight(
+            float3 position, float3 inversed_direction, float2 angle, float3 strength, float3 attenuation_settings,
+            LightingMaterialSettings * material
+        ) {
+            float attenuation = GetAttenuation(position, attenuation_settings, material);
+            float3 color = strength.x * material->diffuse_color * attenuation;
+
+            float3 light_dir = position - material->frag_pos;
+            if (IsZeroFloat3(light_dir)) {
+                return color;
+            }
+            light_dir = normalize(light_dir);
+
+            const float normal_diff = dot(light_dir, material->normal);
+            if (normal_diff < 0.0f) {
+                return color;
+            }
+
+            const float theta = dot(light_dir, inversed_direction);
+            attenuation *= clamp((theta - angle.y) / (angle.x - angle.y), 0.0f, 1.0f);
+
+            color += strength.y * normal_diff * material->diffuse_color * attenuation;
+            color += GetSpecularColor(light_dir, strength.z, material) * attenuation;
+
+            return color;
+        }
+    );
 }
 
 SpotLight::LightDescription SpotLight::GetDescription() const {

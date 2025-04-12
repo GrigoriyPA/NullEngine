@@ -50,7 +50,7 @@ void AddDirectLight(Scene& scene) {
 
     const Vec3 visualization_pos = Vec3(0.0, 0.0, 2.0) - light_direction * 0.5;
     const auto visualization_scale = 0.2;
-    scene.EmplaceObject(light.VisualizeLight(visualization_pos, kWhite, visualization_scale));
+    // scene.EmplaceObject(light.VisualizeLight(visualization_pos, kWhite, visualization_scale));
 }
 
 void AddPointLight(Scene& scene) {
@@ -60,7 +60,7 @@ void AddPointLight(Scene& scene) {
     scene.AddLight(light);
 
     const auto visualization_scale = 0.2;
-    scene.EmplaceObject(light.VisualizeLight(kWhite, visualization_scale));
+    // scene.EmplaceObject(light.VisualizeLight(kWhite, visualization_scale));
 }
 
 void AddSpotLight(Scene& scene) {
@@ -77,7 +77,7 @@ void AddSpotLight(Scene& scene) {
     scene.AddLight(light);
 
     const auto visualization_scale = 0.2;
-    scene.EmplaceObject(light.VisualizeLight(kWhite, visualization_scale));
+    // scene.EmplaceObject(light.VisualizeLight(kWhite, visualization_scale));
 }
 
 void AddCameraLight(const CameraBase& camera, Scene& scene) {
@@ -140,7 +140,8 @@ void AddCube(AnimatorRegistry& animator_registry, const ModelAssetes& assets, Sc
             .SetColors(kWhite * 0.8),
         cube_instance
     );
-    // SetRotationAnimation(animator_registry, cube);
+    SetRotationAnimation(animator_registry, cube);
+    // SetTranslationAnimation(animator_registry, cube);
 
     scene.AddObject(std::move(cube));
 }
@@ -151,10 +152,10 @@ Scene CreateScene(AnimatorRegistry& animator_registry, const ModelAssetes& asset
     AddCube(animator_registry, assets, scene);
 
     // AddCameraLight(std::move(camera_light));
-    AddAmbientLight(scene);
+    // AddAmbientLight(scene);
     // AddDirectLight(scene);
     // AddPointLight(scene);
-    // AddSpotLight(scene);
+    AddSpotLight(scene);
 
     return scene;
 }
