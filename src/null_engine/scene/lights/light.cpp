@@ -4,10 +4,10 @@
 
 #include <boost/compute/utility/source.hpp>
 #include <null_engine/acceleration/helpers.hpp>
+#include <null_engine/acceleration/kernel_program.hpp>
 #include <null_engine/drawable_objects/primitive_objects.hpp>
 #include <null_engine/util/geometry/helpers.hpp>
 #include <numbers>
-#include <sstream>
 
 namespace null_engine {
 
@@ -65,28 +65,8 @@ cl_float3 GetClAttenuation(const AttenuationSettings& attenuation) {
     };
 }
 
-const std::string kLightUtils = BOOST_COMPUTE_STRINGIZE_SOURCE(
-    float3 GetSpecularColor(float3 light_dir, float strength, LightingMaterialSettings* material) {
-        if (fabs(material->shininess) < kEps) {
-            return (float3)(0.0, 0.0, 0.0);
-        }
-
-        const float normal_diff = fmax(dot(normalize(light_dir + material->view_direction), material->normal), 0.0f);
-        const float spec = pow(normal_diff, material->shininess);
-        return strength * spec * material->specular_color;
-    }
-
-    float GetAttenuation(float3 light_pos, float3 settings, LightingMaterialSettings* material) {
-        const float distance = length(light_pos - material->frag_pos);
-        return 1.0f / dot(settings, (float3)(1.0f, distance, distance * distance));
-    }
-);
-
-}  // anonymous namespace
-
-std::string GetLightsSource() {
-    std::stringstream lights_source;
-    lights_source << BOOST_COMPUTE_STRINGIZE_SOURCE(
+Program GetLightUtilsProgram() {
+    static constexpr std::string_view kLightUtilsSource = BOOST_COMPUTE_STRINGIZE_SOURCE(
         enum LightType{
             LT_NONE,
             LT_AMBIENT,
@@ -112,20 +92,32 @@ std::string GetLightsSource() {
             float3 specular_color;
             float shininess;
         } LightingMaterialSettings;
+
+        float3 GetSpecularColor(float3 light_dir, float strength, const LightingMaterialSettings* material) {
+            if (fabs(material->shininess) < kEps) {
+                return (float3)(0.0, 0.0, 0.0);
+            }
+
+            const float normal_diff =
+                fmax(dot(normalize(light_dir + material->view_direction), material->normal), 0.0f);
+            const float spec = pow(normal_diff, material->shininess);
+            return strength * spec * material->specular_color;
+        }
+
+        float GetAttenuation(float3 light_pos, float3 settings, const LightingMaterialSettings* material) {
+            const float distance = length(light_pos - material->frag_pos);
+            return 1.0f / dot(settings, (float3)(1.0f, distance, distance * distance));
+        }
     );
 
-    lights_source << kLightUtils;
+    return Program("LightUtils", kLightUtilsSource);
+}
 
-    lights_source << AmbientLight::GetKernelSource();
+}  // anonymous namespace
 
-    lights_source << DirectLight::GetKernelSource();
-
-    lights_source << PointLight::GetKernelSource();
-
-    lights_source << SpotLight::GetKernelSource();
-
-    lights_source << BOOST_COMPUTE_STRINGIZE_SOURCE(
-        float3 CalculateLighting(LightDescription * light_desc, LightingMaterialSettings * material_desc) {
+Program GetLightsProgram() {
+    static constexpr std::string_view kLightsSource = BOOST_COMPUTE_STRINGIZE_SOURCE(
+        float3 CalculateLighting(const LightDescription* light_desc, const LightingMaterialSettings* material_desc) {
             switch (light_desc->light_type) {
                 case LT_AMBIENT:
                     return CalculateAmbientLight(light_desc->strength.x, material_desc);
@@ -146,7 +138,14 @@ std::string GetLightsSource() {
         }
     );
 
-    return lights_source.str();
+    return ProgramBuilder("Lights", kLightsSource)
+        .Include(GetVectorFunctionsProgram())
+        .Include(GetLightUtilsProgram())
+        .Include(AmbientLight::GetKernelProgram())
+        .Include(DirectLight::GetKernelProgram())
+        .Include(PointLight::GetKernelProgram())
+        .Include(SpotLight::GetKernelProgram())
+        .Build();
 }
 
 }  // namespace multithread::detail
@@ -159,13 +158,15 @@ Vec3 AmbientLight::CalculateLighting(const LightingMaterialSettings& material) c
     return strength_ * material.diffuse_color;
 }
 
-std::string AmbientLight::GetKernelSource() {
-    return BOOST_COMPUTE_STRINGIZE_SOURCE(
+AmbientLight::Program AmbientLight::GetKernelProgram() {
+    static constexpr std::string_view kAmbientLightSource = BOOST_COMPUTE_STRINGIZE_SOURCE(
 
-        float3 CalculateAmbientLight(float strength, LightingMaterialSettings* material) {
+        float3 CalculateAmbientLight(float strength, const LightingMaterialSettings* material) {
             return strength * material->diffuse_color;
         }
     );
+
+    return Program("AmbientLight", kAmbientLightSource);
 }
 
 AmbientLight::LightDescription AmbientLight::GetDescription() const {
@@ -197,22 +198,24 @@ Vec3 DirectLight::CalculateLighting(const LightingMaterialSettings& material) co
     return color;
 }
 
-std::string DirectLight::GetKernelSource() {
-    return BOOST_COMPUTE_STRINGIZE_SOURCE(
-        float3 CalculateDirectLight(float3 inversed_direction, float3 strength, LightingMaterialSettings * material) {
-            float3 color = strength.x * material->diffuse_color;
+DirectLight::Program DirectLight::GetKernelProgram() {
+    static constexpr std::string_view kDirectLightSource = BOOST_COMPUTE_STRINGIZE_SOURCE(float3 CalculateDirectLight(
+        float3 inversed_direction, float3 strength, const LightingMaterialSettings* material
+    ) {
+        float3 color = strength.x * material->diffuse_color;
 
-            const float normal_diff = dot(inversed_direction, material->normal);
-            if (normal_diff < 0.0f) {
-                return color;
-            }
-
-            color += strength.y * normal_diff * material->diffuse_color;
-            color += GetSpecularColor(inversed_direction, strength.z, material);
-
+        const float normal_diff = dot(inversed_direction, material->normal);
+        if (normal_diff < 0.0f) {
             return color;
         }
-    );
+
+        color += strength.y * normal_diff * material->diffuse_color;
+        color += GetSpecularColor(inversed_direction, strength.z, material);
+
+        return color;
+    });
+
+    return ProgramBuilder("DirectLight", kDirectLightSource).Include(GetLightUtilsProgram()).Build();
 }
 
 DirectLight::LightDescription DirectLight::GetDescription() const {
@@ -258,11 +261,11 @@ Vec3 PointLight::CalculateLighting(const LightingMaterialSettings& material) con
     return color;
 }
 
-std::string PointLight::GetKernelSource() {
-    return BOOST_COMPUTE_STRINGIZE_SOURCE(
+PointLight::Program PointLight::GetKernelProgram() {
+    static constexpr std::string_view kPointLightSource = BOOST_COMPUTE_STRINGIZE_SOURCE(
 
         float3 CalculatePointLight(
-            float3 position, float3 strength, float3 attenuation_settings, LightingMaterialSettings * material
+            float3 position, float3 strength, float3 attenuation_settings, const LightingMaterialSettings* material
         ) {
             const float attenuation = GetAttenuation(position, attenuation_settings, material);
             float3 color = strength.x * material->diffuse_color * attenuation;
@@ -284,6 +287,8 @@ std::string PointLight::GetKernelSource() {
             return color;
         }
     );
+
+    return ProgramBuilder("PointLight", kPointLightSource).Include(GetLightUtilsProgram()).Build();
 }
 
 PointLight::LightDescription PointLight::GetDescription() const {
@@ -346,12 +351,12 @@ Vec3 SpotLight::CalculateLighting(const LightingMaterialSettings& material) cons
     return color;
 }
 
-std::string SpotLight::GetKernelSource() {
-    return BOOST_COMPUTE_STRINGIZE_SOURCE(
+SpotLight::Program SpotLight::GetKernelProgram() {
+    static constexpr std::string_view kSpotLightSource = BOOST_COMPUTE_STRINGIZE_SOURCE(
 
         float3 CalculateSpotLight(
             float3 position, float3 inversed_direction, float2 angle, float3 strength, float3 attenuation_settings,
-            LightingMaterialSettings * material
+            const LightingMaterialSettings* material
         ) {
             float attenuation = GetAttenuation(position, attenuation_settings, material);
             float3 color = strength.x * material->diffuse_color * attenuation;
@@ -376,6 +381,8 @@ std::string SpotLight::GetKernelSource() {
             return color;
         }
     );
+
+    return ProgramBuilder("SpotLight", kSpotLightSource).Include(GetLightUtilsProgram()).Build();
 }
 
 SpotLight::LightDescription SpotLight::GetDescription() const {

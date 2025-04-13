@@ -1,6 +1,7 @@
 #include "vector.hpp"
 
 #include <boost/compute/utility/source.hpp>
+#include <string_view>
 
 #include "helpers.hpp"
 
@@ -33,10 +34,10 @@ Vec3 VectorFromAssimp(const aiVector3D& vector) {
     return Vec3(vector.x, vector.y, vector.z);
 }
 
-namespace multithread {
+namespace multithread::detail {
 
-std::string GetVectorFunctionsSource() {
-    return BOOST_COMPUTE_STRINGIZE_SOURCE(
+Program GetVectorFunctionsProgram() {
+    static constexpr std::string_view kVectorFunctionsSource = BOOST_COMPUTE_STRINGIZE_SOURCE(
         const float kEps = 1e-6;
 
         float VectorProd2d(float2 left, float2 right) { return left.y * right.x - left.x * right.y; }
@@ -47,8 +48,10 @@ std::string GetVectorFunctionsSource() {
 
         bool IsZeroFloat3(float3 v) { return fabs(v.x) < kEps && fabs(v.y) < kEps && fabs(v.z) < kEps; }
     );
+
+    return Program("VectorFunctions", kVectorFunctionsSource);
 }
 
-}  // namespace multithread
+}  // namespace multithread::detail
 
 }  // namespace null_engine

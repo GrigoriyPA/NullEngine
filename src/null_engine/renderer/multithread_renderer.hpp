@@ -1,5 +1,6 @@
 #pragma once
 
+#include <null_engine/acceleration/kernel_program.hpp>
 #include <null_engine/renderer/rasterization/multithread_rasterizer.hpp>
 
 #include "common.hpp"
@@ -8,6 +9,7 @@ namespace null_engine::multithread {
 
 class Renderer : public RendererBase {
     using Base = RendererBase;
+    using Program = detail::Program;
     using RasterizerBuffer = detail::RasterizerBuffer;
     using Rasterizer = detail::Rasterizer;
     using FragmentShader = detail::FragmentShader;
@@ -34,7 +36,7 @@ private:
     cl_int2 view_size_;
     compute::context context_;
     compute::command_queue queue_;
-    compute::program clear_buffer_program_;
+    Program clear_buffer_program_;
     compute::kernel clear_buffer_kernel_;
     Buffer buffer_;
     Rasterizer rasterizer_;

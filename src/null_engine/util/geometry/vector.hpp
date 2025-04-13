@@ -3,6 +3,7 @@
 #include <assimp/vector3.h>
 
 #include <Eigen/Dense>
+#include <null_engine/acceleration/kernel_program.hpp>
 
 #include "constants.hpp"
 
@@ -22,10 +23,10 @@ Vec3 Horizon(Vec3 vector);
 
 Vec3 VectorFromAssimp(const aiVector3D& vector);
 
-namespace multithread {
+namespace multithread::detail {
 
-std::string GetVectorFunctionsSource();
+Program GetVectorFunctionsProgram();
 
-}  // namespace multithread
+}  // namespace multithread::detail
 
 }  // namespace null_engine

@@ -6,6 +6,7 @@
 #include <boost/compute/interop/opengl/acquire.hpp>
 #include <boost/compute/utility/source.hpp>
 #include <null_engine/acceleration/helpers.hpp>
+#include <null_engine/acceleration/kernel_program.hpp>
 
 namespace null_engine {
 
@@ -17,19 +18,27 @@ using namespace detail;
 
 namespace {
 
-constexpr cl_int2 kClearBufferLocalSize = {.x = 256, .y = 1};
+constexpr cl_int2 kClearBufferKernelLocalSize = {.x = 256, .y = 1};
 
-const std::string kClearBufferSource = BOOST_COMPUTE_STRINGIZE_SOURCE(
+enum KernelArgs {
+    KA_VIEW_SIZE,
+    KA_VIEW,
+    KA_COLOR,
+};
 
-    __kernel void ClearBuffer(int2 image_size, __write_only image2d_t image, float3 background_color) {
-        const int ix = get_global_id(0);
-        const int iy = get_global_id(1);
+Program GetClearBufferKernelProgram() {
+    static constexpr std::string_view kClearBufferSource = BOOST_COMPUTE_STRINGIZE_SOURCE(
+        __kernel void ClearBuffer(int2 view_size, __write_only image2d_t view, float3 color) {
+            const int2 i = (int2)(get_global_id(0), get_global_id(1));
 
-        if (ix < image_size.x && iy < image_size.y) {
-            write_imagef(image, (int2)(ix, iy), (float4)(background_color, 1.0f));
+            if (i.x < view_size.x && i.y < view_size.y) {
+                write_imagef(view, i, (float4)(color, 1.0f));
+            }
         }
-    }
-);
+    );
+
+    return Program("RemdererClearBuffer", kClearBufferSource);
+}
 
 }  // anonymous namespace
 
@@ -38,16 +47,14 @@ Renderer::Renderer(const RendererSettings& settings, AccelerationContext context
     , view_size_({.x = static_cast<cl_int>(view_width_), .y = static_cast<cl_int>(view_height_)})
     , context_(context.GetContext())
     , queue_(context.GetQueue())
-    , clear_buffer_program_(compute::program::create_with_source(kClearBufferSource, context_))
+    , clear_buffer_program_(GetClearBufferKernelProgram())
+    , clear_buffer_kernel_(clear_buffer_program_.BuildKernel("ClearBuffer", context))
     , buffer_(CreateBuffer())
     , rasterizer_(view_width_, view_height_, context)
     , fragment_shader_(context) {
-    BuildProgram(clear_buffer_program_);
-
-    clear_buffer_kernel_ = compute::kernel(clear_buffer_program_, "ClearBuffer");
-    clear_buffer_kernel_.set_arg(0, view_size_);
-    clear_buffer_kernel_.set_arg(1, buffer_.rasterizer_buffer.colors);
-    clear_buffer_kernel_.set_arg(2, Vec3ToCl(background_color_ / 255.0));
+    clear_buffer_kernel_.set_arg(KA_VIEW_SIZE, view_size_);
+    clear_buffer_kernel_.set_arg(KA_VIEW, buffer_.rasterizer_buffer.colors);
+    clear_buffer_kernel_.set_arg(KA_COLOR, Vec3ToCl(background_color_ / 255.0));
 }
 
 void Renderer::SubscribeToTextures(InPort<GLuint>* observer_port) const {
@@ -113,7 +120,7 @@ Renderer::Buffer Renderer::CreateBuffer() {
 }
 
 void Renderer::ClearBuffer() {
-    RunKernel(queue_, clear_buffer_kernel_, view_size_, kClearBufferLocalSize);
+    RunKernel(queue_, clear_buffer_kernel_, view_size_, kClearBufferKernelLocalSize);
 }
 
 }  // namespace multithread

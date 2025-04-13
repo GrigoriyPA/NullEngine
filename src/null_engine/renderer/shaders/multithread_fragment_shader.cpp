@@ -2,11 +2,13 @@
 
 #include <CL/cl.h>
 #include <CL/cl_platform.h>
+#include <fmt/format.h>
 
 #include <boost/compute/utility/source.hpp>
 #include <null_engine/acceleration/helpers.hpp>
+#include <null_engine/acceleration/kernel_program.hpp>
 #include <null_engine/scene/lights/light.hpp>
-#include <sstream>
+#include <string>
 
 namespace null_engine::multithread::detail {
 
@@ -40,14 +42,14 @@ FragmentShader::FragmentShader(AccelerationContext context)
     , empty_texture_(context_, 1, 1, compute::image_format(CL_RGBA, CL_UNSIGNED_INT8)) {
 }
 
-std::string FragmentShader::GetSource() {
-    std::stringstream shader_source;
-    shader_source << GetLightsSource();
+Program FragmentShader::GetKernelProgram() {
+    static constexpr std::string_view kFragmentShaderSource = BOOST_COMPUTE_STRINGIZE_SOURCE(
+        typedef struct {
+            float3 view_pos;
+            int number_lights;
+            LightDescription lights[MAX_NUMBER_LIGHTS];
+        } SceneInfo;
 
-    shader_source << "typedef struct { float3 view_pos; int number_lights; LightDescription lights[" << kMaxNumberLights
-                  << "]; } SceneInfo;";
-
-    shader_source << BOOST_COMPUTE_STRINGIZE_SOURCE(
         typedef struct {
             int has_diffuse_tex;
             int has_specular_tex;
@@ -65,62 +67,63 @@ std::string FragmentShader::GetSource() {
         float3 CalculateFragmentColor(
             __read_only image2d_t diffuse_tex, __read_only image2d_t specular_tex, __read_only image2d_t emission_tex,
             const SceneInfo* scene, const MaterialInfo* material, const InterpolationParams* params
-        )
-    );
+        ) {
+            float3 diffuse_color = params->color;
+            const sampler_t sampler = CLK_NORMALIZED_COORDS_TRUE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_LINEAR;
+            if (material->has_diffuse_tex) {
+                diffuse_color = read_imagef(diffuse_tex, sampler, params->tex_coords).xyz;
+            }
 
-    shader_source << "{";
+            float3 result_color = (float3)(0.0f, 0.0f, 0.0f);
+            if (material->has_emission_tex) {
+                result_color = read_imagef(emission_tex, sampler, params->tex_coords).xyz;
+            }
 
-    shader_source << BOOST_COMPUTE_STRINGIZE_SOURCE(
-        float3 diffuse_color = params->color;
-        const sampler_t sampler = CLK_NORMALIZED_COORDS_TRUE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_LINEAR;
-        if (material->has_diffuse_tex) { diffuse_color = read_imagef(diffuse_tex, sampler, params->tex_coords).xyz; }
+            if (scene->number_lights <= 0 || IsZeroFloat3(params->normal)) {
+                return diffuse_color + result_color;
+            }
 
-        float3 result_color = (float3)(0.0f, 0.0f, 0.0f);
-        if (material->has_emission_tex) { result_color = read_imagef(emission_tex, sampler, params->tex_coords).xyz; }
-
-        if (scene->number_lights <= 0 || IsZeroFloat3(params->normal)) { return diffuse_color + result_color; }
-
-        LightingMaterialSettings light_settings =
-            {
+            LightingMaterialSettings light_settings = {
                 .frag_pos = params->frag_pos,
                 .view_direction = normalize(scene->view_pos - params->frag_pos),
                 .normal = normalize(params->normal),
                 .diffuse_color = diffuse_color,
             };
 
-        if (material->has_specular_tex) {
-            light_settings.specular_color = read_imagef(specular_tex, sampler, params->tex_coords).xyz;
-            light_settings.shininess = material->shininess;
+            if (material->has_specular_tex) {
+                light_settings.specular_color = read_imagef(specular_tex, sampler, params->tex_coords).xyz;
+                light_settings.shininess = material->shininess;
+            }
+
+            for (int i = 0; i < MAX_NUMBER_LIGHTS; ++i) {
+                if (i == scene->number_lights) {
+                    break;
+                }
+                result_color += CalculateLighting(&scene->lights[i], &light_settings);
+            }
+
+            return result_color;
         }
     );
 
-    shader_source << "for (int i = 0; i < " << kMaxNumberLights << "; ++i)";
-
-    shader_source << BOOST_COMPUTE_STRINGIZE_SOURCE({
-        if (i == scene->number_lights) {
-            break;
-        }
-        result_color += CalculateLighting(&scene->lights[i], &light_settings);
-    });
-
-    shader_source << "return result_color;}";
-
-    return shader_source.str();
+    return ProgramBuilder("FragmentShader", kFragmentShaderSource)
+        .Define("MAX_NUMBER_LIGHTS", std::to_string(kMaxNumberLights))
+        .Include(GetLightsProgram())
+        .Build();
 }
 
 std::string FragmentShader::GetArguments() {
-    return "__read_only image2d_t diffuse_tex, __read_only image2d_t specular_tex, __read_only image2d_t "
-           "emission_tex, SceneInfo scene, MaterialInfo material";
+    return "__read_only image2d_t diffuse_tex, "
+           "__read_only image2d_t specular_tex, "
+           "__read_only image2d_t emission_tex, "
+           "SceneInfo scene, "
+           "MaterialInfo material";
 }
 
-std::string FragmentShader::GetShaderCall(const std::string& vertex_variable, const std::string& output_varianle) {
-    std::stringstream shader_call;
-
-    shader_call << "const float3 " << output_varianle
-                << " = CalculateFragmentColor(diffuse_tex, specular_tex, emission_tex, &scene, &material, &"
-                << vertex_variable << ");";
-
-    return shader_call.str();
+std::string FragmentShader::GetShaderCall(const std::string& vertex_variable) {
+    return fmt::format(
+        "CalculateFragmentColor(diffuse_tex, specular_tex, emission_tex, &scene, &material, &{})", vertex_variable
+    );
 }
 
 void FragmentShader::FillSceneInfo(

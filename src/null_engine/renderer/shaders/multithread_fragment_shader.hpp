@@ -1,6 +1,7 @@
 #pragma once
 
 #include <null_engine/acceleration/acceleration_context.hpp>
+#include <null_engine/acceleration/kernel_program.hpp>
 #include <null_engine/drawable_objects/material/material.hpp>
 #include <null_engine/scene/lights/light_interface.hpp>
 
@@ -12,11 +13,11 @@ public:
 
     explicit FragmentShader(AccelerationContext context);
 
-    static std::string GetSource();
+    static Program GetKernelProgram();
 
     static std::string GetArguments();
 
-    static std::string GetShaderCall(const std::string& vertex_variable, const std::string& output_varianle);
+    static std::string GetShaderCall(const std::string& vertex_variable);
 
     void FillSceneInfo(
         compute::kernel& kernel, uint32_t argument_offset, Vec3 view_pos, const std::vector<AnyLight>& lights

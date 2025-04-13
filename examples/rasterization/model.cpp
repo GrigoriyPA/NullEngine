@@ -130,7 +130,7 @@ void AddQuad(AnimatorRegistry& animator_registry, const ModelAssetes& assets, Sc
 }
 
 void AddCube(AnimatorRegistry& animator_registry, const ModelAssetes& assets, Scene& scene) {
-    const auto cube_instance = Translation(0.0, 0.0, 2.0);
+    const auto cube_instance = Translation(1.0, 1.0, 3.0);
     SceneObject cube(
         CreateCube()
             .SetMaterial({
@@ -142,6 +142,7 @@ void AddCube(AnimatorRegistry& animator_registry, const ModelAssetes& assets, Sc
             .SetColors(kWhite * 0.8),
         cube_instance
     );
+    cube.AddInstance(Translation(0.0, 0.0, 2.0));
     SetRotationAnimation(animator_registry, cube);
     // SetTranslationAnimation(animator_registry, cube);
 
@@ -159,12 +160,12 @@ Scene CreateScene(
 ) {
     Scene scene;
     // AddQuad(animator_registry, assets, scene);
-    // AddCube(animator_registry, assets, scene);
-    LoadObjects(object_loader, scene);
+    AddCube(animator_registry, assets, scene);
+    // LoadObjects(object_loader, scene);
 
     // AddCameraLight(std::move(camera_light));
     // AddAmbientLight(scene);
-    // AddDirectLight(scene);
+    AddDirectLight(scene);
     // AddPointLight(scene);
     // AddSpotLight(scene);
 

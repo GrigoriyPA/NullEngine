@@ -45,7 +45,7 @@ private:
     cl_int2 view_size_;
     compute::context context_;
     compute::command_queue queue_;
-    compute::program program_;
+    Program program_;
     compute::kernel kernel_;
     std::vector<VertexInfo> vertices_info_;
 };

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <null_engine/acceleration/kernel_program.hpp>
 #include <null_engine/drawable_objects/vertices_object.hpp>
 #include <null_engine/util/interface/helpers/constants.hpp>
 
@@ -9,6 +10,7 @@ namespace null_engine {
 
 class AmbientLight {
     using LightDescription = ILight::LightDescription;
+    using Program = multithread::detail::Program;
 
 public:
     explicit AmbientLight(FloatType strength);
@@ -19,7 +21,7 @@ public:
 
     void ApplyTransform(const Transform& transform);
 
-    static std::string GetKernelSource();
+    static Program GetKernelProgram();
 
 private:
     FloatType strength_;
@@ -33,6 +35,7 @@ struct LightStrength {
 
 class DirectLight {
     using LightDescription = ILight::LightDescription;
+    using Program = multithread::detail::Program;
 
 public:
     DirectLight(Vec3 direction, const LightStrength& strength);
@@ -45,7 +48,7 @@ public:
 
     void ApplyTransform(const Transform& transform);
 
-    static std::string GetKernelSource();
+    static Program GetKernelProgram();
 
 private:
     Vec3 inversed_direction_;
@@ -60,6 +63,7 @@ struct AttenuationSettings {
 
 class PointLight {
     using LightDescription = ILight::LightDescription;
+    using Program = multithread::detail::Program;
 
 public:
     PointLight(Vec3 position, const LightStrength& strength, const AttenuationSettings& attenuation = {});
@@ -72,7 +76,7 @@ public:
 
     void ApplyTransform(const Transform& transform);
 
-    static std::string GetKernelSource();
+    static Program GetKernelProgram();
 
 private:
     Vec3 position_;
@@ -82,6 +86,7 @@ private:
 
 class SpotLight {
     using LightDescription = ILight::LightDescription;
+    using Program = multithread::detail::Program;
 
 public:
     struct Settings {
@@ -101,7 +106,7 @@ public:
 
     void ApplyTransform(const Transform& transform);
 
-    static std::string GetKernelSource();
+    static Program GetKernelProgram();
 
 private:
     Vec3 position_;
@@ -114,7 +119,7 @@ private:
 
 namespace multithread::detail {
 
-std::string GetLightsSource();
+Program GetLightsProgram();
 
 }  // namespace multithread::detail
 
