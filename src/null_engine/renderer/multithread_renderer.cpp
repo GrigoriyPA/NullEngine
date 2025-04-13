@@ -23,16 +23,18 @@ constexpr cl_int2 kClearBufferKernelLocalSize = {.x = 256, .y = 1};
 enum KernelArgs {
     KA_VIEW_SIZE,
     KA_VIEW,
+    KA_DEPTH,
     KA_COLOR,
 };
 
 Program GetClearBufferKernelProgram() {
     static constexpr std::string_view kClearBufferSource = BOOST_COMPUTE_STRINGIZE_SOURCE(
-        __kernel void ClearBuffer(int2 view_size, __write_only image2d_t view, float3 color) {
+        __kernel void ClearBuffer(int2 view_size, __write_only image2d_t view, __global float* depth, float3 color) {
             const int2 i = (int2)(get_global_id(0), get_global_id(1));
 
             if (i.x < view_size.x && i.y < view_size.y) {
                 write_imagef(view, i, (float4)(color, 1.0f));
+                depth[i.x * view_size.y + i.y] = 1.0f;
             }
         }
     );
@@ -54,6 +56,7 @@ Renderer::Renderer(const RendererSettings& settings, AccelerationContext context
     , fragment_shader_(context) {
     clear_buffer_kernel_.set_arg(KA_VIEW_SIZE, view_size_);
     clear_buffer_kernel_.set_arg(KA_VIEW, buffer_.rasterizer_buffer.colors);
+    clear_buffer_kernel_.set_arg(KA_DEPTH, buffer_.rasterizer_buffer.depth);
     clear_buffer_kernel_.set_arg(KA_COLOR, Vec3ToCl(background_color_ / 255.0));
 }
 
@@ -101,7 +104,7 @@ void Renderer::RenderTrianglesObject(const VerticesObject& object) {
     rasterizer_.DrawTriangles(clipped.vertices, clipped.indices, buffer_.rasterizer_buffer);
 }
 
-Renderer::Buffer Renderer::CreateBuffer() {
+Renderer::Buffer Renderer::CreateBuffer() const {
     Buffer result;
 
     glGenTextures(1, &result.rendering_texture);

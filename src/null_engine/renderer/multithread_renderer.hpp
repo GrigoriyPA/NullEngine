@@ -29,7 +29,7 @@ private:
 
     void RenderTrianglesObject(const VerticesObject& object);
 
-    Buffer CreateBuffer();
+    Buffer CreateBuffer() const;
 
     void ClearBuffer();
 

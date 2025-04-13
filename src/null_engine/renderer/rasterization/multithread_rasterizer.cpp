@@ -24,6 +24,7 @@ constexpr cl_int2 kRasterizeKernelLocalSize = {.x = 16, .y = 16};
 enum KernelArgs {
     KA_VIEW_SIZE,
     KA_VIEW,
+    KA_DEPTH,
     KA_POINT_A,
     KA_POINT_B,
     KA_POINT_C,
@@ -49,12 +50,17 @@ Program GetRasterizerKernelProgram() {
         }
 
         __kernel void TriangleRasterization(
-            int2 view_size, __write_only image2d_t view, VertexInfo point_a, VertexInfo point_b, VertexInfo point_c,
+            int2 view_size, __write_only image2d_t view, __global float* depth, VertexInfo point_a, VertexInfo point_b,
+            VertexInfo point_c,
             // clang-format off
             <|FRAGMENT_SHADER_ARGS|>
             // clang-format on
         ) {
             const int2 i = (int2)(get_global_id(0), get_global_id(1));
+            if (i.x >= view_size.x || i.y >= view_size.y) {
+                return;
+            }
+
             const float2 view_pos = (float2)((float)(i.x) * 2.0f / (float)(view_size.x) - 1.0f,
                                              (float)(i.y) * 2.0f / (float)(view_size.y) - 1.0f);
 
@@ -70,6 +76,12 @@ Program GetRasterizerKernelProgram() {
             const float3 pos_w = (float3)(point_a.pos.w, point_b.pos.w, point_c.pos.w);
             const float3 perspective = barycentric * pos_w / dot(pos_w, barycentric);
 
+            const float3 pos_z = (float3)(point_a.pos.z, point_b.pos.z, point_c.pos.z);
+            const float z = dot(pos_z, perspective);
+            if (z <= -1.0f || depth[i.x * view_size.y + i.y] <= z) {
+                return;
+            }
+
             const InterpolationParams params = {
                 .color = weighted_sumf3(point_a.color, point_b.color, point_c.color, perspective),
                 .normal = weighted_sumf3(point_a.normal, point_b.normal, point_c.normal, perspective),
@@ -81,9 +93,8 @@ Program GetRasterizerKernelProgram() {
             const float3 color = <|FRAGMENT_SHADER_CALL|>;
             // clang-format on
 
-            if (i.x < view_size.x && i.y < view_size.y) {
-                write_imagef(view, (int2)(i.x, i.y), (float4)(color, 1.0f));
-            }
+            write_imagef(view, (int2)(i.x, i.y), (float4)(color, 1.0f));
+            depth[i.x * view_size.y + i.y] = z;
         }
     );
 
@@ -122,6 +133,7 @@ void Rasterizer::DrawTriangles(
     }
 
     kernel_.set_arg(KA_VIEW, buffer.colors);
+    kernel_.set_arg(KA_DEPTH, buffer.depth);
 
     FillVerticesInfo(points);
     for (const auto [id_a, id_b, id_c] : indices) {
