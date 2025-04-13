@@ -30,10 +30,6 @@ Vec3 Horizon(Vec3 vector) {
     return Vec3(vector.z(), 0.0, -vector.x());
 }
 
-Vec3 VectorFromAssimp(const aiVector3D& vector) {
-    return Vec3(vector.x, vector.y, vector.z);
-}
-
 namespace multithread::detail {
 
 Program GetVectorFunctionsProgram() {

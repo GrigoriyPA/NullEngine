@@ -21,8 +21,6 @@ Vec3 VectorProd(Vec3 left, Vec3 right);
 
 Vec3 Horizon(Vec3 vector);
 
-Vec3 VectorFromAssimp(const aiVector3D& vector);
-
 namespace multithread::detail {
 
 Program GetVectorFunctionsProgram();

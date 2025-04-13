@@ -36,6 +36,4 @@ ProjectiveTransform PerspectiveProjection(
     FloatType fov, FloatType ratio, FloatType min_distance, FloatType max_distance
 );
 
-Transform TransformFromAssimp(const aiMatrix4x4& matrix);
-
 }  // namespace null_engine

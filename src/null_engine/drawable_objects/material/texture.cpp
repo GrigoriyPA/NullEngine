@@ -4,6 +4,7 @@
 
 #include <SFML/Graphics/Image.hpp>
 #include <cassert>
+#include <filesystem>
 #include <vector>
 
 namespace null_engine {
@@ -67,9 +68,9 @@ Texture::Ptr Texture::Monotonic(Vec3 color) {
     return std::make_unique<Texture>(1, 1, std::vector{color});
 }
 
-Texture::Ptr Texture::LoadFromFile(const std::string& file) {
+Texture::Ptr Texture::LoadFromFile(const std::filesystem::path& file) {
     sf::Image image;
-    image.loadFromFile(file);
+    image.loadFromFile(file.string());
 
     return std::make_unique<Texture>(image.getSize().x, image.getSize().y, image.getPixelsPtr());
 }

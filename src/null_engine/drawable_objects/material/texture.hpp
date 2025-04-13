@@ -1,11 +1,11 @@
 #pragma once
 
 #include <boost/compute/image.hpp>
+#include <filesystem>
 #include <memory>
 #include <null_engine/acceleration/acceleration_context.hpp>
 #include <null_engine/util/geometry/vector.hpp>
 #include <null_engine/util/interface/helpers/constants.hpp>
-#include <string>
 #include <vector>
 
 namespace null_engine {
@@ -35,7 +35,7 @@ public:
 
     static Texture::Ptr Monotonic(Vec3 color);
 
-    static Texture::Ptr LoadFromFile(const std::string& file);
+    static Texture::Ptr LoadFromFile(const std::filesystem::path& file);
 
 private:
     uint64_t width_;

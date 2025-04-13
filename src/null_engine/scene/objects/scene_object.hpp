@@ -2,6 +2,7 @@
 
 #include <null_engine/drawable_objects/vertices_object.hpp>
 #include <null_engine/util/mvc/observer.hpp>
+#include <vector>
 
 namespace null_engine {
 
@@ -15,7 +16,7 @@ public:
     class Iterator {
         friend class SceneObject;
 
-        Iterator(const SceneObject* self, size_t index);
+        Iterator(const SceneObject* self, size_t object_id, size_t child_id);
 
     public:
         bool operator==(const Iterator& other) const;
@@ -30,9 +31,12 @@ public:
         void UpdateChildIt();
 
         const SceneObject* self_;
-        size_t index_;
+        size_t object_id_ = 0;
+        size_t child_id_ = 0;
         std::unique_ptr<Iterator> child_it_;
     };
+
+    SceneObject() = default;
 
     explicit SceneObject(const Transform& instance);
 
@@ -40,17 +44,27 @@ public:
 
     InPort<Transform>* GetTransformPort();
 
-    bool HasObject() const;
+    size_t GetNumberObjects() const;
 
-    const VerticesObject& GetObject() const;
+    const VerticesObject& GetObject(size_t object_id) const;
+
+    const std::vector<VerticesObject>& GetObjects() const;
+
+    size_t GetNumberInstances() const;
+
+    Transform GetInstance(size_t instance_id) const;
 
     const std::vector<Transform>& GetInstances() const;
-
-    Transform GetTransform() const;
 
     size_t GetNumberChildren() const;
 
     const SceneObject& GetChild(size_t child_id) const;
+
+    const std::vector<SceneObject>& GetChildren() const;
+
+    Transform GetTransform() const;
+
+    SceneObject& AddObject(const VerticesObject& object);
 
     SceneObject& AddInstance(const Transform& instance);
 
@@ -67,9 +81,9 @@ public:
     Iterator end() const;
 
 private:
-    std::vector<Transform> instances_;
     Observer<Transform>::Ptr transform_ = Observer<Transform>::Make();
-    std::optional<VerticesObject> object_;
+    std::vector<Transform> instances_;
+    std::vector<VerticesObject> objects_;
     std::vector<SceneObject> children_;
 };
 

@@ -151,7 +151,9 @@ void AddCube(AnimatorRegistry& animator_registry, const ModelAssetes& assets, Sc
 
 void LoadObjects(ObjectLoader& object_loader, Scene& scene) {
     const auto object_instance = Translation(0.0, 0.0, 2.0);
-    scene.AddObject(object_loader.LoadFromFile(k3dObjectPath, object_instance));
+    auto object = object_loader.LoadFromFile(k3dObjectPath);
+    object.GetTransformPort()->OnEvent(object_instance);
+    scene.AddObject(std::move(object));
 }
 
 Scene CreateScene(
@@ -199,7 +201,11 @@ DirectCamera CreateDirectCamera() {
 
 Model::Model(uint64_t view_width, uint64_t view_height, bool multithread_rendering)
     : acceleration_context_(AccelerationContext::Create())
-    , object_loader_({.verbose = true})
+    , object_loader_({
+          .verbose = true,
+          .acceleration_context =
+              multithread_rendering ? std::optional<AccelerationContext>(acceleration_context_) : std::nullopt,
+      })
     , assets_(LoadAssets(acceleration_context_, multithread_rendering))
     , camera_(CreatePerspectiveCamera(view_width, view_height))
     , scene_(CreateScene(animator_registry_, object_loader_, assets_, camera_))

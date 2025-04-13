@@ -8,6 +8,7 @@ add_library(${TARGET_NAME}
 target_link_libraries(${TARGET_NAME}
     assimp::assimp
     fmt::fmt
+    null-engine-acceleration
     null-engine-drawable-objects
     null-engine-drawable-objects-material
     null-engine-scene-animations

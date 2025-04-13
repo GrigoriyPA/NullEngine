@@ -2,35 +2,39 @@
 
 namespace null_engine {
 
-SceneObject::Iterator::Iterator(const SceneObject* self, size_t index)
+SceneObject::Iterator::Iterator(const SceneObject* self, size_t object_id, size_t child_id)
     : self_(self)
-    , index_(index) {
+    , object_id_(object_id)
+    , child_id_(child_id) {
     UpdateChildIt();
 }
 
 bool SceneObject::Iterator::operator==(const Iterator& other) const {
-    return self_ == other.self_ && index_ == other.index_ && child_it_ == other.child_it_;
+    return self_ == other.self_ && object_id_ == other.object_id_ && child_id_ == other.child_id_ &&
+           child_it_ == other.child_it_;
 }
 
 SceneObject::Iterator& SceneObject::Iterator::operator++() {
-    if (!child_it_) {
-        ++index_;
+    if (object_id_ < self_->GetNumberObjects()) {
+        ++object_id_;
         return *this;
     }
 
-    ++(*child_it_);
-    if (!child_it_->IsEnd()) {
-        return *this;
+    if (child_it_) {
+        ++(*child_it_);
+        if (child_it_->IsEnd()) {
+            ++child_id_;
+            UpdateChildIt();
+        }
     }
 
-    ++index_;
-    UpdateChildIt();
     return *this;
 }
 
 RenderObject SceneObject::Iterator::operator*() const {
-    RenderObject result =
-        child_it_ ? **child_it_ : RenderObject{.vetices_object = self_->GetObject(), .instances = {Ident()}};
+    RenderObject result = object_id_ < self_->GetNumberObjects()
+                              ? RenderObject{.vetices_object = self_->GetObject(object_id_), .instances = {Ident()}}
+                              : **child_it_;
 
     const auto& object_transform = self_->GetTransform();
     const auto& instances = self_->GetInstances();
@@ -53,21 +57,12 @@ RenderObject SceneObject::Iterator::operator*() const {
 }
 
 bool SceneObject::Iterator::IsEnd() const {
-    if (child_it_) {
-        return false;
-    }
-
-    const auto number_children = self_->GetNumberChildren();
-    if (index_ < number_children) {
-        return false;
-    }
-
-    return !self_->HasObject() || index_ > number_children;
+    return object_id_ >= self_->GetNumberObjects() && child_id_ >= self_->GetNumberChildren();
 }
 
 void SceneObject::Iterator::UpdateChildIt() {
-    if (index_ < self_->GetNumberChildren()) {
-        child_it_ = std::make_unique<Iterator>(self_->GetChild(index_).begin());
+    if (child_id_ < self_->GetNumberChildren()) {
+        child_it_ = std::make_unique<Iterator>(self_->GetChild(child_id_).begin());
     } else {
         child_it_ = nullptr;
     }
@@ -79,28 +74,37 @@ SceneObject::SceneObject(const Transform& instance)
 
 SceneObject::SceneObject(const VerticesObject& object, const Transform& instance)
     : instances_(1, instance)
-    , object_(object) {
+    , objects_(1, object) {
 }
 
 InPort<Transform>* SceneObject::GetTransformPort() {
     return transform_->GetInPort();
 }
 
-bool SceneObject::HasObject() const {
-    return object_.has_value();
+size_t SceneObject::GetNumberObjects() const {
+    return objects_.size();
 }
 
-const VerticesObject& SceneObject::GetObject() const {
-    assert(object_ && "Can not get vertices object from empty scene object");
-    return *object_;
+const VerticesObject& SceneObject::GetObject(size_t object_id) const {
+    assert(object_id < objects_.size() && "Object id too large");
+    return objects_[object_id];
+}
+
+const std::vector<VerticesObject>& SceneObject::GetObjects() const {
+    return objects_;
+}
+
+size_t SceneObject::GetNumberInstances() const {
+    return instances_.size();
+}
+
+Transform SceneObject::GetInstance(size_t instance_id) const {
+    assert(instance_id < instances_.size() && "Instance id too large");
+    return instances_[instance_id];
 }
 
 const std::vector<Transform>& SceneObject::GetInstances() const {
     return instances_;
-}
-
-Transform SceneObject::GetTransform() const {
-    return transform_->GetState().value_or(Ident());
 }
 
 size_t SceneObject::GetNumberChildren() const {
@@ -110,6 +114,19 @@ size_t SceneObject::GetNumberChildren() const {
 const SceneObject& SceneObject::GetChild(size_t child_id) const {
     assert(child_id < children_.size() && "Child id too large");
     return children_[child_id];
+}
+
+const std::vector<SceneObject>& SceneObject::GetChildren() const {
+    return children_;
+}
+
+Transform SceneObject::GetTransform() const {
+    return transform_->GetState().value_or(Ident());
+}
+
+SceneObject& SceneObject::AddObject(const VerticesObject& object) {
+    objects_.emplace_back(object);
+    return *this;
 }
 
 SceneObject& SceneObject::AddInstance(const Transform& instance) {
@@ -123,11 +140,11 @@ SceneObject& SceneObject::AddChild(SceneObject object) {
 }
 
 SceneObject::Iterator SceneObject::begin() const {
-    return SceneObject::Iterator(this, 0);
+    return SceneObject::Iterator(this, 0, 0);
 }
 
 SceneObject::Iterator SceneObject::end() const {
-    return SceneObject::Iterator(this, children_.size() + HasObject());
+    return SceneObject::Iterator(this, objects_.size(), children_.size());
 }
 
 }  // namespace null_engine
