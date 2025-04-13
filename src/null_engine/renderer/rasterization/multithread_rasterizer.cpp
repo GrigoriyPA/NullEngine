@@ -73,15 +73,13 @@ Program GetRasterizerKernelProgram() {
                 return;
             }
 
-            const float3 pos_w = (float3)(point_a.pos.w, point_b.pos.w, point_c.pos.w);
-            const float3 perspective = barycentric * pos_w / dot(pos_w, barycentric);
-
-            const float3 pos_z = (float3)(point_a.pos.z, point_b.pos.z, point_c.pos.z);
-            const float z = dot(pos_z, perspective);
+            const float z = dot((float3)(point_a.pos.z, point_b.pos.z, point_c.pos.z), barycentric);
             if (z <= -1.0f || depth[i.x * view_size.y + i.y] <= z) {
                 return;
             }
 
+            const float3 pos_w = (float3)(point_a.pos.w, point_b.pos.w, point_c.pos.w);
+            const float3 perspective = barycentric * pos_w / dot(pos_w, barycentric);
             const InterpolationParams params = {
                 .color = weighted_sumf3(point_a.color, point_b.color, point_c.color, perspective),
                 .normal = weighted_sumf3(point_a.normal, point_b.normal, point_c.normal, perspective),

@@ -22,7 +22,7 @@ class Scene {
         void UpdateObjectIt();
 
         const Scene* self_;
-        size_t index_;
+        size_t index_ = 0;
         std::optional<SceneObject::Iterator> object_it_;
     };
 

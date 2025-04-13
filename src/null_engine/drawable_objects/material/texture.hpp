@@ -37,6 +37,8 @@ public:
 
     static Texture::Ptr LoadFromFile(const std::filesystem::path& file);
 
+    static Texture::Ptr LoadFromMemory(const void* data, size_t size);
+
 private:
     uint64_t width_;
     uint64_t height_;

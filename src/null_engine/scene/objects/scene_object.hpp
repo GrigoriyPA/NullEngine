@@ -36,6 +36,13 @@ public:
         std::unique_ptr<Iterator> child_it_;
     };
 
+    struct Statistic {
+        uint64_t number_points = 0;
+        uint64_t number_faces = 0;
+        uint64_t number_objects = 0;
+        uint64_t max_depth = 1;
+    };
+
     SceneObject() = default;
 
     explicit SceneObject(const Transform& instance);
@@ -43,6 +50,8 @@ public:
     explicit SceneObject(const VerticesObject& object, const Transform& instance = Ident());
 
     InPort<Transform>* GetTransformPort();
+
+    Statistic GetStatistic() const;
 
     size_t GetNumberObjects() const;
 

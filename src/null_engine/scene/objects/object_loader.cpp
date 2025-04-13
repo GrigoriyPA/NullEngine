@@ -127,20 +127,23 @@ std::optional<TextureView> ObjectLoader::LoadTexture(
     }
 
     const std::string path(texture_path.data);
-    if (path[0] == '*') {
-        ReportLoadWarning(fmt::format(
-            "material texture loading failed for texture with type {}, embedded textures is not supported",
-            static_cast<uint32_t>(type)
-        ));
-        return std::nullopt;
-    }
-
     if (const auto it = textures_cache_.find(path); it != textures_cache_.end()) {
         return TextureView(*textures_[it->second]);
     }
 
+    Texture::Ptr texture;
+    if (path[0] == '*') {
+        const auto* texture_data = scene->mTextures[std::stoi(path.substr(1, path.size() - 1))];
+        texture = Texture::LoadFromMemory(
+            reinterpret_cast<void*>(texture_data->pcData),
+            static_cast<size_t>(std::max(texture_data->mHeight, 1u)) * static_cast<size_t>(texture_data->mWidth)
+        );
+    } else {
+        texture = Texture::LoadFromFile(file.parent_path() / path);
+    }
+
     textures_cache_[path] = textures_.size();
-    return AddTexture(Texture::LoadFromFile(file.parent_path() / path));
+    return AddTexture(std::move(texture));
 }
 
 Material ObjectLoader::LoadMaterial(
@@ -231,7 +234,7 @@ VerticesObject ObjectLoader::LoadMesh(const aiMesh* mesh) const {
         if (mesh->mNumUVComponents[0] == 2) {
             for (uint32_t i = 0; i < mesh->mNumVertices; ++i) {
                 const auto& coords = mesh->mTextureCoords[0][i];
-                vertices[i].params.tex_coords = Vec2(coords.x, coords.y);
+                vertices[i].params.tex_coords = Vec2(coords.x, 1.0 - coords.y);
             }
         } else {
             ReportLoadWarning("mesh texture coords loading failed, can not load not 2D textures");
@@ -273,7 +276,7 @@ SceneObject ObjectLoader::BuildSceneObject(const aiNode* node) const {
 
 void ObjectLoader::ReportLoadWarning(const std::string& text) const {
     if (verbose_) {
-        std::cerr << "WARNING: " << text << "\n\n";
+        std::cerr << "WARNING: " << text << "\n";
     }
 }
 

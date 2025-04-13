@@ -38,6 +38,30 @@ VerticesObject::Type VerticesObject::GetObjectType() const {
     return object_type_;
 }
 
+VerticesObject::Statistic VerticesObject::GetStatistic() const {
+    Statistic result = {.number_points = vertices_.size()};
+
+    switch (object_type_) {
+        case Type::Points:
+            result.number_faces = vertices_.size();
+            break;
+
+        case Type::Lines:
+        case Type::LineStrip:
+        case Type::LineLoop:
+            result.number_faces = line_indices_.size();
+            break;
+
+        case Type::Triangles:
+        case Type::TriangleStrip:
+        case Type::TriangleFan:
+            result.number_faces = triangle_indices_.size();
+            break;
+    }
+
+    return result;
+}
+
 const Material& VerticesObject::GetMaterial() const {
     return material_;
 }

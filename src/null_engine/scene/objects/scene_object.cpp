@@ -6,7 +6,10 @@ SceneObject::Iterator::Iterator(const SceneObject* self, size_t object_id, size_
     : self_(self)
     , object_id_(object_id)
     , child_id_(child_id) {
-    UpdateChildIt();
+    if (child_id_ < self->GetNumberChildren()) {
+        child_it_ = std::make_unique<Iterator>(self_->GetChild(child_id_).begin());
+        UpdateChildIt();
+    }
 }
 
 bool SceneObject::Iterator::operator==(const Iterator& other) const {
@@ -22,10 +25,7 @@ SceneObject::Iterator& SceneObject::Iterator::operator++() {
 
     if (child_it_) {
         ++(*child_it_);
-        if (child_it_->IsEnd()) {
-            ++child_id_;
-            UpdateChildIt();
-        }
+        UpdateChildIt();
     }
 
     return *this;
@@ -61,10 +61,12 @@ bool SceneObject::Iterator::IsEnd() const {
 }
 
 void SceneObject::Iterator::UpdateChildIt() {
-    if (child_id_ < self_->GetNumberChildren()) {
+    while (child_it_->IsEnd()) {
+        if (++child_id_ >= self_->GetNumberChildren()) {
+            child_it_ = nullptr;
+            return;
+        }
         child_it_ = std::make_unique<Iterator>(self_->GetChild(child_id_).begin());
-    } else {
-        child_it_ = nullptr;
     }
 }
 
@@ -79,6 +81,25 @@ SceneObject::SceneObject(const VerticesObject& object, const Transform& instance
 
 InPort<Transform>* SceneObject::GetTransformPort() {
     return transform_->GetInPort();
+}
+
+SceneObject::Statistic SceneObject::GetStatistic() const {
+    Statistic result = {.number_objects = objects_.size()};
+    for (const auto& object : objects_) {
+        const auto& object_statistic = object.GetStatistic();
+        result.number_points += object_statistic.number_points;
+        result.number_faces += object_statistic.number_faces;
+    }
+
+    for (const auto& child : children_) {
+        const auto& child_statistic = child.GetStatistic();
+        result.number_points += child_statistic.number_points;
+        result.number_faces += child_statistic.number_faces;
+        result.number_objects += child_statistic.number_objects;
+        result.max_depth = std::max(result.max_depth, child_statistic.max_depth + 1);
+    }
+
+    return result;
 }
 
 size_t SceneObject::GetNumberObjects() const {

@@ -5,7 +5,10 @@ namespace null_engine {
 Scene::Iterator::Iterator(const Scene* self, size_t index)
     : self_(self)
     , index_(index) {
-    UpdateObjectIt();
+    if (index_ < self_->GetNumberObjects()) {
+        object_it_ = self_->GetObject(index_).begin();
+        UpdateObjectIt();
+    }
 }
 
 bool Scene::Iterator::operator==(const Iterator& other) const {
@@ -13,18 +16,10 @@ bool Scene::Iterator::operator==(const Iterator& other) const {
 }
 
 Scene::Iterator& Scene::Iterator::operator++() {
-    if (!object_it_) {
-        ++index_;
-        return *this;
+    if (object_it_) {
+        ++(*object_it_);
+        UpdateObjectIt();
     }
-
-    ++(*object_it_);
-    if (!object_it_->IsEnd()) {
-        return *this;
-    }
-
-    ++index_;
-    UpdateObjectIt();
     return *this;
 }
 
@@ -34,10 +29,12 @@ RenderObject Scene::Iterator::operator*() const {
 }
 
 void Scene::Iterator::UpdateObjectIt() {
-    if (index_ < self_->GetNumberObjects()) {
+    while (object_it_->IsEnd()) {
+        if (++index_ >= self_->GetNumberObjects()) {
+            object_it_ = std::nullopt;
+            return;
+        }
         object_it_ = self_->GetObject(index_).begin();
-    } else {
-        object_it_ = std::nullopt;
     }
 }
 

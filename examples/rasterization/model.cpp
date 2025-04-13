@@ -16,7 +16,9 @@ namespace {
 constexpr const char* kDiffuseTexturePath = "../../assets/textures/box_diffuse.png";
 constexpr const char* kSpecularTexturePath = "../../assets/textures/box_specular.png";
 constexpr const char* kEmissionTexturePath = "../../assets/textures/box_emission.jpg";
-constexpr const char* k3dObjectPath = "../../assets/3d_objects/cube_usemtl.obj";
+// constexpr const char* k3dObjectPath = "../../assets/3d_objects/cube_usemtl.obj";
+constexpr const char* k3dObjectPath = "../../assets/3d_objects/mjolnir.glb";
+// constexpr const char* k3dObjectPath = "../../assets/3d_objects/system_velorum.glb";
 
 constexpr LightStrength kLightStrength = {.ambient = 0.2, .diffuse = 0.6, .specular = 0.8};
 constexpr AttenuationSettings kLightAttenuation = {.constant = 1.0, .quadratic = 0.1};
@@ -153,6 +155,12 @@ void LoadObjects(ObjectLoader& object_loader, Scene& scene) {
     const auto object_instance = Translation(0.0, 0.0, 2.0);
     auto object = object_loader.LoadFromFile(k3dObjectPath);
     object.GetTransformPort()->OnEvent(object_instance);
+
+    const auto& statistic = object.GetStatistic();
+    std::cout << "Loaded object info:\n"
+              << "- Points: " << statistic.number_points << "\n- Faces: " << statistic.number_faces
+              << "\n- Sub objects: " << statistic.number_objects << "\n- Depth: " << statistic.max_depth << "\n";
+
     scene.AddObject(std::move(object));
 }
 
@@ -162,8 +170,8 @@ Scene CreateScene(
 ) {
     Scene scene;
     // AddQuad(animator_registry, assets, scene);
-    AddCube(animator_registry, assets, scene);
-    // LoadObjects(object_loader, scene);
+    // AddCube(animator_registry, assets, scene);
+    LoadObjects(object_loader, scene);
 
     // AddCameraLight(std::move(camera_light));
     // AddAmbientLight(scene);

@@ -1,10 +1,12 @@
 #include "texture.hpp"
 
 #include <CL/cl_platform.h>
+#include <fmt/format.h>
 
 #include <SFML/Graphics/Image.hpp>
 #include <cassert>
 #include <filesystem>
+#include <null_engine/util/generic/validation.hpp>
 #include <vector>
 
 namespace null_engine {
@@ -70,7 +72,14 @@ Texture::Ptr Texture::Monotonic(Vec3 color) {
 
 Texture::Ptr Texture::LoadFromFile(const std::filesystem::path& file) {
     sf::Image image;
-    image.loadFromFile(file.string());
+    Ensure(image.loadFromFile(file.string()), fmt::format("Failed to load texture from file {}", file.string()));
+
+    return std::make_unique<Texture>(image.getSize().x, image.getSize().y, image.getPixelsPtr());
+}
+
+Texture::Ptr Texture::LoadFromMemory(const void* data, size_t size) {
+    sf::Image image;
+    Ensure(image.loadFromMemory(data, size), "Failed to load texture from memory");
 
     return std::make_unique<Texture>(image.getSize().x, image.getSize().y, image.getPixelsPtr());
 }

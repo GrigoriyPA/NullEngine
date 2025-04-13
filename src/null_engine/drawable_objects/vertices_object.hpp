@@ -28,9 +28,16 @@ class VerticesObject {
 public:
     enum class Type { Points, Lines, LineStrip, LineLoop, Triangles, TriangleStrip, TriangleFan };
 
+    struct Statistic {
+        uint64_t number_points = 0;
+        uint64_t number_faces = 0;
+    };
+
     explicit VerticesObject(uint64_t number_vertices, Type object_type = Type::Points);
 
     Type GetObjectType() const;
+
+    Statistic GetStatistic() const;
 
     const Material& GetMaterial() const;
 
