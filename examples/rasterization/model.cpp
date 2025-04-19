@@ -1,6 +1,7 @@
 #include "model.hpp"
 
 #include <iostream>
+#include <memory>
 #include <null_engine/drawable_objects/material/texture.hpp>
 #include <null_engine/drawable_objects/primitive_objects.hpp>
 #include <null_engine/scene/animations/primitive_animations.hpp>
@@ -8,6 +9,9 @@
 #include <null_engine/util/geometry/matrix.hpp>
 #include <null_engine/util/interface/helpers/constants.hpp>
 #include <numbers>
+#include <optional>
+
+#include "null_engine/renderer/common.hpp"
 
 namespace null_engine::tests {
 
@@ -23,18 +27,17 @@ constexpr const char* k3dObjectPath = "../../assets/3d_objects/mjolnir.glb";
 constexpr LightStrength kLightStrength = {.ambient = 0.2, .diffuse = 0.6, .specular = 0.8};
 constexpr AttenuationSettings kLightAttenuation = {.constant = 1.0, .quadratic = 0.1};
 const CameraOrientation kCameraPos = {
-    .position = Vec3(0.0, 0.0, 0.0), .direction = Vec3(0.0, 0.0, 1.0), .horizon = Vec3(1.0, 0.0, 0.0)
-};
+    .position = Vec3(0.0, 0.0, 0.0), .direction = Vec3(0.0, 0.0, 1.0), .horizon = Vec3(1.0, 0.0, 0.0)};
 
-ModelAssetes LoadAssets(multithread::AccelerationContext context, bool multithread_rendering) {
+ModelAssetes LoadAssets(std::optional<multithread::AccelerationContext> context) {
     ModelAssetes assets;
     assets.textures.emplace_back(Texture::LoadFromFile(kDiffuseTexturePath));
     assets.textures.emplace_back(Texture::LoadFromFile(kSpecularTexturePath));
     assets.textures.emplace_back(Texture::LoadFromFile(kEmissionTexturePath));
 
-    if (multithread_rendering) {
+    if (context) {
         for (auto& texture : assets.textures) {
-            texture->ToDevice(context);
+            texture->ToDevice(*context);
         }
     }
 
@@ -208,29 +211,31 @@ DirectCamera CreateDirectCamera() {
 }  // anonymous namespace
 
 Model::Model(uint64_t view_width, uint64_t view_height, bool multithread_rendering)
-    : acceleration_context_(AccelerationContext::Create())
-    , object_loader_({
-          .verbose = true,
-          .acceleration_context =
-              multithread_rendering ? std::optional<AccelerationContext>(acceleration_context_) : std::nullopt,
-      })
-    , assets_(LoadAssets(acceleration_context_, multithread_rendering))
+    : acceleration_context_(
+          multithread_rendering ? std::optional<AccelerationContext>(AccelerationContext::Create()) : std::nullopt
+      )
+    , object_loader_({.verbose = true, .acceleration_context = acceleration_context_})
+    , assets_(LoadAssets(acceleration_context_))
     , camera_(CreatePerspectiveCamera(view_width, view_height))
     , scene_(CreateScene(animator_registry_, object_loader_, assets_, camera_))
     , native_renderer_({view_width, view_height})
-    , multithread_renderer_({view_width, view_height}, acceleration_context_)
-    , multithread_rendering_(multithread_rendering)
     , in_texture_port_(std::bind(&Model::OnNativeRenderedTexture, this, std::placeholders::_1))
     , in_texture_id_port_(std::bind(&Model::OnMultithreadRenderedTexture, this, std::placeholders::_1)) {
     native_renderer_.SubscribeToTextures(&in_texture_port_);
-    multithread_renderer_.SubscribeToTextures(&in_texture_id_port_);
 
-    std::cout << "Discovered device:\n" << acceleration_context_.GetDeviceDescription() << "\n";
+    if (multithread_rendering) {
+        multithread_renderer_ =
+            std::make_unique<MultithreadRenderer>(RendererSettings{view_width, view_height}, *acceleration_context_);
+        multithread_renderer_->SubscribeToTextures(&in_texture_id_port_);
+
+        std::cout << "Discovered device:\n" << acceleration_context_->GetDeviceDescription() << "\n";
+        exit(0);
+    }
 }
 
 void Model::SubscribeToDrawEvents(InPort<DrawViewEvent>* observer_port) const {
     DrawViewEvent event = {.delta_time = current_delta_time_};
-    if (multithread_rendering_) {
+    if (multithread_renderer_) {
         event.render_texture = current_texture_id_;
     } else {
         event.render_texture = current_texture_;
@@ -240,8 +245,8 @@ void Model::SubscribeToDrawEvents(InPort<DrawViewEvent>* observer_port) const {
 }
 
 void Model::DoRendering() {
-    if (multithread_rendering_) {
-        multithread_renderer_.GetRenderPort()->OnEvent({.scene = scene_, .camera = camera_});
+    if (multithread_renderer_) {
+        multithread_renderer_->GetRenderPort()->OnEvent({.scene = scene_, .camera = camera_});
     } else {
         native_renderer_.GetRenderPort()->OnEvent({.scene = scene_, .camera = camera_});
     }

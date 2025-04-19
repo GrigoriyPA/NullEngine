@@ -8,8 +8,6 @@ add_executable(${TARGET_NAME}
     view.cpp
 )
 
-include_directories(${PROJECT_SOURCE_DIR}/contrib/SFML/include)
-
 target_link_libraries(${TARGET_NAME}
     null-engine
     null-engine-tests

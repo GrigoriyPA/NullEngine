@@ -6,6 +6,7 @@
 #include <null_engine/acceleration/acceleration_context.hpp>
 #include <null_engine/util/geometry/vector.hpp>
 #include <null_engine/util/interface/helpers/constants.hpp>
+#include <optional>
 #include <vector>
 
 namespace null_engine {

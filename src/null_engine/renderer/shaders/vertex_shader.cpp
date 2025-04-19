@@ -73,15 +73,16 @@ std::vector<InterpVertex> ConvertObjectVerices(
     std::vector<InterpVertex> result;
     result.reserve(verices.size());
     for (const auto& [position, params] : verices) {
-        result.emplace_back(
-            ndc_transform * Vec4(position.x(), position.y(), position.z(), 1.0),
-            InterpolationParams{
-                .color = params.color,
-                .normal = normal_transform * params.normal,
-                .tex_coords = params.tex_coords,
-                .frag_pos = object_transform * position
-            }
-        );
+        result.push_back({
+            .position = ndc_transform * Vec4(position.x(), position.y(), position.z(), 1.0),
+            .params =
+                InterpolationParams{
+                    .color = params.color,
+                    .normal = normal_transform * params.normal,
+                    .tex_coords = params.tex_coords,
+                    .frag_pos = object_transform * position,
+                },
+        });
     }
     return result;
 }

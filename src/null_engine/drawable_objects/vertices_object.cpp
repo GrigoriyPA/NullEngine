@@ -189,7 +189,7 @@ VerticesObject& VerticesObject::SetIndices(const std::vector<uint64_t>& indices)
 
             line_indices_.reserve(indices.size() / 2);
             for (size_t i = 0; i < indices.size(); i += 2) {
-                line_indices_.emplace_back(indices[i], indices[i + 1]);
+                line_indices_.push_back({indices[i], indices[i + 1]});
             }
             break;
 
@@ -198,7 +198,7 @@ VerticesObject& VerticesObject::SetIndices(const std::vector<uint64_t>& indices)
 
             line_indices_.reserve(indices.size() - 1);
             for (size_t i = 1; i < indices.size(); ++i) {
-                line_indices_.emplace_back(indices[i - 1], indices[i]);
+                line_indices_.push_back({indices[i - 1], indices[i]});
             }
             break;
 
@@ -207,9 +207,9 @@ VerticesObject& VerticesObject::SetIndices(const std::vector<uint64_t>& indices)
 
             line_indices_.reserve(indices.size());
             for (size_t i = 1; i < indices.size(); ++i) {
-                line_indices_.emplace_back(indices[i - 1], indices[i]);
+                line_indices_.push_back({indices[i - 1], indices[i]});
             }
-            line_indices_.emplace_back(indices.back(), indices[0]);
+            line_indices_.push_back({indices.back(), indices[0]});
             break;
 
         case Type::Triangles:
@@ -217,7 +217,7 @@ VerticesObject& VerticesObject::SetIndices(const std::vector<uint64_t>& indices)
 
             triangle_indices_.reserve(indices.size() / 3);
             for (size_t i = 0; i < indices.size(); i += 3) {
-                triangle_indices_.emplace_back(indices[i], indices[i + 1], indices[i + 2]);
+                triangle_indices_.push_back({indices[i], indices[i + 1], indices[i + 2]});
             }
             break;
 
@@ -226,7 +226,7 @@ VerticesObject& VerticesObject::SetIndices(const std::vector<uint64_t>& indices)
 
             triangle_indices_.reserve(indices.size() - 2);
             for (size_t i = 2; i < indices.size(); ++i) {
-                triangle_indices_.emplace_back(indices[i - 2], indices[i - 1], indices[i]);
+                triangle_indices_.push_back({indices[i - 2], indices[i - 1], indices[i]});
             }
             break;
 
@@ -235,7 +235,7 @@ VerticesObject& VerticesObject::SetIndices(const std::vector<uint64_t>& indices)
 
             triangle_indices_.reserve(indices.size() - 2);
             for (size_t i = 2; i < indices.size(); ++i) {
-                triangle_indices_.emplace_back(indices[0], indices[i - 1], indices[i]);
+                triangle_indices_.push_back({indices[0], indices[i - 1], indices[i]});
             }
             break;
 

@@ -38,7 +38,7 @@ ProgramBuilder& ProgramBuilder::Include(const Program& program) {
 
     for (const auto& [name, source] : program.GetSources()) {
         if (included_modeles_.emplace(name).second) {
-            includes_.emplace_back(name, source);
+            includes_.push_back({.name = name, .source = source});
         }
     }
 
@@ -51,7 +51,7 @@ Program ProgramBuilder::Build() {
 
     std::stringstream final_source;
     BuildFinalSource(final_source);
-    includes_.emplace_back(module_name_, final_source.str());
+    includes_.push_back({.name = module_name_, .source = final_source.str()});
 
     return Program(std::move(includes_));
 }

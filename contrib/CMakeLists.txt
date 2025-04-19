@@ -1,5 +1,0 @@
-set(SFML_BUILD_AUDIO OFF)
-set(SFML_BUILD_NETWORK OFF)
-set(BUILD_SHARED_LIBS FALSE)
-
-add_subdirectory(SFML)

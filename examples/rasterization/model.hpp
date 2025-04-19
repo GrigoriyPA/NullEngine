@@ -40,15 +40,14 @@ private:
 
     void OnMultithreadRenderedTexture(GLuint texture_id);
 
-    AccelerationContext acceleration_context_;
+    std::optional<AccelerationContext> acceleration_context_;
     ObjectLoader object_loader_;
     ModelAssetes assets_;
     AnimatorRegistry animator_registry_;
     PerspectiveCamera camera_;
     Scene scene_;
     NativeRenderer native_renderer_;
-    MultithreadRenderer multithread_renderer_;
-    bool multithread_rendering_;
+    std::unique_ptr<MultithreadRenderer> multithread_renderer_;
     InPort<TextureData> in_texture_port_;
     InPort<GLuint> in_texture_id_port_;
     OutPort<DrawViewEvent>::Ptr out_draw_event_port_ = OutPort<DrawViewEvent>::Make();

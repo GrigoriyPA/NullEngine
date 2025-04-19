@@ -41,7 +41,7 @@ public:
 
     DirValue(const Value& start, const Value& end, uint64_t number_steps)
         : current_(start)
-        , delta_((end - start) / std::max(number_steps - 1, 1ull)) {
+        , delta_((end - start) / std::max(number_steps - 1, static_cast<uint64_t>(1))) {
     }
 
     const Value& Get() const {

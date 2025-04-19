@@ -2,8 +2,9 @@
 
 namespace null_engine::tests {
 
-Controller::Controller(sf::RenderWindow& window, Model* model)
+Controller::Controller(sf::RenderWindow& window, Model* model, bool enable_mouse_control)
     : model_(model)
+    , enable_mouse_control_(enable_mouse_control)
     , mouse_control_(window)
     , keyboard_control_({})
     , in_mouse_change_port_(std::bind(&Controller::OnMouseChange, this, std::placeholders::_1))
@@ -13,7 +14,9 @@ Controller::Controller(sf::RenderWindow& window, Model* model)
 }
 
 void Controller::AddEvent(const sf::Event& event) {
-    mouse_control_.GetEventsPort()->OnEvent(event);
+    if (enable_mouse_control_) {
+        mouse_control_.GetEventsPort()->OnEvent(event);
+    }
 }
 
 void Controller::AddRefresh(FloatType delta_time) {

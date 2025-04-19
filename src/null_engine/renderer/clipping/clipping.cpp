@@ -132,7 +132,7 @@ void Clipper::ClipLine(ClippingPoint point_a, ClippingPoint point_b) {
     assert(point_b.scalar_prod < -kEps && "Expected one point with negative scalar production with clip plane");
 
     AddInterpolatedPoint(point_a, point_b);
-    line_indices_.emplace_back(point_a.index, vertices_.size() - 1);
+    line_indices_.push_back({point_a.index, vertices_.size() - 1});
 }
 
 void Clipper::ClipTriangle(ClippingPoint point_a, ClippingPoint point_b, ClippingPoint point_c) {
@@ -147,13 +147,13 @@ void Clipper::ClipTriangle(ClippingPoint point_a, ClippingPoint point_b, Clippin
         AddInterpolatedPoint(point_a, point_b);
         AddInterpolatedPoint(point_a, point_c);
 
-        triangle_indices_.emplace_back(point_a.index, vertices_.size() - 2, vertices_.size() - 1);
+        triangle_indices_.push_back({point_a.index, vertices_.size() - 2, vertices_.size() - 1});
     } else if (point_c.scalar_prod < -kEps) {
         AddInterpolatedPoint(point_a, point_c);
         AddInterpolatedPoint(point_b, point_c);
 
-        triangle_indices_.emplace_back(point_a.index, point_b.index, vertices_.size() - 1);
-        triangle_indices_.emplace_back(point_a.index, vertices_.size() - 2, vertices_.size() - 1);
+        triangle_indices_.push_back({point_a.index, point_b.index, vertices_.size() - 1});
+        triangle_indices_.push_back({point_a.index, vertices_.size() - 2, vertices_.size() - 1});
     } else {
         assert(false && "Expected at least one point with negative scalar production with clip plane");
     }

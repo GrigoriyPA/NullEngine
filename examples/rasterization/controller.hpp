@@ -12,7 +12,7 @@ class Controller {
     using KeyboardChange = KeyboardControl::CameraChange;
 
 public:
-    Controller(sf::RenderWindow& window, Model* model);
+    Controller(sf::RenderWindow& window, Model* model, bool enable_mouse_control);
 
     void AddEvent(const sf::Event& event);
 
@@ -26,6 +26,7 @@ private:
     void OnKeyboardChange(const KeyboardChange& change) const;
 
     Model* model_;
+    bool enable_mouse_control_;
     CenteringMouseControl mouse_control_;
     KeyboardControl keyboard_control_;
     InPort<MouseChange> in_mouse_change_port_;
