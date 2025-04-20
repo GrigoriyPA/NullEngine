@@ -24,7 +24,7 @@ namespace multithread::detail {
 Rasterizer::RasterizationKernel::RasterizationKernel(
     ViewInfo view, const SharedBuffers& buffers, const FragmentShader& fragment_shader, AccelerationContext context
 )
-    : view_size_({.x = static_cast<cl_int>(view.width), .y = static_cast<cl_int>(view.height)})
+    : view_size_({.x = static_cast<cl_int>(view.height), .y = static_cast<cl_int>(view.width)})
     , kernel_("TriangleRasterization", GetProgram(fragment_shader), context) {
     kernel_.MutableArgs()
         .SetVal(KA_VIEW_SIZE, view_size_)
@@ -152,9 +152,8 @@ Program Rasterizer::DistributionKernel::GetProgram() {
     static constexpr std::string_view kRasterizerDistributionSource = BOOST_COMPUTE_STRINGIZE_SOURCE(
         int2 get_coord(int2 work_size, const VertexInfo* point) {
             const float4 position = point->pos;
-            const int x = fmax(0.0f, fmin(floor((float)work_size.x * (position.x + 1.0f) / 2.0f), work_size.x - 1));
-            const int y = fmax(0.0f, fmin(floor((float)work_size.y * (position.y + 1.0f) / 2.0f), work_size.y - 1));
-            return (int2)(x, y);
+            return (int2)(fmax(0.0f, fmin(floor((float)work_size.x * (position.x + 1.0f) / 2.0f), work_size.x - 1)),
+                          fmax(0.0f, fmin(floor((float)work_size.y * (position.y + 1.0f) / 2.0f), work_size.y - 1)));
         }
 
         __kernel void RasterizerDistribution(
@@ -173,13 +172,13 @@ Program Rasterizer::DistributionKernel::GetProgram() {
 
             for (int i = min(a.x, min(b.x, c.x)); i <= max(a.x, max(b.x, c.x)); ++i) {
                 for (int j = min(a.y, min(b.y, c.y)); j <= max(a.y, max(b.y, c.y)); ++j) {
-                    const int p = i * work_size.y + j;
-                    const int nr_triangles = atomic_add(&numbers_triangles[p], 1);
+                    const int pos = i * work_size.y + j;
+                    const int nr_triangles = atomic_add(&numbers_triangles[pos], 1);
                     if (nr_triangles >= NUMBER_WORKS * TRAINGLES_IN_BATCH) {
                         return;
                     }
-                    WorkBatch* batch = &works[(nr_triangles / TRAINGLES_IN_BATCH) * work_size.x * work_size.y + p];
-                    batch->triangles[nr_triangles % TRAINGLES_IN_BATCH] = index;
+                    works[(nr_triangles / TRAINGLES_IN_BATCH) * work_size.x * work_size.y + pos]
+                        .triangles[nr_triangles % TRAINGLES_IN_BATCH] = index;
                 }
             }
         }
@@ -221,11 +220,9 @@ Program Rasterizer::CleanupKernel::GetProgram() {
     static constexpr std::string_view kRasterizerCleanupSource = BOOST_COMPUTE_STRINGIZE_SOURCE(
         __kernel void RasterizerCleanup(int2 work_size, __global int* numbers_triangles) {
             const int2 i = (int2)(get_global_id(0), get_global_id(1));
-            if (i.x >= work_size.x || i.y >= work_size.y) {
-                return;
+            if (i.x < work_size.x && i.y < work_size.y) {
+                numbers_triangles[i.x * work_size.y + i.y] = 0;
             }
-
-            numbers_triangles[i.x * work_size.y + i.y] = 0;
         }
     );
 
@@ -294,7 +291,7 @@ Rasterizer::SharedBuffers Rasterizer::CreateBuffers(const ViewInfo& view) {
 }
 
 cl_int2 Rasterizer::GetWorkSize(const ViewInfo& view) {
-    return {.x = static_cast<cl_int>(view.width / kWorkShape.x), .y = static_cast<cl_int>(view.height / kWorkShape.y)};
+    return {.x = static_cast<cl_int>(view.height / kWorkShape.x), .y = static_cast<cl_int>(view.width / kWorkShape.y)};
 }
 
 Program Rasterizer::GetRasterizerDefenitions() {

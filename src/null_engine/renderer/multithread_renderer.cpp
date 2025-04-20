@@ -19,7 +19,7 @@ using namespace detail;
 Renderer::CleanupKernel::CleanupKernel(
     const RendererSettings& settings, const Buffer& buffer, AccelerationContext context
 )
-    : view_size_({.x = static_cast<cl_int>(settings.view_width), .y = static_cast<cl_int>(settings.view_height)})
+    : view_size_({.x = static_cast<cl_int>(settings.view_height), .y = static_cast<cl_int>(settings.view_width)})
     , kernel_("ClearBuffer", GetProgram(), context) {
     kernel_.MutableArgs()
         .SetVal(KA_VIEW_SIZE, view_size_)
