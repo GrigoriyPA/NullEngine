@@ -22,6 +22,20 @@ void BuildProgram(compute::program& program) {
 }
 
 void RunKernel(
+    compute::command_queue& queue, const compute::kernel& kernel, cl_int global_work_size, cl_int local_work_size
+) {
+    assert(local_work_size <= kMaxLocalWorkSize && "Loacal work size too large");
+
+    if (const cl_int remainder = global_work_size % local_work_size) {
+        global_work_size += local_work_size - remainder;
+    }
+
+    queue.enqueue_nd_range_kernel(
+        kernel, compute::dim(0), compute::dim(global_work_size), compute::dim(local_work_size)
+    );
+}
+
+void RunKernel(
     compute::command_queue& queue, const compute::kernel& kernel, cl_int2 global_work_size, cl_int2 local_work_size
 ) {
     assert(local_work_size.x * local_work_size.y <= kMaxLocalWorkSize && "Loacal work size too large");
