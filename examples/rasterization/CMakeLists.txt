@@ -10,8 +10,11 @@ add_executable(${TARGET_NAME}
 
 target_link_libraries(${TARGET_NAME}
     null-engine
+    null-engine-example-rasterization-scenes
     null-engine-tests
     null-engine-util-interface
 )
 
 add_dependencies(${TARGET_NAME} null-engine-example-copy-assets)
+
+add_subdirectory(scenes)

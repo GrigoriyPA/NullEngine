@@ -1,5 +1,17 @@
 # NullEngine
 
+Шаги установки:
+
+```text
+git clone https://github.com/GrigoriyPA/NullEngine.git
+cd NullEngine/
+git checkout -b development origin/development
+git submodule init
+git submodule update
+```
+
+Версия CMake для сборки: `3.31.6`
+
 Демонстрация работы - <https://drive.google.com/file/d/1g-AOUuiTvutyDNfKaTNQ5sllxD3NaggJ/view?usp=sharing>
 
 Имплементирована ключевая функциональность:

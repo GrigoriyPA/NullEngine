@@ -8,6 +8,8 @@
 #include <boost/compute/utility/source.hpp>
 #include <null_engine/acceleration/helpers.hpp>
 #include <null_engine/renderer/shaders/multithread_fragment_shader.hpp>
+#include <null_engine/util/generic/validation.hpp>
+#include <string>
 
 #include "common.hpp"
 
@@ -25,9 +27,9 @@ enum KernelArgs {
     KA_VIEW_SIZE,
     KA_VIEW,
     KA_DEPTH,
-    KA_POINT_A,
-    KA_POINT_B,
-    KA_POINT_C,
+    KA_WORK_SIZE,
+    KA_WORK,
+    KA_POINTS,
     KA_SHADER_PARAMS,
 };
 
@@ -41,6 +43,11 @@ Program GetRasterizerKernelProgram() {
             float3 frag_pos;
         } VertexInfo;
 
+        typedef struct {
+            int3 triangles[TRAINGLES_IN_BATCH];
+            int number_traingles;
+        } WorkBatch;
+
         float3 weighted_sumf3(float3 a, float3 b, float3 c, float3 perspective) {
             return a * perspective.x + b * perspective.y + c * perspective.z;
         }
@@ -50,12 +57,18 @@ Program GetRasterizerKernelProgram() {
         }
 
         __kernel void TriangleRasterization(
-            int2 view_size, __write_only image2d_t view, __global float* depth, VertexInfo point_a, VertexInfo point_b,
-            VertexInfo point_c,
+            int2 view_size, __write_only image2d_t view, __global float* depth, int2 work_size,
+            __global WorkBatch* works, __global VertexInfo* points,
             // clang-format off
             <|FRAGMENT_SHADER_ARGS|>
             // clang-format on
         ) {
+            const int2 gi = (int2)(get_group_id(0), get_group_id(1));
+            if (gi.x >= work_size.x || gi.y >= work_size.y) {
+                return;
+            }
+            const WorkBatch* work = &works[gi.x * work_size.y + gi.y];
+
             const int2 i = (int2)(get_global_id(0), get_global_id(1));
             if (i.x >= view_size.x || i.y >= view_size.y) {
                 return;
@@ -64,39 +77,52 @@ Program GetRasterizerKernelProgram() {
             const float2 view_pos = (float2)((float)(i.x) * 2.0f / (float)(view_size.x) - 1.0f,
                                              (float)(i.y) * 2.0f / (float)(view_size.y) - 1.0f);
 
-            const float denom = 1.0 / OrientedArea(point_a.pos.xy, point_b.pos.xy, point_c.pos.xy);
-            const float3 barycentric = denom * (float3)(OrientedArea(view_pos, point_b.pos.xy, point_c.pos.xy),
-                                                        OrientedArea(point_a.pos.xy, view_pos, point_c.pos.xy),
-                                                        OrientedArea(point_a.pos.xy, point_b.pos.xy, view_pos));
+            for (int id = 0; id < TRAINGLES_IN_BATCH; ++id) {
+                if (id >= work->number_traingles) {
+                    break;
+                }
 
-            if (barycentric.x < -kEps || barycentric.y < -kEps || barycentric.z < -kEps) {
-                return;
+                const int3 triangle = work->triangles[id];
+                const VertexInfo point_a = points[triangle.x];
+                const VertexInfo point_b = points[triangle.y];
+                const VertexInfo point_c = points[triangle.z];
+
+                const float denom = 1.0 / OrientedArea(point_a.pos.xy, point_b.pos.xy, point_c.pos.xy);
+                const float3 barycentric = denom * (float3)(OrientedArea(view_pos, point_b.pos.xy, point_c.pos.xy),
+                                                            OrientedArea(point_a.pos.xy, view_pos, point_c.pos.xy),
+                                                            OrientedArea(point_a.pos.xy, point_b.pos.xy, view_pos));
+
+                if (barycentric.x < -kEps || barycentric.y < -kEps || barycentric.z < -kEps) {
+                    continue;
+                }
+
+                const float z = dot((float3)(point_a.pos.z, point_b.pos.z, point_c.pos.z), barycentric);
+                if (z <= -1.0f || depth[i.x * view_size.y + i.y] <= z) {
+                    continue;
+                }
+
+                const float3 pos_w = (float3)(point_a.pos.w, point_b.pos.w, point_c.pos.w);
+                const float3 perspective = barycentric * pos_w / dot(pos_w, barycentric);
+                const InterpolationParams params = {
+                    .color = weighted_sumf3(point_a.color, point_b.color, point_c.color, perspective),
+                    .normal = weighted_sumf3(point_a.normal, point_b.normal, point_c.normal, perspective),
+                    .tex_coords =
+                        weighted_sumf2(point_a.tex_coords, point_b.tex_coords, point_c.tex_coords, perspective),
+                    .frag_pos = weighted_sumf3(point_a.frag_pos, point_b.frag_pos, point_c.frag_pos, perspective),
+                };
+
+                // clang-format off
+                const float3 color = <|FRAGMENT_SHADER_CALL|>;
+                // clang-format on
+
+                write_imagef(view, (int2)(i.x, i.y), (float4)(color, 1.0f));
+                depth[i.x * view_size.y + i.y] = z;
             }
-
-            const float z = dot((float3)(point_a.pos.z, point_b.pos.z, point_c.pos.z), barycentric);
-            if (z <= -1.0f || depth[i.x * view_size.y + i.y] <= z) {
-                return;
-            }
-
-            const float3 pos_w = (float3)(point_a.pos.w, point_b.pos.w, point_c.pos.w);
-            const float3 perspective = barycentric * pos_w / dot(pos_w, barycentric);
-            const InterpolationParams params = {
-                .color = weighted_sumf3(point_a.color, point_b.color, point_c.color, perspective),
-                .normal = weighted_sumf3(point_a.normal, point_b.normal, point_c.normal, perspective),
-                .tex_coords = weighted_sumf2(point_a.tex_coords, point_b.tex_coords, point_c.tex_coords, perspective),
-                .frag_pos = weighted_sumf3(point_a.frag_pos, point_b.frag_pos, point_c.frag_pos, perspective),
-            };
-
-            // clang-format off
-            const float3 color = <|FRAGMENT_SHADER_CALL|>;
-            // clang-format on
-
-            write_imagef(view, (int2)(i.x, i.y), (float4)(color, 1.0f));
-            depth[i.x * view_size.y + i.y] = z;
         }
     );
 
     return ProgramBuilder("Rasterizer", kRasterizerSource)
+        .Define("TRAINGLES_IN_BATCH", std::to_string(Rasterizer::kTrianglesInBatch))
         .Replace("FRAGMENT_SHADER_ARGS", FragmentShader::GetArguments())
         .Replace("FRAGMENT_SHADER_CALL", FragmentShader::GetShaderCall("params"))
         .Include(GetVectorFunctionsProgram())
@@ -108,11 +134,15 @@ Program GetRasterizerKernelProgram() {
 
 Rasterizer::Rasterizer(uint64_t view_width, uint64_t view_height, AccelerationContext context)
     : view_size_({.x = static_cast<cl_int>(view_width), .y = static_cast<cl_int>(view_height)})
+    , work_size_({.x = view_size_.x / kRasterizeKernelLocalSize.x, .y = view_size_.y / kRasterizeKernelLocalSize.y})
     , context_(context.GetContext())
     , queue_(context.GetQueue())
     , program_(GetRasterizerKernelProgram())
-    , kernel_(program_.BuildKernel("TriangleRasterization", context)) {
+    , kernel_(program_.BuildKernel("TriangleRasterization", context))
+    , work_batches_buffer_(context_, work_size_.x * work_size_.y * sizeof(WorkBatch))
+    , vertices_info_buffer_(context_, 0) {
     kernel_.set_arg(KA_VIEW_SIZE, view_size_);
+    kernel_.set_arg(KA_WORK_SIZE, work_size_);
 }
 
 void Rasterizer::SetSceneInfo(const FragmentShader& shader, Vec3 view_pos, const std::vector<AnyLight>& lights) {
@@ -134,17 +164,25 @@ void Rasterizer::DrawTriangles(
     kernel_.set_arg(KA_DEPTH, buffer.depth);
 
     FillVerticesInfo(points);
-    for (const auto [id_a, id_b, id_c] : indices) {
-        kernel_.set_arg(KA_POINT_A, sizeof(VertexInfo), &vertices_info_[id_a]);
-        kernel_.set_arg(KA_POINT_B, sizeof(VertexInfo), &vertices_info_[id_b]);
-        kernel_.set_arg(KA_POINT_C, sizeof(VertexInfo), &vertices_info_[id_c]);
+    FillWorkBatches(indices);
+
+    kernel_.set_arg(KA_POINTS, vertices_info_buffer_);
+
+    for (size_t i = 0; i < number_works_; ++i) {
+        queue_.enqueue_write_buffer(
+            work_batches_buffer_, 0, work_batches_[i].size() * sizeof(WorkBatch), work_batches_[i].data()
+        );
+        kernel_.set_arg(KA_WORK, work_batches_buffer_);
+
         RunKernel(queue_, kernel_, view_size_, kRasterizeKernelLocalSize);
     }
 }
 
 void Rasterizer::FillVerticesInfo(const std::vector<InterpVertex>& points) {
     vertices_info_.clear();
+    vertex_pos_.clear();
     vertices_info_.reserve(points.size());
+    vertex_pos_.reserve(points.size());
     for (auto [position, params] : points) {
         PerspectiveDivision(position);
 
@@ -155,6 +193,60 @@ void Rasterizer::FillVerticesInfo(const std::vector<InterpVertex>& points) {
             .tex_coords = Vec2ToCl(params.tex_coords),
             .frag_pos = Vec3ToCl(params.frag_pos),
         });
+
+        vertex_pos_.push_back({
+            .x = std::max(
+                0,
+                std::min(static_cast<cl_int>(std::floor(work_size_.x * (position.x() + 1.0) / 2.0)), work_size_.x - 1)
+            ),
+            .y = std::max(
+                0,
+                std::min(static_cast<cl_int>(std::floor(work_size_.y * (position.y() + 1.0) / 2.0)), work_size_.y - 1)
+            ),
+        });
+    }
+
+    if (vertices_info_buffer_.size() < vertices_info_.size() * sizeof(VertexInfo)) {
+        vertices_info_buffer_ = compute::buffer(context_, vertices_info_.size() * sizeof(VertexInfo));
+    }
+    queue_.enqueue_write_buffer(
+        vertices_info_buffer_, 0, vertices_info_.size() * sizeof(VertexInfo), vertices_info_.data()
+    );
+}
+
+void Rasterizer::FillWorkBatches(const std::vector<TriangleIndex>& indices) {
+    number_works_ = 0;
+    batch_id_.assign(work_size_.x * work_size_.y, 0);
+    for (const auto [id_a, id_b, id_c] : indices) {
+        auto a = vertex_pos_[id_a];
+        auto b = vertex_pos_[id_b];
+        auto c = vertex_pos_[id_c];
+
+        for (cl_int i = std::min(a.x, std::min(b.x, c.x)); i <= std::max(a.x, std::max(b.x, c.x)); ++i) {
+            for (cl_int j = std::min(a.y, std::min(b.y, c.y)); j <= std::max(a.y, std::max(b.y, c.y)); ++j) {
+                const auto p = i * work_size_.y + j;
+                if (batch_id_[p] >= number_works_) {
+                    number_works_++;
+                    if (number_works_ >= work_batches_.size()) {
+                        work_batches_.emplace_back(work_size_.x * work_size_.y, WorkBatch{.number_traingles = 0});
+                    } else {
+                        for (auto& r : work_batches_[batch_id_[p]]) {
+                            r.number_traingles = 0;
+                        }
+                    }
+                }
+                auto* batch = &work_batches_[batch_id_[p]][i * work_size_.y + j];
+                assert(batch->number_traingles < kTrianglesInBatch);
+                batch->triangles[batch->number_traingles++] = cl_int3{
+                    .x = static_cast<cl_int>(id_a),
+                    .y = static_cast<cl_int>(id_b),
+                    .z = static_cast<cl_int>(id_c),
+                };
+                if (batch->number_traingles >= kTrianglesInBatch) {
+                    batch_id_[p]++;
+                }
+            }
+        }
     }
 }
 

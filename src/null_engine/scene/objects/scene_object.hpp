@@ -43,8 +43,6 @@ public:
         uint64_t max_depth = 1;
     };
 
-    SceneObject() = default;
-
     explicit SceneObject(const Transform& instance);
 
     explicit SceneObject(const VerticesObject& object, const Transform& instance = Ident());

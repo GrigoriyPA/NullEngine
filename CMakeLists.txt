@@ -8,6 +8,7 @@ set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/contrib/vcpkg/scripts/build
 
 project(${PROJECT_NAME})
 
+find_package(OpenGL REQUIRED)
 find_package(SFML COMPONENTS system window graphics CONFIG REQUIRED)
 find_package(assimp CONFIG REQUIRED)
 find_package(folly REQUIRED)

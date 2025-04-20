@@ -28,7 +28,8 @@ std::string AccelerationContext::GetDeviceDescription() const {
     }
 
     return fmt::format(
-        "Device type: {}\nDevice version: {}\nDevice name: {}", device_type, device_.version(), device_.name()
+        "Platform name: {}\nDevice type: {}\nDevice version: {}\nDevice name: {}", device_.platform().name(),
+        device_type, device_.version(), device_.name()
     );
 }
 

@@ -1,21 +1,13 @@
 #pragma once
 
 #include <null_engine/acceleration/acceleration_context.hpp>
-#include <null_engine/renderer/camera/camera.hpp>
 #include <null_engine/renderer/multithread_renderer.hpp>
 #include <null_engine/renderer/native_renderer.hpp>
-#include <null_engine/scene/animations/animator.hpp>
-#include <null_engine/scene/objects/object_loader.hpp>
-#include <null_engine/scene/objects/scene_object.hpp>
 
 #include "events.hpp"
+#include "scenes/example_scenes.hpp"
 
 namespace null_engine::tests {
-
-struct ModelAssetes {
-    std::vector<Texture::Ptr> textures;
-    std::vector<SceneObject> objects;
-};
 
 class Model {
     friend class Controller;
@@ -41,11 +33,7 @@ private:
     void OnMultithreadRenderedTexture(GLuint texture_id);
 
     std::optional<AccelerationContext> acceleration_context_;
-    ObjectLoader object_loader_;
-    ModelAssetes assets_;
-    AnimatorRegistry animator_registry_;
-    PerspectiveCamera camera_;
-    Scene scene_;
+    SceneInfo::Ptr scene_info_;
     NativeRenderer native_renderer_;
     std::unique_ptr<MultithreadRenderer> multithread_renderer_;
     InPort<TextureData> in_texture_port_;

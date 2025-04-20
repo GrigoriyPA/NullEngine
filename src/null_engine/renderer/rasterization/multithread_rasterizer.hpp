@@ -29,6 +29,14 @@ class Rasterizer {
     };
 
 public:
+    static constexpr uint32_t kTrianglesInBatch = 200;
+
+    struct WorkBatch {
+        cl_int3 triangles[kTrianglesInBatch];
+        cl_int number_traingles;
+    };
+
+public:
     Rasterizer(uint64_t view_width, uint64_t view_height, AccelerationContext context);
 
     void SetSceneInfo(const FragmentShader& shader, Vec3 view_pos, const std::vector<AnyLight>& lights);
@@ -42,12 +50,21 @@ public:
 private:
     void FillVerticesInfo(const std::vector<InterpVertex>& points);
 
+    void FillWorkBatches(const std::vector<TriangleIndex>& indices);
+
     cl_int2 view_size_;
+    cl_int2 work_size_;
     compute::context context_;
     compute::command_queue queue_;
     Program program_;
     compute::kernel kernel_;
     std::vector<VertexInfo> vertices_info_;
+    compute::buffer vertices_info_buffer_;
+    size_t number_works_ = 0;
+    std::vector<size_t> batch_id_;
+    std::vector<std::vector<WorkBatch>> work_batches_;
+    compute::buffer work_batches_buffer_;
+    std::vector<cl_int2> vertex_pos_;
 };
 
 }  // namespace null_engine::multithread::detail

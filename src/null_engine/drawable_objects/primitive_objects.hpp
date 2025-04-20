@@ -4,7 +4,7 @@
 
 namespace null_engine {
 
-VerticesObject CreateQuad();
+VerticesObject CreateQuad(bool generate_normals);
 
 VerticesObject CreateCube();
 

@@ -4,7 +4,7 @@
 
 namespace null_engine {
 
-VerticesObject CreateQuad() {
+VerticesObject CreateQuad(bool generate_normals) {
     const std::vector<Vec3> quad_positions = {
         Vec3(0.5, -0.5, 0.0),
         Vec3(-0.5, -0.5, 0.0),
@@ -26,11 +26,15 @@ VerticesObject CreateQuad() {
                     .SetTexCoords(quad_tex_coords)
                     .SetIndices(quad_inices);
 
+    if (generate_normals) {
+        quad.GenerateNormals();
+    }
+
     return quad;
 }
 
 VerticesObject CreateCube() {
-    auto cube_face = CreateQuad().GenerateNormals().ApplyTransform(Translation(0.0, 0.0, -0.5));
+    auto cube_face = CreateQuad(false).GenerateNormals().ApplyTransform(Translation(0.0, 0.0, -0.5));
     auto cube = cube_face;
 
     const auto y_axis = Vec3(0.0, 1.0, 0.0);
