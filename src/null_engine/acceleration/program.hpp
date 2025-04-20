@@ -1,5 +1,6 @@
 #pragma once
 
+#include <sstream>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -26,13 +27,21 @@ public:
 
     ProgramBuilder& Replace(std::string_view pattern, const std::string& value);
 
-    ProgramBuilder& Define(std::string_view name, const std::string& value);
+    template <typename T>
+    ProgramBuilder& Define(std::string_view name, const T& value) {
+        std::stringstream stream;
+        stream << value;
+        DefineImpl(name, stream.str());
+        return *this;
+    }
 
     ProgramBuilder& Include(const Program& program);
 
     Program Build();
 
 private:
+    ProgramBuilder& DefineImpl(std::string_view name, const std::string& value);
+
     void BuildFinalSource(std::stringstream& final_source) const;
 
     void ApplyReplaces(std::stringstream& final_source) const;
@@ -59,6 +68,24 @@ public:
 private:
     std::vector<ProgramSource> sources_;
     compute::program program_;
+};
+
+class ArgsInfo {
+    struct Arg {
+        std::string_view type;
+        std::string_view name;
+        bool use_ptr = false;
+    };
+
+public:
+    ArgsInfo& AddArg(std::string_view type, std::string_view name, bool use_ptr = false);
+
+    std::string GetArgsDefenition() const;
+
+    std::string GetArgsForward() const;
+
+private:
+    std::vector<Arg> args_;
 };
 
 }  // namespace null_engine::multithread::detail

@@ -10,6 +10,7 @@ namespace native {
 
 Renderer::Renderer(const RendererSettings& settings)
     : Base(settings, std::bind(&Renderer::OnRenderEvent, this, std::placeholders::_1))
+    , background_color_((settings.background_color * 255.0).cwiseMax(0.0).cwiseMin(255.0))
     , rasterizer_(settings.view_width, settings.view_height) {
 }
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <null_engine/acceleration/kernel_program.hpp>
+#include <null_engine/acceleration/program.hpp>
 #include <null_engine/drawable_objects/vertices_object.hpp>
 #include <null_engine/util/interface/helpers/constants.hpp>
 

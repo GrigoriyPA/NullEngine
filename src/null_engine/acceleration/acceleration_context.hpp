@@ -12,9 +12,9 @@ public:
 
     std::string GetDeviceDescription() const;
 
-    compute::context GetContext() const;
+    compute::context& GetContext();
 
-    compute::command_queue GetQueue() const;
+    compute::command_queue& GetQueue();
 
 private:
     explicit AccelerationContext(compute::context context);

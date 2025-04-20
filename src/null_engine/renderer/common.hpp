@@ -32,7 +32,6 @@ public:
 protected:
     uint64_t view_width_;
     uint64_t view_height_;
-    Vec3 background_color_;
     Clipper clipper_;
 
 private:

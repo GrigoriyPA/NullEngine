@@ -3,7 +3,7 @@
 #include <assimp/vector3.h>
 
 #include <Eigen/Dense>
-#include <null_engine/acceleration/kernel_program.hpp>
+#include <null_engine/acceleration/program.hpp>
 
 #include "constants.hpp"
 

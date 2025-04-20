@@ -4,7 +4,7 @@
 
 #include <boost/compute/utility/source.hpp>
 #include <null_engine/acceleration/helpers.hpp>
-#include <null_engine/acceleration/kernel_program.hpp>
+#include <null_engine/acceleration/program.hpp>
 #include <null_engine/drawable_objects/primitive_objects.hpp>
 #include <null_engine/util/geometry/helpers.hpp>
 #include <numbers>

@@ -33,11 +33,11 @@ std::string AccelerationContext::GetDeviceDescription() const {
     );
 }
 
-compute::context AccelerationContext::GetContext() const {
+compute::context& AccelerationContext::GetContext() {
     return context_;
 }
 
-compute::command_queue AccelerationContext::GetQueue() const {
+compute::command_queue& AccelerationContext::GetQueue() {
     return queue_;
 }
 

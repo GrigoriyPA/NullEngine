@@ -1,7 +1,8 @@
-#include "kernel_program.hpp"
+#include "program.hpp"
 
 #include <fmt/format.h>
 
+#include <boost/compute/kernel.hpp>
 #include <null_engine/util/generic/validation.hpp>
 #include <sstream>
 #include <string_view>
@@ -24,7 +25,7 @@ ProgramBuilder& ProgramBuilder::Replace(std::string_view pattern, const std::str
     return *this;
 }
 
-ProgramBuilder& ProgramBuilder::Define(std::string_view name, const std::string& value) {
+ProgramBuilder& ProgramBuilder::DefineImpl(std::string_view name, const std::string& value) {
     assert(!build_finished_ && "Can not add define after finish build");
 
     const auto [_, inserted] = defines_.emplace(name, value);
@@ -120,6 +121,40 @@ compute::kernel Program::BuildKernel(const std::string& kernel_name, Acceleratio
     BuildProgram(program_);
 
     return compute::kernel(program_, kernel_name);
+}
+
+ArgsInfo& ArgsInfo::AddArg(std::string_view type, std::string_view name, bool use_ptr) {
+    args_.push_back({.type = type, .name = name, .use_ptr = use_ptr});
+    return *this;
+}
+
+std::string ArgsInfo::GetArgsDefenition() const {
+    std::stringstream result;
+    for (size_t i = 0; i < args_.size(); ++i) {
+        const auto& arg = args_[i];
+        result << arg.type << " " << arg.name;
+
+        if (i + 1 < args_.size()) {
+            result << ", ";
+        }
+    }
+    return result.str();
+}
+
+std::string ArgsInfo::GetArgsForward() const {
+    std::stringstream result;
+    for (size_t i = 0; i < args_.size(); ++i) {
+        const auto& arg = args_[i];
+        if (arg.use_ptr) {
+            result << "&";
+        }
+        result << arg.name;
+
+        if (i + 1 < args_.size()) {
+            result << ", ";
+        }
+    }
+    return result.str();
 }
 
 }  // namespace null_engine::multithread::detail

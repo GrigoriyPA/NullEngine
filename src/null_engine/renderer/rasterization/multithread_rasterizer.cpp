@@ -4,9 +4,11 @@
 #include <CL/cl_platform.h>
 #include <fmt/core.h>
 
+#include <boost/compute/buffer.hpp>
 #include <boost/compute/kernel.hpp>
 #include <boost/compute/utility/source.hpp>
 #include <null_engine/acceleration/helpers.hpp>
+#include <null_engine/acceleration/kernel.hpp>
 #include <null_engine/renderer/shaders/multithread_fragment_shader.hpp>
 #include <null_engine/util/generic/validation.hpp>
 #include <string>
@@ -19,41 +21,19 @@ using namespace detail;
 
 namespace multithread::detail {
 
-namespace {
-
-constexpr cl_int2 kRasterizeKernelLocalSize = {.x = 16, .y = 16};
-
-enum KernelArgs {
-    KA_VIEW_SIZE,
-    KA_VIEW,
-    KA_DEPTH,
-    KA_WORK_SIZE,
-    KA_WORK,
-    KA_POINTS,
-    KA_NUMBER_TRIANGLES,
-    KA_WORK_OFFSET,
-    KA_SHADER_PARAMS,
-};
-
-Program GetRasterizerDefenitions() {
-    static constexpr std::string_view kRasterizerDefenitionsSource = BOOST_COMPUTE_STRINGIZE_SOURCE(
-        typedef struct {
-            float4 pos;
-            float3 color;
-            float3 normal;
-            float2 tex_coords;
-            float3 frag_pos;
-        } VertexInfo;
-
-        typedef struct { int3 triangles[TRAINGLES_IN_BATCH]; } WorkBatch;
-    );
-
-    return ProgramBuilder("RasterizerDefenitions", kRasterizerDefenitionsSource)
-        .Define("TRAINGLES_IN_BATCH", std::to_string(Rasterizer::kTrianglesInBatch))
-        .Build();
+Rasterizer::RasterizationKernel::RasterizationKernel(
+    ViewInfo view, const SharedBuffers& buffers, const FragmentShader& fragment_shader, AccelerationContext context
+)
+    : view_size_({.x = static_cast<cl_int>(view.width), .y = static_cast<cl_int>(view.height)})
+    , kernel_("TriangleRasterization", GetProgram(fragment_shader), context) {
+    kernel_.MutableArgs()
+        .SetVal(KA_VIEW_SIZE, view_size_)
+        .SetVal(KA_WORK_SIZE, GetWorkSize(view))
+        .SetVal(KA_WORK, buffers.work_batches)
+        .SetVal(KA_NUMBER_TRIANGLES, buffers.number_triangles);
 }
 
-Program GetRasterizerKernelProgram() {
+Program Rasterizer::RasterizationKernel::GetProgram(const FragmentShader& fragment_shader) {
     static constexpr std::string_view kRasterizerSource = BOOST_COMPUTE_STRINGIZE_SOURCE(
         float3 weighted_sumf3(float3 a, float3 b, float3 c, float3 perspective) {
             return a * perspective.x + b * perspective.y + c * perspective.z;
@@ -121,7 +101,7 @@ Program GetRasterizerKernelProgram() {
                 };
 
                 // clang-format off
-                const float3 color = <|FRAGMENT_SHADER_CALL|>;
+                const float3 color = CalculateFragmentColor(<|FRAGMENT_SHADER_CALL|>, &params);
                 // clang-format on
 
                 write_imagef(view, (int2)(i.x, i.y), (float4)(color, 1.0f));
@@ -130,30 +110,46 @@ Program GetRasterizerKernelProgram() {
         }
     );
 
+    const auto& shader_args = fragment_shader.GetArgs();
     return ProgramBuilder("Rasterizer", kRasterizerSource)
-        .Define("TRAINGLES_IN_BATCH", std::to_string(Rasterizer::kTrianglesInBatch))
-        .Replace("FRAGMENT_SHADER_ARGS", FragmentShader::GetArguments())
-        .Replace("FRAGMENT_SHADER_CALL", FragmentShader::GetShaderCall("params"))
+        .Define("TRAINGLES_IN_BATCH", kTrianglesInBatch)
+        .Replace("FRAGMENT_SHADER_ARGS", shader_args.GetArgsDefenition())
+        .Replace("FRAGMENT_SHADER_CALL", shader_args.GetArgsForward())
         .Include(GetVectorFunctionsProgram())
-        .Include(FragmentShader::GetKernelProgram())
+        .Include(fragment_shader.GetProgram())
         .Include(GetRasterizerDefenitions())
         .Build();
 }
 
-constexpr cl_int kDistributeKernelLocalSize = 256;
+Kernel::Args Rasterizer::RasterizationKernel::GetShaderArgs() {
+    return kernel_.MutableArgs(KA_SHADER_PARAMS);
+}
 
-enum DArgs {
-    KA_I_SIZE,
-    KA_I,
-    KA_W_SIZE,
-    KA_W,
-    KA_P,
-    KA_NRT,
-};
+void Rasterizer::RasterizationKernel::Run(const compute::buffer& vertices_info_buffer, const RasterizerBuffer& buffer) {
+    kernel_.MutableArgs()
+        .SetVal(KA_VIEW, buffer.colors)
+        .SetVal(KA_DEPTH, buffer.depth)
+        .SetVal(KA_POINTS, vertices_info_buffer);
 
-Program GetRasterizerDistributionProgram() {
+    for (size_t i = 0; i < kNumberWorks; ++i) {
+        kernel_.MutableArgs().SetVal(KA_WORK_OFFSET, static_cast<cl_int>(i));
+        kernel_.Run(view_size_, kWorkShape);
+    }
+}
+
+Rasterizer::DistributionKernel::DistributionKernel(
+    ViewInfo view, const SharedBuffers& buffers, AccelerationContext context
+)
+    : indices_(context)
+    , kernel_("RasterizerDistribution", GetProgram(), context) {
+    kernel_.MutableArgs()
+        .SetVal(KA_WORK_SIZE, GetWorkSize(view))
+        .SetVal(KA_WORK, buffers.work_batches)
+        .SetVal(KA_NUMBER_TRIANGLES, buffers.number_triangles);
+}
+
+Program Rasterizer::DistributionKernel::GetProgram() {
     static constexpr std::string_view kRasterizerDistributionSource = BOOST_COMPUTE_STRINGIZE_SOURCE(
-
         int2 get_coord(int2 work_size, const VertexInfo* point) {
             const float4 position = point->pos;
             const int x = fmax(0.0f, fmin(floor((float)work_size.x * (position.x + 1.0f) / 2.0f), work_size.x - 1));
@@ -190,15 +186,39 @@ Program GetRasterizerDistributionProgram() {
     );
 
     return ProgramBuilder("RasterizerDistribution", kRasterizerDistributionSource)
-        .Define("TRAINGLES_IN_BATCH", std::to_string(Rasterizer::kTrianglesInBatch))
-        .Define("NUMBER_WORKS", std::to_string(Rasterizer::kNumberWorks))
+        .Define("TRAINGLES_IN_BATCH", kTrianglesInBatch)
+        .Define("NUMBER_WORKS", kNumberWorks)
         .Include(GetRasterizerDefenitions())
         .Build();
 }
 
-Program GetRasterizerCleanupProgram() {
-    static constexpr std::string_view kRasterizerCleanupSource = BOOST_COMPUTE_STRINGIZE_SOURCE(
+void Rasterizer::DistributionKernel::Run(
+    const compute::buffer& vertices_info_buffer, const std::vector<TriangleIndex>& indices
+) {
+    indices_.Assign<TriangleIndex>(indices, [](const TriangleIndex& index) {
+        return cl_int3{
+            .x = static_cast<cl_int>(index.point_a),
+            .y = static_cast<cl_int>(index.point_b),
+            .z = static_cast<cl_int>(index.point_c),
+        };
+    });
 
+    kernel_.MutableArgs()
+        .SetVal(KA_INDICES_SIZE, static_cast<cl_int>(indices.size()))
+        .SetVal(KA_INDICES, indices_.GetBuffer())
+        .SetVal(KA_POINTS, vertices_info_buffer);
+
+    kernel_.Run(static_cast<cl_int>(indices.size()), kLocalSize);
+}
+
+Rasterizer::CleanupKernel::CleanupKernel(ViewInfo view, const SharedBuffers& buffers, AccelerationContext context)
+    : work_size_(GetWorkSize(view))
+    , kernel_("RasterizerCleanup", GetProgram(), context) {
+    kernel_.MutableArgs().SetVal(KA_WORK_SIZE, work_size_).SetVal(KA_NUMBER_TRIANGLES, buffers.number_triangles);
+}
+
+Program Rasterizer::CleanupKernel::GetProgram() {
+    static constexpr std::string_view kRasterizerCleanupSource = BOOST_COMPUTE_STRINGIZE_SOURCE(
         __kernel void RasterizerCleanup(int2 work_size, __global int* numbers_triangles) {
             const int2 i = (int2)(get_global_id(0), get_global_id(1));
             if (i.x >= work_size.x || i.y >= work_size.y) {
@@ -212,42 +232,25 @@ Program GetRasterizerCleanupProgram() {
     return Program("RasterizerCleanup", kRasterizerCleanupSource);
 }
 
-}  // anonymous namespace
+void Rasterizer::CleanupKernel::Run() {
+    kernel_.Run(work_size_, kLocalSize);
+}
 
-Rasterizer::Rasterizer(uint64_t view_width, uint64_t view_height, AccelerationContext context)
-    : view_size_({.x = static_cast<cl_int>(view_width), .y = static_cast<cl_int>(view_height)})
-    , work_size_({.x = view_size_.x / kRasterizeKernelLocalSize.x, .y = view_size_.y / kRasterizeKernelLocalSize.y})
-    , context_(context.GetContext())
-    , queue_(context.GetQueue())
-    , program_(GetRasterizerKernelProgram())
-    , kernel_(program_.BuildKernel("TriangleRasterization", context))
-    , vertices_info_buffer_(context_, 0)
-    , distribution_program_(GetRasterizerDistributionProgram())
-    , distribution_kernel_(distribution_program_.BuildKernel("RasterizerDistribution", context))
-    , number_triangles_buffer_(context_, work_size_.x * work_size_.y * sizeof(cl_int))
-    , work_batches_buffer_(context_, kNumberWorks * work_size_.x * work_size_.y * sizeof(WorkBatch))
-    , indices_buffer_(context_, 0)
-    , cleanup_program_(GetRasterizerCleanupProgram())
-    , cleanup_kernel_(cleanup_program_.BuildKernel("RasterizerCleanup", context)) {
-    kernel_.set_arg(KA_VIEW_SIZE, view_size_);
-    kernel_.set_arg(KA_WORK_SIZE, work_size_);
-    kernel_.set_arg(KA_WORK, work_batches_buffer_);
-    kernel_.set_arg(KA_NUMBER_TRIANGLES, number_triangles_buffer_);
-
-    distribution_kernel_.set_arg(KA_W_SIZE, work_size_);
-    distribution_kernel_.set_arg(KA_W, work_batches_buffer_);
-    distribution_kernel_.set_arg(KA_NRT, number_triangles_buffer_);
-
-    cleanup_kernel_.set_arg(0, work_size_);
-    cleanup_kernel_.set_arg(1, number_triangles_buffer_);
+Rasterizer::Rasterizer(ViewInfo view, const FragmentShader& fragment_shader, AccelerationContext context)
+    : context_(context)
+    , shared_buffers_(CreateBuffers(view))
+    , vertices_info_(context_)
+    , rasterization_kernel_(view, shared_buffers_, fragment_shader, context)
+    , distribution_kernel_(view, shared_buffers_, context)
+    , cleanup_kernel_(view, shared_buffers_, context) {
 }
 
 void Rasterizer::SetSceneInfo(const FragmentShader& shader, Vec3 view_pos, const std::vector<AnyLight>& lights) {
-    shader.FillSceneInfo(kernel_, KA_SHADER_PARAMS, view_pos, lights);
+    shader.FillSceneInfo(rasterization_kernel_.GetShaderArgs(), view_pos, lights);
 }
 
 void Rasterizer::SetMaterialInfo(const FragmentShader& shader, const Material& material) {
-    shader.FillMaterialInfo(kernel_, KA_SHADER_PARAMS, material);
+    shader.FillMaterialInfo(rasterization_kernel_.GetShaderArgs(), material);
 }
 
 void Rasterizer::DrawTriangles(
@@ -256,58 +259,60 @@ void Rasterizer::DrawTriangles(
     if (indices.empty()) {
         return;
     }
-    RunKernel(queue_, cleanup_kernel_, work_size_, kRasterizeKernelLocalSize);
 
-    FillVerticesInfo(points);
+    FillVerticesInfoBuffer(points);
 
-    indices_.clear();
-    indices_.reserve(indices.size());
-    for (const auto [id_a, id_b, id_c] : indices) {
-        indices_.push_back({
-            .x = static_cast<cl_int>(id_a),
-            .y = static_cast<cl_int>(id_b),
-            .z = static_cast<cl_int>(id_c),
-        });
-    }
-    if (indices_buffer_.size() < indices_.size() * sizeof(cl_int3)) {
-        indices_buffer_ = compute::buffer(context_, indices_.size() * sizeof(cl_int3));
-    }
-    queue_.enqueue_write_buffer(indices_buffer_, 0, indices_.size() * sizeof(cl_int3), indices_.data());
-    distribution_kernel_.set_arg(KA_I_SIZE, static_cast<cl_int>(indices.size()));
-    distribution_kernel_.set_arg(KA_I, indices_buffer_);
-    distribution_kernel_.set_arg(KA_P, vertices_info_buffer_);
-    RunKernel(queue_, distribution_kernel_, indices.size(), kDistributeKernelLocalSize);
-
-    kernel_.set_arg(KA_VIEW, buffer.colors);
-    kernel_.set_arg(KA_DEPTH, buffer.depth);
-    kernel_.set_arg(KA_POINTS, vertices_info_buffer_);
-    for (size_t i = 0; i < kNumberWorks; ++i) {
-        kernel_.set_arg(KA_WORK_OFFSET, static_cast<cl_int>(i));
-        RunKernel(queue_, kernel_, view_size_, kRasterizeKernelLocalSize);
-    }
+    cleanup_kernel_.Run();
+    distribution_kernel_.Run(vertices_info_.GetBuffer(), indices);
+    rasterization_kernel_.Run(vertices_info_.GetBuffer(), buffer);
 }
 
-void Rasterizer::FillVerticesInfo(const std::vector<InterpVertex>& points) {
-    vertices_info_.clear();
-    vertices_info_.reserve(points.size());
-    for (auto [position, params] : points) {
+void Rasterizer::FillVerticesInfoBuffer(const std::vector<InterpVertex>& points) {
+    vertices_info_.Assign<InterpVertex>(points, [](const InterpVertex& vertex) {
+        auto position = vertex.position;
         PerspectiveDivision(position);
 
-        vertices_info_.push_back({
+        return VertexInfo{
             .pos = Vec4ToCl(position),
-            .color = Vec3ToCl(params.color),
-            .normal = Vec3ToCl(params.normal),
-            .tex_coords = Vec2ToCl(params.tex_coords),
-            .frag_pos = Vec3ToCl(params.frag_pos),
-        });
-    }
+            .color = Vec3ToCl(vertex.params.color),
+            .normal = Vec3ToCl(vertex.params.normal),
+            .tex_coords = Vec2ToCl(vertex.params.tex_coords),
+            .frag_pos = Vec3ToCl(vertex.params.frag_pos),
+        };
+    });
+}
 
-    if (vertices_info_buffer_.size() < vertices_info_.size() * sizeof(VertexInfo)) {
-        vertices_info_buffer_ = compute::buffer(context_, vertices_info_.size() * sizeof(VertexInfo));
-    }
-    queue_.enqueue_write_buffer(
-        vertices_info_buffer_, 0, vertices_info_.size() * sizeof(VertexInfo), vertices_info_.data()
+Rasterizer::SharedBuffers Rasterizer::CreateBuffers(const ViewInfo& view) {
+    const auto work_size = GetWorkSize(view);
+    const auto buffer_size = work_size.x * work_size.y;
+
+    auto& ctx = context_.GetContext();
+    return {
+        .work_batches = compute::buffer(ctx, kNumberWorks * buffer_size * sizeof(WorkBatch)),
+        .number_triangles = compute::buffer(ctx, buffer_size * sizeof(cl_int)),
+    };
+}
+
+cl_int2 Rasterizer::GetWorkSize(const ViewInfo& view) {
+    return {.x = static_cast<cl_int>(view.width / kWorkShape.x), .y = static_cast<cl_int>(view.height / kWorkShape.y)};
+}
+
+Program Rasterizer::GetRasterizerDefenitions() {
+    static constexpr std::string_view kRasterizerDefenitionsSource = BOOST_COMPUTE_STRINGIZE_SOURCE(
+        typedef struct {
+            float4 pos;
+            float3 color;
+            float3 normal;
+            float2 tex_coords;
+            float3 frag_pos;
+        } VertexInfo;
+
+        typedef struct { int3 triangles[TRAINGLES_IN_BATCH]; } WorkBatch;
     );
+
+    return ProgramBuilder("RasterizerDefenitions", kRasterizerDefenitionsSource)
+        .Define("TRAINGLES_IN_BATCH", kTrianglesInBatch)
+        .Build();
 }
 
 }  // namespace multithread::detail

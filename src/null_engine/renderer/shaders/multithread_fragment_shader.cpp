@@ -6,43 +6,17 @@
 
 #include <boost/compute/utility/source.hpp>
 #include <null_engine/acceleration/helpers.hpp>
-#include <null_engine/acceleration/kernel_program.hpp>
+#include <null_engine/acceleration/program.hpp>
 #include <null_engine/scene/lights/light.hpp>
 #include <string>
 
 namespace null_engine::multithread::detail {
 
-namespace {
-
-enum KernelArgs {
-    KA_DIFFUSE_TEX,
-    KA_SPECULAR_TEX,
-    KA_EMISSION_TEX,
-    KA_SCENE,
-    KA_MATERIAL,
-};
-
-struct SceneInfo {
-    cl_float3 view_pos;
-    cl_int number_lights;
-    LightDescription lights[FragmentShader::kMaxNumberLights];
-};
-
-struct MaterialInfo {
-    cl_int has_diffuse_tex;
-    cl_int has_specular_tex;
-    cl_int has_emission_tex;
-    cl_float shininess;
-};
-
-}  // anonymous namespace
-
 FragmentShader::FragmentShader(AccelerationContext context)
-    : context_(context.GetContext())
-    , empty_texture_(context_, 1, 1, compute::image_format(CL_RGBA, CL_UNSIGNED_INT8)) {
+    : empty_texture_(context.GetContext(), 1, 1, compute::image_format(CL_RGBA, CL_UNSIGNED_INT8)) {
 }
 
-Program FragmentShader::GetKernelProgram() {
+Program FragmentShader::GetProgram() {
     static constexpr std::string_view kFragmentShaderSource = BOOST_COMPUTE_STRINGIZE_SOURCE(
         typedef struct {
             float3 view_pos;
@@ -107,60 +81,53 @@ Program FragmentShader::GetKernelProgram() {
     );
 
     return ProgramBuilder("FragmentShader", kFragmentShaderSource)
-        .Define("MAX_NUMBER_LIGHTS", std::to_string(kMaxNumberLights))
+        .Define("MAX_NUMBER_LIGHTS", kMaxNumberLights)
         .Include(GetLightsProgram())
         .Build();
 }
 
-std::string FragmentShader::GetArguments() {
-    return "__read_only image2d_t diffuse_tex, "
-           "__read_only image2d_t specular_tex, "
-           "__read_only image2d_t emission_tex, "
-           "SceneInfo scene, "
-           "MaterialInfo material";
+ArgsInfo FragmentShader::GetArgs() {
+    return ArgsInfo()
+        .AddArg("__read_only image2d_t", "diffuse_tex")
+        .AddArg("__read_only image2d_t", "specular_tex")
+        .AddArg("__read_only image2d_t", "emission_tex")
+        .AddArg("SceneInfo", "scene", true)
+        .AddArg("MaterialInfo", "material", true);
 }
 
-std::string FragmentShader::GetShaderCall(const std::string& vertex_variable) {
-    return fmt::format(
-        "CalculateFragmentColor(diffuse_tex, specular_tex, emission_tex, &scene, &material, &{})", vertex_variable
-    );
-}
-
-void FragmentShader::FillSceneInfo(
-    compute::kernel& kernel, uint32_t argument_offset, Vec3 view_pos, const std::vector<AnyLight>& lights
-) const {
+void FragmentShader::FillSceneInfo(Kernel::Args kernel_args, Vec3 view_pos, const std::vector<AnyLight>& lights) const {
     assert(lights.size() <= kMaxNumberLights && "Too many lights provided");
 
-    SceneInfo cl_scene = {
+    SceneInfo scene = {
         .view_pos = Vec3ToCl(view_pos),
         .number_lights = static_cast<cl_int>(lights.size()),
     };
     for (uint32_t i = 0; const auto& light : lights) {
-        cl_scene.lights[i++] = light.GetDescription();
+        scene.lights[i++] = light.GetDescription();
     }
 
-    kernel.set_arg(argument_offset + KA_SCENE, sizeof(SceneInfo), &cl_scene);
+    kernel_args.SetData(KA_SCENE, scene);
 }
 
-void FragmentShader::FillMaterialInfo(compute::kernel& kernel, uint32_t argument_offset, const Material& material)
+void FragmentShader::FillMaterialInfo(Kernel::Args kernel_args, const Material& material) const {
+    FillTextureArgument(kernel_args, KA_DIFFUSE_TEX, material.diffuse_tex);
+    FillTextureArgument(kernel_args, KA_SPECULAR_TEX, material.specular_tex);
+    FillTextureArgument(kernel_args, KA_EMISSION_TEX, material.emission_tex);
+
+    kernel_args.SetData<MaterialInfo>(
+        KA_MATERIAL,
+        {
+            .has_diffuse_tex = !!material.diffuse_tex,
+            .has_specular_tex = !!material.specular_tex,
+            .has_emission_tex = !!material.emission_tex,
+            .shininess = material.shininess,
+        }
+    );
+}
+
+void FragmentShader::FillTextureArgument(Kernel::Args kernel_args, size_t index, const std::optional<TextureView>& tex)
     const {
-    FillTextureArgument(kernel, argument_offset + KA_DIFFUSE_TEX, material.diffuse_tex);
-    FillTextureArgument(kernel, argument_offset + KA_SPECULAR_TEX, material.specular_tex);
-    FillTextureArgument(kernel, argument_offset + KA_EMISSION_TEX, material.emission_tex);
-
-    MaterialInfo cl_material = {
-        .has_diffuse_tex = !!material.diffuse_tex,
-        .has_specular_tex = !!material.specular_tex,
-        .has_emission_tex = !!material.emission_tex,
-        .shininess = material.shininess
-    };
-    kernel.set_arg(argument_offset + KA_MATERIAL, sizeof(MaterialInfo), &cl_material);
-}
-
-void FragmentShader::FillTextureArgument(
-    compute::kernel& kernel, uint32_t argument_offset, const std::optional<TextureView>& tex
-) const {
-    kernel.set_arg(argument_offset, tex ? tex->GetDeviceBuffer() : empty_texture_);
+    kernel_args.SetVal(index, tex ? tex->GetDeviceBuffer() : empty_texture_);
 }
 
 }  // namespace null_engine::multithread::detail

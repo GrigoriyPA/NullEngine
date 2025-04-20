@@ -3,7 +3,8 @@ set(TARGET_NAME null-engine-acceleration)
 add_library(${TARGET_NAME}
     acceleration_context.cpp
     helpers.cpp
-    kernel_program.cpp
+    kernel.cpp
+    program.cpp
 )
 
 target_link_libraries(${TARGET_NAME}

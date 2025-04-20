@@ -30,6 +30,7 @@ private:
 
     void ClearBuffer();
 
+    Vec3 background_color_;
     RasterizerBuffer buffer_;
     Rasterizer rasterizer_;
     FragmentShader fragment_shader_;

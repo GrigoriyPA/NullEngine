@@ -1,6 +1,6 @@
 #pragma once
 
-#include <null_engine/acceleration/kernel_program.hpp>
+#include <null_engine/acceleration/kernel.hpp>
 #include <null_engine/renderer/rasterization/multithread_rasterizer.hpp>
 
 #include "common.hpp"
@@ -9,7 +9,7 @@ namespace null_engine::multithread {
 
 class Renderer : public RendererBase {
     using Base = RendererBase;
-    using Program = detail::Program;
+    using Kernel = detail::Kernel;
     using RasterizerBuffer = detail::RasterizerBuffer;
     using Rasterizer = detail::Rasterizer;
     using FragmentShader = detail::FragmentShader;
@@ -17,6 +17,30 @@ class Renderer : public RendererBase {
     struct Buffer {
         GLuint rendering_texture = 0;
         RasterizerBuffer rasterizer_buffer;
+    };
+
+    class CleanupKernel {
+        using Program = detail::Program;
+
+        enum KernelArgs {
+            KA_VIEW_SIZE,
+            KA_VIEW,
+            KA_DEPTH,
+            KA_COLOR,
+        };
+
+        static constexpr cl_int2 kLocalSize = {.x = 256, .y = 1};
+
+    public:
+        CleanupKernel(const RendererSettings& settings, const Buffer& buffer, AccelerationContext context);
+
+        static Program GetProgram();
+
+        void Run();
+
+    private:
+        cl_int2 view_size_;
+        Kernel kernel_;
     };
 
 public:
@@ -29,18 +53,13 @@ private:
 
     void RenderTrianglesObject(const VerticesObject& object);
 
-    Buffer CreateBuffer() const;
+    Buffer CreateBuffer();
 
-    void ClearBuffer();
-
-    cl_int2 view_size_;
-    compute::context context_;
-    compute::command_queue queue_;
-    Program clear_buffer_program_;
-    compute::kernel clear_buffer_kernel_;
+    AccelerationContext context_;
     Buffer buffer_;
-    Rasterizer rasterizer_;
+    CleanupKernel clear_buffer_kernel_;
     FragmentShader fragment_shader_;
+    Rasterizer rasterizer_;
     Vec3 view_pos_;
     ProjectiveTransform camera_transform_;
     Transform object_transform_;

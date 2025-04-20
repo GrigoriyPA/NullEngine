@@ -8,7 +8,7 @@ Model::Model(uint64_t view_width, uint64_t view_height, bool multithread_renderi
     : acceleration_context_(
           multithread_rendering ? std::optional<AccelerationContext>(AccelerationContext::Create()) : std::nullopt
       )
-    , scene_info_(SceneInfo::LoadVelorum(
+    , scene_info_(SceneInfo::LoadMjolnir(
           {.view_width = view_width, .view_height = view_height, .acceleration_context = acceleration_context_}
       ))
     , native_renderer_({view_width, view_height})
