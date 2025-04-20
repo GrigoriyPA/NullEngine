@@ -8,7 +8,19 @@
 
 namespace null_engine::native::detail {
 
-class FragmentShader {
+class NoopFragmentShader {
+    using InterpolationParams = null_engine::detail::InterpolationParams;
+
+public:
+    Vec3 GetPointColor(const InterpolationParams& params) const;
+};
+
+struct LightSettings {
+    AnyLight light;
+    ILight::DepthBuffer depth;
+};
+
+class MainFragmentShader {
     using InterpolationParams = null_engine::detail::InterpolationParams;
 
 public:
@@ -22,13 +34,13 @@ public:
 
     void SetMaterial(const Material& material);
 
-    void SetLights(const std::vector<AnyLight>& lights);
+    void SetLights(const std::vector<LightSettings>& lights);
 
 private:
     Vec3 view_pos_ = Vec3(0.0, 0.0, 0.0);
     Material material_;
     uint32_t number_lights_;
-    std::array<AnyLight, kMaxNumberLights> lights_;
+    std::array<LightSettings, kMaxNumberLights> lights_;
 };
 
 }  // namespace null_engine::native::detail

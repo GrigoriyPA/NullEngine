@@ -12,6 +12,9 @@
 #include <null_engine/util/geometry/vector.hpp>
 #include <numbers>
 
+#include "null_engine/scene/lights/scene_light.hpp"
+
+
 namespace null_engine::tests {
 
 class SceneInfo {
@@ -29,6 +32,12 @@ public:
         TEX_EMISSION,
         TEX_MONOTONIC,
         TEX_MAX,
+    };
+
+    enum class LightType {
+        Direct,
+        Point,
+        Spot,
     };
 
     struct Settings {
@@ -49,7 +58,7 @@ public:
 
     static SceneInfo::Ptr LoadCube(const Settings& settings);
 
-    static SceneInfo::Ptr LoadMjolnir(const Settings& settings);
+    static SceneInfo::Ptr LoadMjolnir(const Settings& settings, LightType light_type = LightType::Spot);
 
     static SceneInfo::Ptr LoadVelorum(const Settings& settings);
 
@@ -67,7 +76,10 @@ public:
 
     SceneInfo& AddAmbientLight(FloatType strength = 0.6);
 
-    SceneInfo& AddDirectLight(Vec3 direction = Vec3(2.0, -1.0, 3.0), LightStrength strength = kDefaultLightStrength);
+    SceneInfo& AddDirectLight(
+        Vec3 direction = Vec3(2.0, -1.0, 3.0), LightStrength strength = kDefaultLightStrength,
+        std::optional<DirectLight::ShadowSettings> shadow = std::nullopt
+    );
 
     SceneInfo& AddPointLight(
         Vec3 position = Vec3(-2.0, 0.0, -2.0), LightStrength strength = kDefaultLightStrength,
@@ -76,11 +88,12 @@ public:
 
     SceneInfo& AddSpotLight(
         Vec3 position = Vec3(-2.0, 0.0, -2.0), Vec3 direction = Vec3(1.0, -1.0, 1.0),
-        LightStrength strength = kDefaultLightStrength, AttenuationSettings attenuation = kDefaultLightAttenuation
+        LightStrength strength = kDefaultLightStrength, AttenuationSettings attenuation = kDefaultLightAttenuation,
+        std::optional<SpotLight::ShadowSettings> shadow = std::nullopt
     );
 
     SceneInfo& SetRotationAnimation(
-        SceneObject& object, Vec3 axis = Vec3(0.0, 1.0, 0.0), FloatType speed = std::numbers::pi / 3.0
+        SceneObject& object, Vec3 axis = Vec3(0.0, 1.0, 0.0), FloatType speed = std::numbers::pi / 5.0
     );
 
     SceneInfo& SetTranslationAnimation(

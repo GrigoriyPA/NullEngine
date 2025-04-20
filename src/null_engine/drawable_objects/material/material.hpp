@@ -9,6 +9,7 @@ struct Material {
     std::optional<TextureView> specular_tex;
     std::optional<TextureView> emission_tex;
     FloatType shininess = 1.0;
+    bool shadow = true;
 };
 
 }  // namespace null_engine

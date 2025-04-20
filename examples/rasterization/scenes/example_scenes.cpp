@@ -134,11 +134,11 @@ SceneInfo::Ptr SceneInfo::LoadCube(const Settings& settings) {
     return result;
 }
 
-SceneInfo::Ptr SceneInfo::LoadMjolnir(const Settings& settings) {
+SceneInfo::Ptr SceneInfo::LoadMjolnir(const Settings& settings, LightType light_type) {
     auto result = std::make_unique<SceneInfo>(settings);
 
     const auto plane_instansce =
-        Translation(0.0, -4.0, 0.0) * Rotation(Vec3(1.0, 0.0, 0.0), std::numbers::pi / 2.0) * Scale(7.0);
+        Translation(0.0, -4.0, 0.0) * Rotation(Vec3(1.0, 0.0, 0.0), std::numbers::pi / 2.0) * Scale(14.0);
     SceneObject plane(
         CreateQuad(true)
             .SetMaterial({
@@ -155,7 +155,38 @@ SceneInfo::Ptr SceneInfo::LoadMjolnir(const Settings& settings) {
     object.AddChild(result->LoadObject(kMjolnirPath, object_instance));
     result->SetRotationAnimation(object);
     result->GetScene().AddObject(std::move(object));
-    result->AddPointLight();
+
+    switch (light_type) {
+        case LightType::Direct: {
+            const Vec3 direction(1.0, -4.0, 1.0);
+            result->AddDirectLight(
+                direction, kDefaultLightStrength,
+                DirectLight::ShadowSettings{
+                    .position = -direction * 0.5,
+                    .size = Vec3(10.0, 10.0, 10.0),
+                    .resolution = 0.01,
+                }
+            );
+            break;
+        }
+        case LightType::Point: {
+            result->AddPointLight();
+            break;
+        }
+        case LightType::Spot: {
+            const Vec3 position(-4.0, 2.0, -4.0);
+            const Vec3 direction(1.0, -1.7, 1.0);
+            result->AddSpotLight(
+                position, direction, kDefaultLightStrength, {.constant = 1.0, .quadratic = 0.01},
+                SpotLight::ShadowSettings{
+                    .min_distance = 0.1,
+                    .max_distance = 50.0,
+                    .resolution = 0.01,
+                }
+            );
+            break;
+        }
+    }
 
     return result;
 }
@@ -226,8 +257,15 @@ SceneInfo& SceneInfo::AddAmbientLight(FloatType strength) {
     return *this;
 }
 
-SceneInfo& SceneInfo::AddDirectLight(Vec3 direction, LightStrength strength) {
-    const DirectLight light(direction, strength);
+SceneInfo& SceneInfo::AddDirectLight(
+    Vec3 direction, LightStrength strength, std::optional<DirectLight::ShadowSettings> shadow
+) {
+    DirectLight light(direction, strength);
+    if (shadow) {
+        light.SetupShadow(*shadow);
+        // scene_.EmplaceObject(light.VisualizeShadowBox());
+    }
+
     scene_.AddLight(light);
 
     if (!acceleration_context_) {
@@ -250,12 +288,17 @@ SceneInfo& SceneInfo::AddPointLight(Vec3 position, LightStrength strength, Atten
 };
 
 SceneInfo& SceneInfo::AddSpotLight(
-    Vec3 position, Vec3 direction, LightStrength strength, AttenuationSettings attenuation
+    Vec3 position, Vec3 direction, LightStrength strength, AttenuationSettings attenuation,
+    std::optional<SpotLight::ShadowSettings> shadow
 ) {
-    const SpotLight light(
-        {.position = position, .direction = direction, .light_angle = std::numbers::pi / 6.0, .light_angle_ratio = 1.2},
+    SpotLight light(
+        {.position = position, .direction = direction, .light_angle = std::numbers::pi / 3.0, .light_angle_ratio = 1.2},
         strength, attenuation
     );
+    if (shadow) {
+        light.SetupShadow(*shadow);
+    }
+
     scene_.AddLight(light);
 
     if (!acceleration_context_) {

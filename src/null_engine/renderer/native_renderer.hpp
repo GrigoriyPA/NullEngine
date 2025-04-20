@@ -1,6 +1,7 @@
 #pragma once
 
 #include <null_engine/renderer/rasterization/native_rasterizer.hpp>
+#include <null_engine/renderer/shaders/native_fragment_shader.hpp>
 
 #include "common.hpp"
 
@@ -10,7 +11,10 @@ class Renderer : public RendererBase {
     using Base = RendererBase;
     using RasterizerBuffer = detail::RasterizerBuffer;
     using Rasterizer = detail::Rasterizer;
-    using FragmentShader = detail::FragmentShader;
+    using LightSettings = detail::LightSettings;
+    using AnyFragmentShaderRef = detail::AnyFragmentShaderRef;
+    using DepthFragmentShader = detail::NoopFragmentShader;
+    using MainFragmentShader = detail::MainFragmentShader;
 
 public:
     using TextureData = std::vector<uint8_t>;
@@ -22,19 +26,35 @@ public:
 private:
     void OnRenderEvent(const RenderEvent& render_event);
 
-    void RenderPointsObject(const VerticesObject& object);
+    void FillLightsInfo(const Scene& scene);
 
-    void RenderLinesObject(const VerticesObject& object);
+    void RenderScene(const Scene& scene, AnyCameraRef camera);
 
-    void RenderTrianglesObject(const VerticesObject& object);
+    struct RenderingContext {
+        AnyFragmentShaderRef fragment_shader;
+        RasterizerBuffer& buffer;
+        Vec3 view_pos;
+        ProjectiveTransform camera_transform;
+    };
+
+    void RenderObject(const VerticesObject& object, const std::vector<Transform>& instances, RenderingContext& context);
+
+    void RenderPointsObject(const VerticesObject& object, RenderingContext& context);
+
+    void RenderLinesObject(const VerticesObject& object, RenderingContext& context);
+
+    void RenderTrianglesObject(const VerticesObject& object, RenderingContext& context);
 
     void ClearBuffer();
 
     Vec3 background_color_;
-    RasterizerBuffer buffer_;
+    Rasterizer::ViewInfo view_;
+    RasterizerBuffer main_buffer_;
+    std::array<RasterizerBuffer, MainFragmentShader::kMaxNumberLights> depth_buffers_;
+    std::vector<LightSettings> lights_info_;
     Rasterizer rasterizer_;
-    FragmentShader fragment_shader_;
-    ProjectiveTransform camera_transform_;
+    DepthFragmentShader depth_fragment_shader_;
+    MainFragmentShader main_fragment_shader_;
     Transform object_transform_;
     OutPort<TextureData>::Ptr out_texture_port_ = OutPort<TextureData>::Make();
 };

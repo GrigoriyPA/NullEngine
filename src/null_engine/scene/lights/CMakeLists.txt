@@ -1,6 +1,7 @@
 set(TARGET_NAME null-engine-scene-lights)
 
 add_library(${TARGET_NAME}
+    depth_buffer.cpp
     light.cpp
     scene_light.cpp
 )

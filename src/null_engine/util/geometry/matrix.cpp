@@ -94,4 +94,10 @@ ProjectiveTransform PerspectiveProjection(
     return transform;
 }
 
+ProjectiveTransform ComposeCameraTransform(
+    const ProjectiveTransform& ndc_transform, const Transform& orientation_transform, Vec3 view_pos
+) {
+    return ndc_transform * Transform(orientation_transform.matrix().transpose()) * Translation(-view_pos);
+}
+
 }  // namespace null_engine

@@ -12,7 +12,7 @@ namespace {
 
 constexpr uint64_t kViewWidth = 800;
 constexpr uint64_t kViewHeight = 800;
-constexpr bool kMultithreadRendering = true;
+constexpr bool kMultithreadRendering = false;
 constexpr bool kEnableMouseControl = true;
 
 }  // anonymous namespace

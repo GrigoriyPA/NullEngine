@@ -47,7 +47,46 @@ private:
     std::optional<boost::compute::image2d> image_buffer_;
 };
 
-class TextureView {
+template <typename T>
+class BufferView {
+public:
+    BufferView() = default;
+
+    BufferView(uint64_t width, uint64_t height, const T* data, T outside_value)
+        : width_(width)
+        , height_(height)
+        , data_(data)
+        , outside_value_(outside_value) {
+    }
+
+    Vec2 GetTexelSize() const {
+        return Vec2(1.0 / width_, 1.0 / height_);
+    }
+
+    T GetData(Vec2 position) const {
+        assert(data_ && "Buffer is not initialized");
+
+        const int64_t x = std::floor(position.x() * width_);
+        const int64_t y = std::floor(position.y() * height_);
+
+        if (0 <= x && x < width_ && 0 <= y && y < height_) {
+            return data_[x + y * width_];
+        }
+        return outside_value_;
+    }
+
+protected:
+    uint64_t width_ = 0;
+    uint64_t height_ = 0;
+
+private:
+    const T* data_ = nullptr;
+    T outside_value_;
+};
+
+class TextureView : private BufferView<Vec3> {
+    using Base = BufferView<Vec3>;
+
 public:
     explicit TextureView(const Texture& texture, Vec3 outside_color = kBlack);
 
@@ -61,10 +100,6 @@ public:
 
 private:
     const Texture* texture_;
-    uint64_t width_ = 0;
-    uint64_t height_ = 0;
-    const Vec3* colors_ = nullptr;
-    Vec3 outside_color_ = kBlack;
 };
 
 }  // namespace null_engine

@@ -5,6 +5,8 @@
 
 #include <null_engine/util/geometry/matrix.hpp>
 
+#include "depth_buffer.hpp"
+
 namespace null_engine {
 
 namespace multithread::detail {
@@ -35,24 +37,31 @@ struct LightingMaterialSettings {
     Vec3 diffuse_color = Vec3(0.0, 0.0, 0.0);
     Vec3 specular_color = Vec3(0.0, 0.0, 0.0);
     FloatType shininess = 0.0;
+    bool shadow = true;
 };
 
 struct ILight {
     using LightDescription = multithread::detail::LightDescription;
+    using ShadowInfo = detail::ShadowInfo;
+    using DepthBuffer = detail::DepthBuffer;
 
     template <class Base>
     struct Interface : Base {
-        Vec3 CalculateLighting(const LightingMaterialSettings& settings) const {
-            return folly::poly_call<0>(*this, settings);
+        Vec3 CalculateLighting(const LightingMaterialSettings& settings, DepthBuffer depth) const {
+            return folly::poly_call<0>(*this, settings, depth);
         }
 
         LightDescription GetDescription() const {
             return folly::poly_call<1>(*this);
         }
+
+        std::optional<ShadowInfo> GetShadowInfo() const {
+            return folly::poly_call<2>(*this);
+        }
     };
 
     template <class T>
-    using Members = folly::PolyMembers<&T::CalculateLighting, &T::GetDescription>;
+    using Members = folly::PolyMembers<&T::CalculateLighting, &T::GetDescription, &T::GetShadowInfo>;
 };
 
 using AnyLight = folly::Poly<ILight>;

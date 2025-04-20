@@ -10,14 +10,18 @@ namespace null_engine {
 
 class AmbientLight {
     using LightDescription = ILight::LightDescription;
+    using ShadowInfo = ILight::ShadowInfo;
+    using DepthBuffer = ILight::DepthBuffer;
     using Program = multithread::detail::Program;
 
 public:
     explicit AmbientLight(FloatType strength);
 
-    Vec3 CalculateLighting(const LightingMaterialSettings& material) const;
+    Vec3 CalculateLighting(const LightingMaterialSettings& material, DepthBuffer depth) const;
 
     LightDescription GetDescription() const;
+
+    std::optional<ShadowInfo> GetShadowInfo() const;
 
     void ApplyTransform(const Transform& transform);
 
@@ -35,24 +39,42 @@ struct LightStrength {
 
 class DirectLight {
     using LightDescription = ILight::LightDescription;
+    using ShadowInfo = ILight::ShadowInfo;
+    using DepthBuffer = ILight::DepthBuffer;
     using Program = multithread::detail::Program;
 
 public:
+    struct ShadowSettings {
+        Vec3 position;
+        Vec3 size;
+        FloatType resolution;
+    };
+
     DirectLight(Vec3 direction, const LightStrength& strength);
 
-    Vec3 CalculateLighting(const LightingMaterialSettings& material) const;
+    DirectLight& SetupShadow(ShadowSettings settings);
+
+    Vec3 CalculateLighting(const LightingMaterialSettings& material, DepthBuffer depth) const;
 
     LightDescription GetDescription() const;
 
+    std::optional<ShadowInfo> GetShadowInfo() const;
+
     VerticesObject VisualizeLight(Vec3 position, Vec3 color = kWhite, FloatType scale = 1.0) const;
+
+    VerticesObject VisualizeShadowBox() const;
 
     void ApplyTransform(const Transform& transform);
 
     static Program GetKernelProgram();
 
 private:
+    ProjectiveTransform GetShadowSpaceTransform() const;
+
     Vec3 inversed_direction_;
     LightStrength strength_;
+    std::optional<ShadowSettings> shadow_settings_;
+    std::optional<ProjectiveTransform> shadow_space_;
 };
 
 struct AttenuationSettings {
@@ -63,14 +85,18 @@ struct AttenuationSettings {
 
 class PointLight {
     using LightDescription = ILight::LightDescription;
+    using ShadowInfo = ILight::ShadowInfo;
+    using DepthBuffer = ILight::DepthBuffer;
     using Program = multithread::detail::Program;
 
 public:
     PointLight(Vec3 position, const LightStrength& strength, const AttenuationSettings& attenuation = {});
 
-    Vec3 CalculateLighting(const LightingMaterialSettings& material) const;
+    Vec3 CalculateLighting(const LightingMaterialSettings& material, DepthBuffer depth) const;
 
     LightDescription GetDescription() const;
+
+    std::optional<ShadowInfo> GetShadowInfo() const;
 
     VerticesObject VisualizeLight(Vec3 color = kWhite, FloatType scale = 1.0) const;
 
@@ -86,6 +112,8 @@ private:
 
 class SpotLight {
     using LightDescription = ILight::LightDescription;
+    using ShadowInfo = ILight::ShadowInfo;
+    using DepthBuffer = ILight::DepthBuffer;
     using Program = multithread::detail::Program;
 
 public:
@@ -96,25 +124,42 @@ public:
         FloatType light_angle_ratio = 1.1;
     };
 
+    struct ShadowSettings {
+        FloatType min_distance;
+        FloatType max_distance;
+        FloatType resolution;
+    };
+
     SpotLight(const Settings& settings, const LightStrength& strength, const AttenuationSettings& attenuation = {});
 
-    Vec3 CalculateLighting(const LightingMaterialSettings& material) const;
+    SpotLight& SetupShadow(ShadowSettings settings);
+
+    Vec3 CalculateLighting(const LightingMaterialSettings& material, DepthBuffer depth) const;
 
     LightDescription GetDescription() const;
 
+    std::optional<ShadowInfo> GetShadowInfo() const;
+
     VerticesObject VisualizeLight(Vec3 color = kWhite, FloatType scale = 1.0) const;
+
+    // VerticesObject VisualizeShadowBox() const; TODO
 
     void ApplyTransform(const Transform& transform);
 
     static Program GetKernelProgram();
 
 private:
+    ProjectiveTransform GetShadowSpaceTransform() const;
+
     Vec3 position_;
     Vec3 inversed_direction_;
+    FloatType light_angle_;
     FloatType cut_in_;
     FloatType cut_out_;
     LightStrength strength_;
     AttenuationSettings attenuation_;
+    std::optional<ShadowSettings> shadow_settings_;
+    std::optional<ProjectiveTransform> shadow_space_;
 };
 
 namespace multithread::detail {

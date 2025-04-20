@@ -36,4 +36,8 @@ ProjectiveTransform PerspectiveProjection(
     FloatType fov, FloatType ratio, FloatType min_distance, FloatType max_distance
 );
 
+ProjectiveTransform ComposeCameraTransform(
+    const ProjectiveTransform& ndc_transform, const Transform& orientation_transform, Vec3 view_pos
+);
+
 }  // namespace null_engine

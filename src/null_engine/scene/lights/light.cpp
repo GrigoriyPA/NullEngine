@@ -6,8 +6,13 @@
 #include <null_engine/acceleration/helpers.hpp>
 #include <null_engine/acceleration/program.hpp>
 #include <null_engine/drawable_objects/primitive_objects.hpp>
+#include <null_engine/util/geometry/constants.hpp>
 #include <null_engine/util/geometry/helpers.hpp>
+#include <null_engine/util/geometry/matrix.hpp>
+#include <null_engine/util/geometry/vector.hpp>
+#include <null_engine/util/interface/helpers/constants.hpp>
 #include <numbers>
+#include <optional>
 
 namespace null_engine {
 
@@ -33,12 +38,48 @@ FloatType GetAttenuation(
     return 1.0 / (settings.constant + settings.linear * distance + settings.quadratic * distance * distance);
 }
 
+FloatType GetShadow(
+    const ProjectiveTransform& shadow_space, const ILight::DepthBuffer& depth, const LightingMaterialSettings& material
+) {
+    static constexpr FloatType kBias = 0.01;
+
+    if (!material.shadow) {
+        return 0.0;
+    }
+
+    Vec4 frag_pos = shadow_space * Vec4(material.frag_pos.x(), material.frag_pos.y(), material.frag_pos.z(), 1.0);
+    frag_pos /= frag_pos.w();
+    if (frag_pos.z() > 1.0) {
+        return 0.0;
+    }
+
+    FloatType shadow = 0.0;
+    const Vec2 tex_coords((frag_pos.x() + 1.0) / 2.0, (1.0 - frag_pos.y()) / 2.0);
+    const Vec2 texel_size = depth.GetTexelSize();
+    for (int32_t x = -1; x <= 1; ++x) {
+        for (int32_t y = -1; y <= 1; ++y) {
+            const FloatType tex_depth = depth.GetData(tex_coords + Vec2(x * texel_size.x(), y * texel_size.y()));
+            if (frag_pos.z() - kBias > tex_depth) {
+                shadow += 1.0;
+            }
+        }
+    }
+
+    return shadow / 9.0;
+}
+
+Transform GetOrientationTransform(Vec3 direction) {
+    const auto horizon = Horizon(direction).normalized();
+    return Basis(horizon, VectorProd(horizon, direction).normalized(), direction.normalized());
+}
+
 VerticesObject VisualizeDirectedLight(Vec3 position, Vec3 direction, Vec3 color, FloatType scale) {
     auto result = CreateDirectLightVisualization(color);
 
     const auto horizon = Horizon(direction);
     const auto vertical = VectorProd(horizon, direction);
     result.ApplyTransform(Translation(position) * Basis(horizon, vertical, direction) * Scale(scale));
+    result.SetMaterial({.shadow = false});
 
     return result;
 }
@@ -154,7 +195,7 @@ AmbientLight::AmbientLight(FloatType strength)
     : strength_(strength) {
 }
 
-Vec3 AmbientLight::CalculateLighting(const LightingMaterialSettings& material) const {
+Vec3 AmbientLight::CalculateLighting(const LightingMaterialSettings& material, DepthBuffer depth) const {
     return strength_ * material.diffuse_color;
 }
 
@@ -176,6 +217,10 @@ AmbientLight::LightDescription AmbientLight::GetDescription() const {
     };
 }
 
+std::optional<AmbientLight::ShadowInfo> AmbientLight::GetShadowInfo() const {
+    return std::nullopt;
+}
+
 void AmbientLight::ApplyTransform(const Transform& transform) {
 }
 
@@ -184,7 +229,13 @@ DirectLight::DirectLight(Vec3 direction, const LightStrength& strength)
     , strength_(strength) {
 }
 
-Vec3 DirectLight::CalculateLighting(const LightingMaterialSettings& material) const {
+DirectLight& DirectLight::SetupShadow(ShadowSettings settings) {
+    shadow_settings_ = settings;
+    shadow_space_ = GetShadowSpaceTransform();
+    return *this;
+}
+
+Vec3 DirectLight::CalculateLighting(const LightingMaterialSettings& material, DepthBuffer depth) const {
     Vec3 color = strength_.ambient * material.diffuse_color;
 
     const auto normal_diff = inversed_direction_.dot(material.normal);
@@ -192,8 +243,9 @@ Vec3 DirectLight::CalculateLighting(const LightingMaterialSettings& material) co
         return color;
     }
 
-    color += strength_.diffuse * normal_diff * material.diffuse_color;
-    color += GetSpecularColor(inversed_direction_, strength_, material);
+    const auto shadow = shadow_space_ ? 1.0 - GetShadow(*shadow_space_, depth, material) : 1.0;
+    color += shadow * strength_.diffuse * normal_diff * material.diffuse_color;
+    color += shadow * GetSpecularColor(inversed_direction_, strength_, material);
 
     return color;
 }
@@ -226,12 +278,55 @@ DirectLight::LightDescription DirectLight::GetDescription() const {
     };
 }
 
+std::optional<DirectLight::ShadowInfo> DirectLight::GetShadowInfo() const {
+    if (!shadow_settings_) {
+        return std::nullopt;
+    }
+
+    const auto position = shadow_settings_->position;
+    const auto size = shadow_settings_->size;
+    return DirectLight::ShadowInfo{
+        .shadow_width = static_cast<uint64_t>(size.x() / shadow_settings_->resolution),
+        .shadow_height = static_cast<uint64_t>(size.y() / shadow_settings_->resolution),
+        .transform = *shadow_space_,
+        .light_pos = position
+    };
+}
+
 VerticesObject DirectLight::VisualizeLight(Vec3 position, Vec3 color, FloatType scale) const {
     return VisualizeDirectedLight(position, -inversed_direction_, color, scale);
 }
 
+VerticesObject DirectLight::VisualizeShadowBox() const {
+    assert(shadow_settings_ && "Can not create shadow visualization without settings");
+
+    auto cube = CreateCube()
+                    .ApplyTransform(Translation(0.0, 0.0, 0.5))
+                    .ApplyTransform(Scale(shadow_settings_->size))
+                    .ApplyTransform(GetOrientationTransform(-inversed_direction_))
+                    .ApplyTransform(Translation(shadow_settings_->position))
+                    .SetColors(kBlack)
+                    .SetMaterial({.shadow = false});
+
+    return cube;
+}
+
 void DirectLight::ApplyTransform(const Transform& transform) {
     inversed_direction_ = (transform.linear() * inversed_direction_).normalized();
+    if (shadow_settings_) {
+        shadow_settings_->position = transform * shadow_settings_->position;
+        shadow_space_ = GetShadowSpaceTransform();
+    }
+}
+
+ProjectiveTransform DirectLight::GetShadowSpaceTransform() const {
+    assert(shadow_settings_ && "Can not get shadow space transform without settings");
+
+    const auto size = shadow_settings_->size;
+    return ComposeCameraTransform(
+        BoxProjection(size.x(), size.y(), size.z()), GetOrientationTransform(-inversed_direction_),
+        shadow_settings_->position
+    );
 }
 
 PointLight::PointLight(Vec3 position, const LightStrength& strength, const AttenuationSettings& attenuation)
@@ -240,7 +335,7 @@ PointLight::PointLight(Vec3 position, const LightStrength& strength, const Atten
     , attenuation_(attenuation) {
 }
 
-Vec3 PointLight::CalculateLighting(const LightingMaterialSettings& material) const {
+Vec3 PointLight::CalculateLighting(const LightingMaterialSettings& material, DepthBuffer depth) const {
     const auto attenuation = GetAttenuation(position_, attenuation_, material);
     Vec3 color = strength_.ambient * material.diffuse_color * attenuation;
 
@@ -300,6 +395,10 @@ PointLight::LightDescription PointLight::GetDescription() const {
     };
 }
 
+std::optional<PointLight::ShadowInfo> PointLight::GetShadowInfo() const {
+    return std::nullopt;
+}
+
 VerticesObject PointLight::VisualizeLight(Vec3 color, FloatType scale) const {
     auto result = CreatePointLightVisualization(color);
 
@@ -317,6 +416,7 @@ SpotLight::SpotLight(const Settings& settings, const LightStrength& strength, co
     , inversed_direction_(-settings.direction.normalized())
     , strength_(strength)
     , attenuation_(attenuation)
+    , light_angle_(settings.light_angle * settings.light_angle_ratio)
     , cut_in_(std::cos(settings.light_angle / 2.0))
     , cut_out_(std::cos(settings.light_angle * settings.light_angle_ratio / 2.0)) {
     assert(Less(0.0, settings.light_angle) && "Spot light angle shuld be at least zero");
@@ -327,7 +427,13 @@ SpotLight::SpotLight(const Settings& settings, const LightStrength& strength, co
     assert(Less(settings.light_angle * settings.light_angle_ratio, max_angle) && "Spot light angle ratio too large");
 }
 
-Vec3 SpotLight::CalculateLighting(const LightingMaterialSettings& material) const {
+SpotLight& SpotLight::SetupShadow(ShadowSettings settings) {
+    shadow_settings_ = settings;
+    shadow_space_ = GetShadowSpaceTransform();
+    return *this;
+}
+
+Vec3 SpotLight::CalculateLighting(const LightingMaterialSettings& material, DepthBuffer depth) const {
     auto attenuation = GetAttenuation(position_, attenuation_, material);
     Vec3 color = strength_.ambient * material.diffuse_color * attenuation;
 
@@ -345,8 +451,9 @@ Vec3 SpotLight::CalculateLighting(const LightingMaterialSettings& material) cons
     const auto theta = light_dir.dot(inversed_direction_);
     attenuation *= Clamp((theta - cut_out_) / (cut_in_ - cut_out_), 0.0, 1.0);
 
-    color += strength_.diffuse * normal_diff * material.diffuse_color * attenuation;
-    color += GetSpecularColor(light_dir, strength_, material) * attenuation;
+    const auto shadow = shadow_space_ ? 1.0 - GetShadow(*shadow_space_, depth, material) : 1.0;
+    color += shadow * strength_.diffuse * normal_diff * material.diffuse_color * attenuation;
+    color += shadow * GetSpecularColor(light_dir, strength_, material) * attenuation;
 
     return color;
 }
@@ -396,6 +503,19 @@ SpotLight::LightDescription SpotLight::GetDescription() const {
     };
 }
 
+std::optional<SpotLight::ShadowInfo> SpotLight::GetShadowInfo() const {
+    if (!shadow_settings_) {
+        return std::nullopt;
+    }
+
+    return SpotLight::ShadowInfo{
+        .shadow_width = 1024,  // TODO
+        .shadow_height = 1024,
+        .transform = *shadow_space_,
+        .light_pos = position_,
+    };
+}
+
 VerticesObject SpotLight::VisualizeLight(Vec3 color, FloatType scale) const {
     return VisualizeDirectedLight(position_, -inversed_direction_, color, scale);
 }
@@ -403,6 +523,18 @@ VerticesObject SpotLight::VisualizeLight(Vec3 color, FloatType scale) const {
 void SpotLight::ApplyTransform(const Transform& transform) {
     inversed_direction_ = (transform.linear() * inversed_direction_).normalized();
     position_ = transform * position_;
+    if (shadow_settings_) {
+        shadow_space_ = GetShadowSpaceTransform();
+    }
+}
+
+ProjectiveTransform SpotLight::GetShadowSpaceTransform() const {
+    assert(shadow_settings_ && "Can not get shadow space transform without settings");
+
+    return ComposeCameraTransform(
+        PerspectiveProjection(light_angle_, 1.0, shadow_settings_->min_distance, shadow_settings_->max_distance),
+        GetOrientationTransform(-inversed_direction_), position_
+    );
 }
 
 }  // namespace null_engine

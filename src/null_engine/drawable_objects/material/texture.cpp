@@ -85,11 +85,8 @@ Texture::Ptr Texture::LoadFromMemory(const void* data, size_t size) {
 }
 
 TextureView::TextureView(const Texture& texture, Vec3 outside_color)
-    : texture_(&texture)
-    , width_(texture.GetWidth())
-    , height_(texture.GetHeight())
-    , colors_(texture.GetColors())
-    , outside_color_(outside_color) {
+    : Base(texture.GetWidth(), texture.GetHeight(), texture.GetColors(), outside_color)
+    , texture_(&texture) {
 }
 
 uint64_t TextureView::GetWidth() const {
@@ -101,13 +98,7 @@ uint64_t TextureView::GetHeight() const {
 }
 
 Vec3 TextureView::GetColor(Vec2 position) const {
-    const int64_t x = std::floor(position.x() * width_);
-    const int64_t y = std::floor(position.y() * height_);
-
-    if (0 <= x && x < width_ && 0 <= y && y < height_) {
-        return colors_[x + y * width_];
-    }
-    return outside_color_;
+    return GetData(position);
 }
 
 const Texture::Buffer& TextureView::GetDeviceBuffer() const {

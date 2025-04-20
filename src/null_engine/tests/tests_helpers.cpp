@@ -2,6 +2,8 @@
 
 namespace null_engine::tests {
 
+using namespace native::detail;
+
 VerticesObject CreatePointsSet(uint64_t number_points, Vec3 offset, Vec2 size, Vec3 color) {
     VerticesObject object(number_points * number_points);
 
@@ -18,8 +20,8 @@ VerticesObject CreatePointsSet(uint64_t number_points, Vec3 offset, Vec2 size, V
 }
 
 void DrawPoints(
-    const native::detail::Rasterizer& rasterizer, native::detail::RasterizerBuffer& buffer,
-    const native::detail::FragmentShader& fragment_shader, uint64_t number_points, Vec3 offset, Vec2 size, Vec3 color
+    const Rasterizer& rasterizer, RasterizerBuffer& buffer, AnyFragmentShaderRef fragment_shader,
+    uint64_t number_points, Vec3 offset, Vec2 size, Vec3 color
 ) {
     const Vec2 step = size / number_points;
     for (uint64_t i = 0; i < number_points; ++i) {

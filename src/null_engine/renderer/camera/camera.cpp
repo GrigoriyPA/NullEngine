@@ -2,16 +2,6 @@
 
 namespace null_engine {
 
-namespace {
-
-ProjectiveTransform ComposeCameraTransform(
-    const ProjectiveTransform& ndc_transform, const Transform& orientation_transform, Vec3 view_pos
-) {
-    return ndc_transform * Transform(orientation_transform.matrix().transpose()) * Translation(-view_pos);
-}
-
-}  // anonymous namespace
-
 CameraBase::CameraBase(const CameraOrientation& orientation)
     : orientation_(orientation)
     , in_change_port_(std::bind(&CameraBase::OnCameraChange, this, std::placeholders::_1)) {

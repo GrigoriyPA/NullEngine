@@ -92,17 +92,24 @@ private:
 
 }  // anonymous namespace
 
-Rasterizer::Rasterizer(uint64_t view_width, uint64_t view_height)
-    : view_width_(view_width)
-    , view_height_(view_height) {
+Rasterizer::Rasterizer(ViewInfo view)
+    : view_width_(view.width)
+    , view_height_(view.height) {
 }
 
-void Rasterizer::DrawPoint(const InterpVertex& point, RasterizerBuffer& buffer, const FragmentShader& shader) const {
+void Rasterizer::UpdateView(ViewInfo view) {
+    view_width_ = view.width;
+    view_height_ = view.height;
+}
+
+void Rasterizer::DrawPoint(const InterpVertex& point, RasterizerBuffer& buffer, const AnyFragmentShaderRef& shader)
+    const {
     RasterizePoint(GetVertexInfo(point), buffer, shader);
 }
 
 void Rasterizer::DrawLine(
-    const InterpVertex& point_a, const InterpVertex& point_b, RasterizerBuffer& buffer, const FragmentShader& shader
+    const InterpVertex& point_a, const InterpVertex& point_b, RasterizerBuffer& buffer,
+    const AnyFragmentShaderRef& shader
 ) const {
     LineWalker walker(GetVertexInfo(point_a), GetVertexInfo(point_b));
     for (; !walker.Finished(); walker.Move()) {
@@ -112,7 +119,7 @@ void Rasterizer::DrawLine(
 
 void Rasterizer::DrawTriangle(
     const InterpVertex& point_a, const InterpVertex& point_b, const InterpVertex& point_c, RasterizerBuffer& buffer,
-    const FragmentShader& shader
+    const AnyFragmentShaderRef& shader
 ) const {
     auto info_a = GetVertexInfo(point_a);
     auto info_b = GetVertexInfo(point_b);
@@ -174,15 +181,17 @@ VertexInfo Rasterizer::GetVertexInfo(const InterpVertex& point) const {
     };
 }
 
-void Rasterizer::RasterizeHorizontalLine(HorizontalLine line, RasterizerBuffer& buffer, const FragmentShader& shader)
-    const {
+void Rasterizer::RasterizeHorizontalLine(
+    HorizontalLine line, RasterizerBuffer& buffer, const AnyFragmentShaderRef& shader
+) const {
     for (; !line.Finished(); line.Increment()) {
         RasterizePoint(line.GetVertex(), buffer, shader);
     }
 }
 
-void Rasterizer::RasterizePoint(const VertexInfo& vertex_info, RasterizerBuffer& buffer, const FragmentShader& shader)
-    const {
+void Rasterizer::RasterizePoint(
+    const VertexInfo& vertex_info, RasterizerBuffer& buffer, const AnyFragmentShaderRef& shader
+) const {
     if (!CheckPointPosition(vertex_info.x, vertex_info.y)) {
         return;
     }
@@ -205,18 +214,21 @@ bool Rasterizer::CheckPointDepth(int64_t x, int64_t y, FloatType z, RasterizerBu
     return buffer.depth[y * view_width_ + x] > z;
 }
 
-void Rasterizer::UpdateViewPixel(const VertexInfo& vertex_info, RasterizerBuffer& buffer, const FragmentShader& shader)
-    const {
+void Rasterizer::UpdateViewPixel(
+    const VertexInfo& vertex_info, RasterizerBuffer& buffer, const AnyFragmentShaderRef& shader
+) const {
     const uint64_t point_offset = vertex_info.y * view_width_ + vertex_info.x;
     buffer.depth[point_offset] = vertex_info.interpolation.GetZ();
 
-    auto color = shader.GetPointColor(vertex_info.interpolation.GetParams());
+    auto color = shader->GetPointColor(vertex_info.interpolation.GetParams());
     color = (color * 255.0).cwiseMax(0.0).cwiseMin(255.0);
 
-    buffer.colors[4 * point_offset] = static_cast<uint8_t>(color.x());
-    buffer.colors[4 * point_offset + 1] = static_cast<uint8_t>(color.y());
-    buffer.colors[4 * point_offset + 2] = static_cast<uint8_t>(color.z());
-    buffer.colors[4 * point_offset + 3] = 255;
+    if (!buffer.colors.empty()) {
+        buffer.colors[4 * point_offset] = static_cast<uint8_t>(color.x());
+        buffer.colors[4 * point_offset + 1] = static_cast<uint8_t>(color.y());
+        buffer.colors[4 * point_offset + 2] = static_cast<uint8_t>(color.z());
+        buffer.colors[4 * point_offset + 3] = 255;
+    }
 }
 
 }  // namespace native::detail
