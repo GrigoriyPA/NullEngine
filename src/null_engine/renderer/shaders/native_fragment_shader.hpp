@@ -12,7 +12,7 @@ class NoopFragmentShader {
     using InterpolationParams = null_engine::detail::InterpolationParams;
 
 public:
-    Vec3 GetPointColor(const InterpolationParams& params) const;
+    Vec4 GetPointColor(const InterpolationParams& params, bool& discard) const;
 };
 
 struct LightSettings {
@@ -28,7 +28,7 @@ public:
 
     Vec3 GetViewPos() const;
 
-    Vec3 GetPointColor(const InterpolationParams& params) const;
+    Vec4 GetPointColor(const InterpolationParams& params, bool& discard) const;
 
     void SetViewPos(Vec3 view_pos);
 

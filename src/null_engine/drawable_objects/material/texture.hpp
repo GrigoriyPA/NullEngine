@@ -16,7 +16,7 @@ public:
     using Ptr = std::unique_ptr<Texture>;
     using Buffer = boost::compute::image2d;
 
-    Texture(uint64_t width, uint64_t height, const std::vector<Vec3>& colors);
+    Texture(uint64_t width, uint64_t height, const std::vector<Vec4>& colors);
 
     Texture(uint64_t width, uint64_t height, const uint8_t* colors);
 
@@ -28,13 +28,13 @@ public:
 
     uint64_t GetHeight() const;
 
-    const Vec3* GetColors() const;
+    const Vec4* GetColors() const;
 
     const Buffer& GetDeviceBuffer() const;
 
     void ToDevice(multithread::AccelerationContext context);
 
-    static Texture::Ptr Monotonic(Vec3 color);
+    static Texture::Ptr Monotonic(Vec4 color);
 
     static Texture::Ptr LoadFromFile(const std::filesystem::path& file);
 
@@ -43,7 +43,7 @@ public:
 private:
     uint64_t width_;
     uint64_t height_;
-    std::vector<Vec3> colors_;
+    std::vector<Vec4> colors_;
     std::optional<boost::compute::image2d> image_buffer_;
 };
 
@@ -84,17 +84,17 @@ private:
     T outside_value_;
 };
 
-class TextureView : private BufferView<Vec3> {
-    using Base = BufferView<Vec3>;
+class TextureView : private BufferView<Vec4> {
+    using Base = BufferView<Vec4>;
 
 public:
-    explicit TextureView(const Texture& texture, Vec3 outside_color = kBlack);
+    explicit TextureView(const Texture& texture, Vec4 outside_color = kBlack);
 
     uint64_t GetWidth() const;
 
     uint64_t GetHeight() const;
 
-    Vec3 GetColor(Vec2 position) const;
+    Vec4 GetColor(Vec2 position) const;
 
     const Texture::Buffer& GetDeviceBuffer() const;
 

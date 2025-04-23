@@ -65,9 +65,9 @@ public:
 
     VerticesObject& SetPositions(const std::vector<Vec3>& positions);
 
-    VerticesObject& SetColors(const std::vector<Vec3>& colors);
+    VerticesObject& SetColors(const std::vector<Vec4>& colors);
 
-    VerticesObject& SetColors(Vec3 color);
+    VerticesObject& SetColors(Vec4 color);
 
     VerticesObject& SetNormals(const std::vector<Vec3>& normals);
 

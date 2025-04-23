@@ -21,6 +21,10 @@ Vec3 VectorProd(Vec3 left, Vec3 right);
 
 Vec3 Horizon(Vec3 vector);
 
+Vec3 Vec4ToVec3(Vec4 vector);
+
+Vec4 Vec3ToVec4(Vec3 vector, FloatType w);
+
 namespace multithread::detail {
 
 Program GetVectorFunctionsProgram();

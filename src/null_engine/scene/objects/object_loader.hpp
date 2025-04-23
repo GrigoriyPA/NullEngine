@@ -31,7 +31,7 @@ public:
 private:
     TextureView AddTexture(Texture::Ptr texture);
 
-    TextureView GetMonotonicTexture(aiColor3D color);
+    TextureView GetMonotonicTexture(aiColor4D color);
 
     std::optional<TextureView> LoadTexture(
         const std::filesystem::path& file, const aiScene* scene, const aiMaterial* material, aiTextureType type

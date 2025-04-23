@@ -30,6 +30,14 @@ Vec3 Horizon(Vec3 vector) {
     return Vec3(vector.z(), 0.0, -vector.x());
 }
 
+Vec3 Vec4ToVec3(Vec4 vector) {
+    return Vec3(vector.x(), vector.y(), vector.z());
+}
+
+Vec4 Vec3ToVec4(Vec3 vector, FloatType w) {
+    return Vec4(vector.x(), vector.y(), vector.z(), w);
+}
+
 namespace multithread::detail {
 
 Program GetVectorFunctionsProgram() {

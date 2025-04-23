@@ -34,7 +34,7 @@ VerticesObject CreateQuad(bool generate_normals) {
 }
 
 VerticesObject CreateCube() {
-    auto cube_face = CreateQuad(false).GenerateNormals().ApplyTransform(Translation(0.0, 0.0, -0.5));
+    auto cube_face = CreateQuad(true).ApplyTransform(Translation(0.0, 0.0, -0.5));
     auto cube = cube_face;
 
     const auto y_axis = Vec3(0.0, 1.0, 0.0);
@@ -52,7 +52,7 @@ VerticesObject CreateCube() {
     return cube;
 }
 
-VerticesObject CreateNormalsVisualization(const VerticesObject& object, Vec3 color, FloatType scale) {
+VerticesObject CreateNormalsVisualization(const VerticesObject& object, Vec4 color, FloatType scale) {
     VerticesObject result(2 * object.GetNumberVertices(), VerticesObject::Type::Lines);
 
     for (uint64_t i = 0; const auto& vertex : object.GetVertices()) {
@@ -63,7 +63,7 @@ VerticesObject CreateNormalsVisualization(const VerticesObject& object, Vec3 col
     return result;
 }
 
-VerticesObject CreateDirectLightVisualization(Vec3 color) {
+VerticesObject CreateDirectLightVisualization(Vec4 color) {
     const uint64_t number_vertices = 6;
     VerticesObject result(number_vertices, VerticesObject::Type::Lines);
 
@@ -84,7 +84,7 @@ VerticesObject CreateDirectLightVisualization(Vec3 color) {
     return result;
 }
 
-VerticesObject CreatePointLightVisualization(Vec3 color) {
+VerticesObject CreatePointLightVisualization(Vec4 color) {
     const uint64_t number_vertices = 6;
     VerticesObject result(number_vertices, VerticesObject::Type::Lines);
 

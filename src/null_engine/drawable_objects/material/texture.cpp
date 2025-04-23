@@ -13,7 +13,7 @@ namespace null_engine {
 
 namespace compute = boost::compute;
 
-Texture::Texture(uint64_t width, uint64_t height, const std::vector<Vec3>& colors)
+Texture::Texture(uint64_t width, uint64_t height, const std::vector<Vec4>& colors)
     : width_(width)
     , height_(height)
     , colors_(colors) {
@@ -25,7 +25,7 @@ Texture::Texture(uint64_t width, uint64_t height, const uint8_t* colors)
     , height_(height)
     , colors_(width * height) {
     for (size_t i = 0; i < colors_.size(); ++i) {
-        colors_[i] = Vec3(colors[4 * i], colors[4 * i + 1], colors[4 * i + 2]) / 255.0;
+        colors_[i] = Vec4(colors[4 * i], colors[4 * i + 1], colors[4 * i + 2], colors[4 * i + 3]) / 255.0;
     }
 }
 
@@ -37,7 +37,7 @@ uint64_t Texture::GetHeight() const {
     return height_;
 }
 
-const Vec3* Texture::GetColors() const {
+const Vec4* Texture::GetColors() const {
     return colors_.data();
 }
 
@@ -54,6 +54,7 @@ void Texture::ToDevice(multithread::AccelerationContext context) {
         pixels[4 * i] = colors_[i].x();
         pixels[4 * i + 1] = colors_[i].y();
         pixels[4 * i + 2] = colors_[i].z();
+        pixels[4 * i + 3] = colors_[i].w();
     }
 
     const compute::image_format format(CL_RGBA, CL_FLOAT);
@@ -66,7 +67,7 @@ void Texture::ToDevice(multithread::AccelerationContext context) {
     queue.enqueue_write_image(*image_buffer_, origin, region, pixels.data(), 0, 0);
 }
 
-Texture::Ptr Texture::Monotonic(Vec3 color) {
+Texture::Ptr Texture::Monotonic(Vec4 color) {
     return std::make_unique<Texture>(1, 1, std::vector{color});
 }
 
@@ -84,7 +85,7 @@ Texture::Ptr Texture::LoadFromMemory(const void* data, size_t size) {
     return std::make_unique<Texture>(image.getSize().x, image.getSize().y, image.getPixelsPtr());
 }
 
-TextureView::TextureView(const Texture& texture, Vec3 outside_color)
+TextureView::TextureView(const Texture& texture, Vec4 outside_color)
     : Base(texture.GetWidth(), texture.GetHeight(), texture.GetColors(), outside_color)
     , texture_(&texture) {
 }
@@ -97,7 +98,7 @@ uint64_t TextureView::GetHeight() const {
     return height_;
 }
 
-Vec3 TextureView::GetColor(Vec2 position) const {
+Vec4 TextureView::GetColor(Vec2 position) const {
     return GetData(position);
 }
 

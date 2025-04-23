@@ -1,6 +1,8 @@
 #include "native_rasterizer.hpp"
 
 #include <null_engine/util/generic/helpers.hpp>
+#include <null_engine/util/geometry/constants.hpp>
+#include <null_engine/util/geometry/helpers.hpp>
 
 #include "common.hpp"
 
@@ -217,17 +219,32 @@ bool Rasterizer::CheckPointDepth(int64_t x, int64_t y, FloatType z, RasterizerBu
 void Rasterizer::UpdateViewPixel(
     const VertexInfo& vertex_info, RasterizerBuffer& buffer, const AnyFragmentShaderRef& shader
 ) const {
-    const uint64_t point_offset = vertex_info.y * view_width_ + vertex_info.x;
+    bool discard = false;
+    const auto color_4d = shader->GetPointColor(vertex_info.interpolation.GetParams(), discard);
+    if (discard) {
+        return;
+    }
+
+    uint64_t point_offset = vertex_info.y * view_width_ + vertex_info.x;
     buffer.depth[point_offset] = vertex_info.interpolation.GetZ();
 
-    auto color = shader->GetPointColor(vertex_info.interpolation.GetParams());
-    color = (color * 255.0).cwiseMax(0.0).cwiseMin(255.0);
-
     if (!buffer.colors.empty()) {
-        buffer.colors[4 * point_offset] = static_cast<uint8_t>(color.x());
-        buffer.colors[4 * point_offset + 1] = static_cast<uint8_t>(color.y());
-        buffer.colors[4 * point_offset + 2] = static_cast<uint8_t>(color.z());
-        buffer.colors[4 * point_offset + 3] = 255;
+        point_offset *= 4;
+
+        const auto alpha = color_4d.w();
+        auto color = Vec4ToVec3(color_4d);
+        if (!Equal(alpha, 1.0)) {
+            const Vec3 last_color(
+                buffer.colors[point_offset], buffer.colors[point_offset + 1], buffer.colors[point_offset + 2]
+            );
+            color = color * alpha + (1.0 - alpha) * last_color / 255.0;
+        }
+        color = (color * 255.0).cwiseMax(0.0).cwiseMin(255.0);
+
+        buffer.colors[point_offset] = static_cast<uint8_t>(color.x());
+        buffer.colors[point_offset + 1] = static_cast<uint8_t>(color.y());
+        buffer.colors[point_offset + 2] = static_cast<uint8_t>(color.z());
+        buffer.colors[point_offset + 3] = 255;
     }
 }
 

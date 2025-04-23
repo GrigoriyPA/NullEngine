@@ -271,7 +271,7 @@ void Rasterizer::FillVerticesInfoBuffer(const std::vector<InterpVertex>& points)
 
         return VertexInfo{
             .pos = Vec4ToCl(position),
-            .color = Vec3ToCl(vertex.params.color),
+            .color = Vec3ToCl(Vec4ToVec3(vertex.params.color)),
             .normal = Vec3ToCl(vertex.params.normal),
             .tex_coords = Vec2ToCl(vertex.params.tex_coords),
             .frag_pos = Vec3ToCl(vertex.params.frag_pos),

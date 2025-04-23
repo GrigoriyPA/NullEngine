@@ -127,7 +127,7 @@ VerticesObject& VerticesObject::SetPositions(const std::vector<Vec3>& positions)
     return *this;
 }
 
-VerticesObject& VerticesObject::SetColors(const std::vector<Vec3>& colors) {
+VerticesObject& VerticesObject::SetColors(const std::vector<Vec4>& colors) {
     assert(colors.size() == vertices_.size() && "Number of colors and verticies should be equal");
 
     for (size_t i = 0; i < vertices_.size(); ++i) {
@@ -136,7 +136,7 @@ VerticesObject& VerticesObject::SetColors(const std::vector<Vec3>& colors) {
     return *this;
 }
 
-VerticesObject& VerticesObject::SetColors(Vec3 color) {
+VerticesObject& VerticesObject::SetColors(Vec4 color) {
     for (size_t i = 0; i < vertices_.size(); ++i) {
         vertices_[i].params.color = color;
     }

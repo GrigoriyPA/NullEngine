@@ -3,6 +3,7 @@
 #include <CL/cl_platform.h>
 
 #include <boost/compute/utility/source.hpp>
+#include <cmath>
 #include <null_engine/acceleration/helpers.hpp>
 #include <null_engine/acceleration/program.hpp>
 #include <null_engine/drawable_objects/primitive_objects.hpp>
@@ -73,7 +74,7 @@ Transform GetOrientationTransform(Vec3 direction) {
     return Basis(horizon, VectorProd(horizon, direction).normalized(), direction.normalized());
 }
 
-VerticesObject VisualizeDirectedLight(Vec3 position, Vec3 direction, Vec3 color, FloatType scale) {
+VerticesObject VisualizeDirectedLight(Vec3 position, Vec3 direction, Vec4 color, FloatType scale) {
     auto result = CreateDirectLightVisualization(color);
 
     const auto horizon = Horizon(direction);
@@ -293,7 +294,7 @@ std::optional<DirectLight::ShadowInfo> DirectLight::GetShadowInfo() const {
     };
 }
 
-VerticesObject DirectLight::VisualizeLight(Vec3 position, Vec3 color, FloatType scale) const {
+VerticesObject DirectLight::VisualizeLight(Vec3 position, Vec4 color, FloatType scale) const {
     return VisualizeDirectedLight(position, -inversed_direction_, color, scale);
 }
 
@@ -305,7 +306,7 @@ VerticesObject DirectLight::VisualizeShadowBox() const {
                     .ApplyTransform(Scale(shadow_settings_->size))
                     .ApplyTransform(GetOrientationTransform(-inversed_direction_))
                     .ApplyTransform(Translation(shadow_settings_->position))
-                    .SetColors(kBlack)
+                    .SetColors(Vec4(0.0, 0.0, 0.0, 0.7))
                     .SetMaterial({.shadow = false});
 
     return cube;
@@ -399,7 +400,7 @@ std::optional<PointLight::ShadowInfo> PointLight::GetShadowInfo() const {
     return std::nullopt;
 }
 
-VerticesObject PointLight::VisualizeLight(Vec3 color, FloatType scale) const {
+VerticesObject PointLight::VisualizeLight(Vec4 color, FloatType scale) const {
     auto result = CreatePointLightVisualization(color);
 
     result.ApplyTransform(Translation(position_) * Scale(scale));
@@ -508,16 +509,57 @@ std::optional<SpotLight::ShadowInfo> SpotLight::GetShadowInfo() const {
         return std::nullopt;
     }
 
+    const uint64_t size =
+        2.0 * std::tan(light_angle_ / 2) * shadow_settings_->max_distance / shadow_settings_->resolution;
     return SpotLight::ShadowInfo{
-        .shadow_width = 1024,  // TODO
-        .shadow_height = 1024,
+        .shadow_width = size,
+        .shadow_height = size,
         .transform = *shadow_space_,
         .light_pos = position_,
     };
 }
 
-VerticesObject SpotLight::VisualizeLight(Vec3 color, FloatType scale) const {
+VerticesObject SpotLight::VisualizeLight(Vec4 color, FloatType scale) const {
     return VisualizeDirectedLight(position_, -inversed_direction_, color, scale);
+}
+
+VerticesObject SpotLight::VisualizeShadowBox() const {
+    assert(shadow_settings_ && "Can not create shadow visualization without settings");
+
+    auto quad_face = CreateQuad(true).ApplyTransform(Scale(2.0)).ApplyTransform(Translation(0.0, 0.0, 1.0));
+    auto result = quad_face;
+    result.GenerateNormals(false);
+
+    const auto delt = shadow_settings_->min_distance / shadow_settings_->max_distance;
+    result.Merge(quad_face.ApplyTransform(Scale(delt)).GenerateNormals());
+
+    const std::vector<Vec3> positions = {
+        Vec3(1.0, -1.0, 1.0),
+        Vec3(1.0, 1.0, 1.0),
+        Vec3(delt, delt, delt),
+        Vec3(delt, -delt, delt),
+    };
+    const std::vector<uint64_t> indices = {0, 1, 2, 2, 3, 0};
+    auto side_face = VerticesObject(4, VerticesObject::Type::Triangles)
+                         .SetPositions(positions)
+                         .SetIndices(indices)
+                         .GenerateNormals(false);
+    result.Merge(side_face);
+
+    const auto z_axis = Vec3(0.0, 0.0, 1.0);
+    const auto z_rotation = Rotation(z_axis, std::numbers::pi / 2.0);
+    result.Merge(side_face.ApplyTransform(z_rotation));
+    result.Merge(side_face.ApplyTransform(z_rotation));
+    result.Merge(side_face.ApplyTransform(z_rotation));
+
+    const auto angle = std::tan(light_angle_ / 2);
+    result.ApplyTransform(Scale(shadow_settings_->max_distance * Vec3(angle, angle, 1.0)))
+        .ApplyTransform(GetOrientationTransform(-inversed_direction_))
+        .ApplyTransform(Translation(position_))
+        .SetColors(Vec4(0.0, 0.0, 0.0, 0.7))
+        .SetMaterial({.shadow = false});
+
+    return result;
 }
 
 void SpotLight::ApplyTransform(const Transform& transform) {

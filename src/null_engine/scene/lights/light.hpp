@@ -60,7 +60,7 @@ public:
 
     std::optional<ShadowInfo> GetShadowInfo() const;
 
-    VerticesObject VisualizeLight(Vec3 position, Vec3 color = kWhite, FloatType scale = 1.0) const;
+    VerticesObject VisualizeLight(Vec3 position, Vec4 color = kWhite, FloatType scale = 1.0) const;
 
     VerticesObject VisualizeShadowBox() const;
 
@@ -98,7 +98,7 @@ public:
 
     std::optional<ShadowInfo> GetShadowInfo() const;
 
-    VerticesObject VisualizeLight(Vec3 color = kWhite, FloatType scale = 1.0) const;
+    VerticesObject VisualizeLight(Vec4 color = kWhite, FloatType scale = 1.0) const;
 
     void ApplyTransform(const Transform& transform);
 
@@ -140,9 +140,9 @@ public:
 
     std::optional<ShadowInfo> GetShadowInfo() const;
 
-    VerticesObject VisualizeLight(Vec3 color = kWhite, FloatType scale = 1.0) const;
+    VerticesObject VisualizeLight(Vec4 color = kWhite, FloatType scale = 1.0) const;
 
-    // VerticesObject VisualizeShadowBox() const; TODO
+    VerticesObject VisualizeShadowBox() const;
 
     void ApplyTransform(const Transform& transform);
 

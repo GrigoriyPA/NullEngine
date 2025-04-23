@@ -8,7 +8,7 @@ namespace null_engine::detail {
 
 class InterpolationParams {
 public:
-    Vec3 color = Vec3(0.0, 0.0, 0.0);
+    Vec4 color = Vec3(0.0, 0.0, 0.0, 1.0);
     Vec3 normal = Vec3(0.0, 0.0, 0.0);
     Vec2 tex_coords = Vec2(0.0, 0.0);
     Vec3 frag_pos = Vec3(0.0, 0.0, 0.0);

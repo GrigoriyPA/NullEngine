@@ -145,7 +145,7 @@ SceneInfo::Ptr SceneInfo::LoadMjolnir(const Settings& settings, LightType light_
                 .specular_tex = result->GetTexture(TEX_MONOTONIC),
                 .shininess = 20.0,
             })
-            .SetColors(kWhite * 0.6),
+            .SetColors(Vec4(0.6, 0.6, 0.6, 1.0)),
         plane_instansce
     );
     result->GetScene().AddObject(std::move(plane));
@@ -179,9 +179,9 @@ SceneInfo::Ptr SceneInfo::LoadMjolnir(const Settings& settings, LightType light_
             result->AddSpotLight(
                 position, direction, kDefaultLightStrength, {.constant = 1.0, .quadratic = 0.01},
                 SpotLight::ShadowSettings{
-                    .min_distance = 0.1,
-                    .max_distance = 50.0,
-                    .resolution = 0.01,
+                    .min_distance = 1,
+                    .max_distance = 15.0,
+                    .resolution = 0.03,
                 }
             );
             break;
@@ -297,6 +297,7 @@ SceneInfo& SceneInfo::AddSpotLight(
     );
     if (shadow) {
         light.SetupShadow(*shadow);
+        // scene_.EmplaceObject(light.VisualizeShadowBox());
     }
 
     scene_.AddLight(light);

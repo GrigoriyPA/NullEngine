@@ -83,8 +83,8 @@ TextureView ObjectLoader::AddTexture(Texture::Ptr texture) {
     return TextureView(*textures_.emplace_back(std::move(texture)));
 }
 
-TextureView ObjectLoader::GetMonotonicTexture(aiColor3D color) {
-    return AddTexture(Texture::Monotonic(Vec3(color.r, color.g, color.b)));
+TextureView ObjectLoader::GetMonotonicTexture(aiColor4D color) {
+    return AddTexture(Texture::Monotonic(Vec4(color.r, color.g, color.b, color.a)));
 }
 
 std::optional<TextureView> ObjectLoader::LoadTexture(
@@ -151,7 +151,7 @@ Material ObjectLoader::LoadMaterial(
 ) {
     Material result;
 
-    if (aiColor3D color; material->Get(AI_MATKEY_COLOR_DIFFUSE, color) == aiReturn_SUCCESS) {
+    if (aiColor4D color; material->Get(AI_MATKEY_COLOR_DIFFUSE, color) == aiReturn_SUCCESS) {
         result.diffuse_tex = GetMonotonicTexture(color);
     }
     if (const auto tex = LoadTexture(file, scene, material, aiTextureType_DIFFUSE)) {
@@ -161,7 +161,7 @@ Material ObjectLoader::LoadMaterial(
         result.diffuse_tex = tex;
     }
 
-    if (aiColor3D color; material->Get(AI_MATKEY_COLOR_SPECULAR, color) == aiReturn_SUCCESS) {
+    if (aiColor4D color; material->Get(AI_MATKEY_COLOR_SPECULAR, color) == aiReturn_SUCCESS) {
         result.specular_tex = GetMonotonicTexture(color);
     }
     if (const auto tex = LoadTexture(file, scene, material, aiTextureType_SPECULAR)) {
@@ -171,7 +171,7 @@ Material ObjectLoader::LoadMaterial(
         result.specular_tex = tex;
     }
 
-    if (aiColor3D color; material->Get(AI_MATKEY_COLOR_EMISSIVE, color) == aiReturn_SUCCESS) {
+    if (aiColor4D color; material->Get(AI_MATKEY_COLOR_EMISSIVE, color) == aiReturn_SUCCESS) {
         result.emission_tex = GetMonotonicTexture(color);
     }
     if (const auto tex = LoadTexture(file, scene, material, aiTextureType_EMISSIVE)) {
@@ -247,10 +247,7 @@ VerticesObject ObjectLoader::LoadMesh(const aiMesh* mesh) const {
         }
         for (uint32_t i = 0; i < mesh->mNumVertices; ++i) {
             const auto& color = mesh->mColors[0][i];
-            if (!Equal(color.a, 1.0)) {
-                ReportLoadWarning("mesh colors loading, ignored alpha component");
-            }
-            vertices[i].params.color = Vec3(color.r, color.g, color.b);
+            vertices[i].params.color = Vec4(color.r, color.g, color.b, color.a);
         }
     }
 

@@ -8,10 +8,10 @@ VerticesObject CreateQuad(bool generate_normals);
 
 VerticesObject CreateCube();
 
-VerticesObject CreateNormalsVisualization(const VerticesObject& object, Vec3 color, FloatType scale = 1.0);
+VerticesObject CreateNormalsVisualization(const VerticesObject& object, Vec4 color, FloatType scale = 1.0);
 
-VerticesObject CreateDirectLightVisualization(Vec3 color);
+VerticesObject CreateDirectLightVisualization(Vec4 color);
 
-VerticesObject CreatePointLightVisualization(Vec3 color);
+VerticesObject CreatePointLightVisualization(Vec4 color);
 
 }  // namespace null_engine

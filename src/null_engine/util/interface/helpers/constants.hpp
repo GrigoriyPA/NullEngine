@@ -4,10 +4,10 @@
 
 namespace null_engine {
 
-const Vec3 kBlack = Vec3(0.0, 0.0, 0.0);
-const Vec3 kWhite = Vec3(1.0, 1.0, 1.0);
-const Vec3 kRed = Vec3(1.0, 0.0, 0.0);
-const Vec3 kGreen = Vec3(0.0, 1.0, 0.0);
-const Vec3 kBlue = Vec3(0.0, 0.0, 1.0);
+const Vec4 kBlack = Vec4(0.0, 0.0, 0.0, 1.0);
+const Vec4 kWhite = Vec4(1.0, 1.0, 1.0, 1.0);
+const Vec4 kRed = Vec4(1.0, 0.0, 0.0, 1.0);
+const Vec4 kGreen = Vec4(0.0, 1.0, 0.0, 1.0);
+const Vec4 kBlue = Vec4(0.0, 0.0, 1.0, 1.0);
 
 }  // namespace null_engine

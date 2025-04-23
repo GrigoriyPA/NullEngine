@@ -14,8 +14,8 @@ struct IFragmentShader {
 
     template <class Base>
     struct Interface : Base {
-        Vec3 GetPointColor(const InterpolationParams& params) const {
-            return folly::poly_call<0>(*this, params);
+        Vec4 GetPointColor(const InterpolationParams& params, bool& discard) const {
+            return folly::poly_call<0>(*this, params, discard);
         }
     };
 

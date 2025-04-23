@@ -5,7 +5,7 @@
 namespace null_engine {
 
 struct VertexParams {
-    Vec3 color = Vec3(0.0, 0.0, 0.0);
+    Vec4 color = Vec4(0.0, 0.0, 0.0, 1.0);
     Vec3 normal = Vec3(0.0, 0.0, 0.0);
     Vec2 tex_coords = Vec2(0.0, 0.0);
 };
