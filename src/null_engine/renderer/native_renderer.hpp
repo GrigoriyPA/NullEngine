@@ -35,6 +35,7 @@ private:
         RasterizerBuffer& buffer;
         Vec3 view_pos;
         ProjectiveTransform camera_transform;
+        Transform object_transform;
     };
 
     void RenderObject(const VerticesObject& object, const std::vector<Transform>& instances, RenderingContext& context);
@@ -55,7 +56,6 @@ private:
     Rasterizer rasterizer_;
     DepthFragmentShader depth_fragment_shader_;
     MainFragmentShader main_fragment_shader_;
-    Transform object_transform_;
     OutPort<TextureData>::Ptr out_texture_port_ = OutPort<TextureData>::Make();
 };
 

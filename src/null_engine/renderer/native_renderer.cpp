@@ -84,7 +84,7 @@ void Renderer::RenderObject(
     const VerticesObject& object, const std::vector<Transform>& instances, RenderingContext& context
 ) {
     for (const auto& instance_transform : instances) {
-        object_transform_ = instance_transform;
+        context.object_transform = instance_transform;
 
         if (object.IsPointsObject()) {
             RenderPointsObject(object, context);
@@ -101,7 +101,8 @@ void Renderer::RenderObject(
 void Renderer::RenderPointsObject(const VerticesObject& object, RenderingContext& context) {
     assert(object.IsPointsObject() && "Unexpected object type");
 
-    const auto& vertices = ConvertObjectVerices(context.camera_transform, object_transform_, object.GetVertices());
+    const auto& vertices =
+        ConvertObjectVerices(context.camera_transform, context.object_transform, object.GetVertices());
     for (uint64_t index : object.GetIndices()) {
         const auto& point = vertices[index];
         if (!Equal(point.position.w(), 0.0)) {
@@ -114,7 +115,7 @@ void Renderer::RenderLinesObject(const VerticesObject& object, RenderingContext&
     assert(object.IsLinesObject() && "Unexpected object type");
 
     const auto clipped = clipper_.ClipLines(
-        ConvertObjectVerices(context.camera_transform, object_transform_, object.GetVertices()),
+        ConvertObjectVerices(context.camera_transform, context.object_transform, object.GetVertices()),
         object.GetLinesIndices()
     );
 
@@ -129,7 +130,8 @@ void Renderer::RenderTrianglesObject(const VerticesObject& object, RenderingCont
     assert(object.IsTrianglesObject() && "Unexpected object type");
 
     const auto clipped = clipper_.ClipTriangles(
-        context.view_pos, ConvertObjectVerices(context.camera_transform, object_transform_, object.GetVertices()),
+        context.view_pos,
+        ConvertObjectVerices(context.camera_transform, context.object_transform, object.GetVertices()),
         object.GetTriangleIndices()
     );
 

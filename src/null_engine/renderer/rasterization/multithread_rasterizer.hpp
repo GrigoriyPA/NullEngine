@@ -8,7 +8,7 @@
 #include <null_engine/acceleration/buffer.hpp>
 #include <null_engine/acceleration/kernel.hpp>
 #include <null_engine/drawable_objects/vertices_object.hpp>
-#include <null_engine/renderer/shaders/multithread_fragment_shader.hpp>
+#include <null_engine/renderer/shaders/fragment_shader_interface.hpp>
 #include <null_engine/renderer/shaders/vertex_shader.hpp>
 
 namespace null_engine::multithread::detail {
@@ -21,17 +21,25 @@ struct RasterizerBuffer {
 class Rasterizer {
 public:
     struct ViewInfo {
-        uint64_t width;
-        uint64_t height;
+        uint64_t width = 0;
+        uint64_t height = 0;
     };
 
 private:
+    static constexpr cl_int2 kWorkShape = {.x = 16, .y = 16};
+    static constexpr uint32_t kTrianglesInBatch = 200;
+    static constexpr uint32_t kNumberWorks = 10;
+
     using TriangleIndex = null_engine::detail::TriangleIndex;
     using InterpVertex = null_engine::detail::InterpVertex;
 
+    struct WorkBatch {
+        cl_int3 triangles[kTrianglesInBatch];
+    };
+
     struct SharedBuffers {
-        compute::buffer work_batches;
-        compute::buffer number_triangles;
+        DynamicBuffer<WorkBatch> work_batches;
+        DynamicBuffer<cl_int> number_triangles;
     };
 
     class RasterizationKernel {
@@ -49,11 +57,13 @@ private:
 
     public:
         explicit RasterizationKernel(
-            ViewInfo view, const SharedBuffers& buffers, const FragmentShader& fragment_shader,
+            ViewInfo view, const SharedBuffers& buffers, AnyFragmentShaderRef fragment_shader,
             AccelerationContext context
         );
 
-        static Program GetProgram(const FragmentShader& fragment_shader);
+        void UpdateView(ViewInfo view, const SharedBuffers& buffers);
+
+        static Program GetProgram(AnyFragmentShaderRef fragment_shader);
 
         Kernel::Args GetShaderArgs();
 
@@ -79,6 +89,8 @@ private:
     public:
         DistributionKernel(ViewInfo view, const SharedBuffers& buffers, AccelerationContext context);
 
+        void UpdateView(ViewInfo view, const SharedBuffers& buffers);
+
         static Program GetProgram();
 
         void Run(const compute::buffer& vertices_info_buffer, const std::vector<TriangleIndex>& indices);
@@ -99,6 +111,8 @@ private:
     public:
         CleanupKernel(ViewInfo view, const SharedBuffers& buffers, AccelerationContext context);
 
+        void UpdateView(ViewInfo view, const SharedBuffers& buffers);
+
         static Program GetProgram();
 
         void Run();
@@ -108,16 +122,12 @@ private:
         Kernel kernel_;
     };
 
-    static constexpr cl_int2 kWorkShape = {.x = 16, .y = 16};
-    static constexpr uint32_t kTrianglesInBatch = 200;
-    static constexpr uint32_t kNumberWorks = 10;
-
 public:
-    Rasterizer(ViewInfo view, const FragmentShader& fragment_shader, AccelerationContext context);
+    Rasterizer(ViewInfo view, AnyFragmentShaderRef fragment_shader, AccelerationContext context);
 
-    void SetSceneInfo(const FragmentShader& shader, Vec3 view_pos, const std::vector<AnyLight>& lights);
+    void UpdateView(ViewInfo view);
 
-    void SetMaterialInfo(const FragmentShader& shader, const Material& material);
+    Kernel::Args GetShaderArgs();
 
     void DrawTriangles(
         const std::vector<InterpVertex>& points, const std::vector<TriangleIndex>& indices, RasterizerBuffer& buffer
@@ -134,14 +144,10 @@ private:
 
     struct VertexInfo {
         cl_float4 pos;
-        cl_float3 color;
+        cl_float4 color;
         cl_float3 normal;
         cl_float2 tex_coords;
         cl_float3 frag_pos;
-    };
-
-    struct WorkBatch {
-        cl_int3 triangles[kTrianglesInBatch];
     };
 
     AccelerationContext context_;

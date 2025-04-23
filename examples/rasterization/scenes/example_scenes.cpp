@@ -297,7 +297,7 @@ SceneInfo& SceneInfo::AddSpotLight(
     );
     if (shadow) {
         light.SetupShadow(*shadow);
-        // scene_.EmplaceObject(light.VisualizeShadowBox());
+        scene_.EmplaceObject(light.VisualizeShadowBox());
     }
 
     scene_.AddLight(light);

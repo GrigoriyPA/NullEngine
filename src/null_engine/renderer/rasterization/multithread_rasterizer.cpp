@@ -22,19 +22,28 @@ using namespace detail;
 namespace multithread::detail {
 
 Rasterizer::RasterizationKernel::RasterizationKernel(
-    ViewInfo view, const SharedBuffers& buffers, const FragmentShader& fragment_shader, AccelerationContext context
+    ViewInfo view, const SharedBuffers& buffers, AnyFragmentShaderRef fragment_shader, AccelerationContext context
 )
-    : view_size_({.x = static_cast<cl_int>(view.height), .y = static_cast<cl_int>(view.width)})
-    , kernel_("TriangleRasterization", GetProgram(fragment_shader), context) {
+    : kernel_("TriangleRasterization", GetProgram(fragment_shader), context) {
+    UpdateView(view, buffers);
+}
+
+void Rasterizer::RasterizationKernel::UpdateView(ViewInfo view, const SharedBuffers& buffers) {
+    view_size_ = {.x = static_cast<cl_int>(view.height), .y = static_cast<cl_int>(view.width)};
+
     kernel_.MutableArgs()
         .SetVal(KA_VIEW_SIZE, view_size_)
         .SetVal(KA_WORK_SIZE, GetWorkSize(view))
-        .SetVal(KA_WORK, buffers.work_batches)
-        .SetVal(KA_NUMBER_TRIANGLES, buffers.number_triangles);
+        .SetVal(KA_WORK, buffers.work_batches.GetBuffer())
+        .SetVal(KA_NUMBER_TRIANGLES, buffers.number_triangles.GetBuffer());
 }
 
-Program Rasterizer::RasterizationKernel::GetProgram(const FragmentShader& fragment_shader) {
+Program Rasterizer::RasterizationKernel::GetProgram(AnyFragmentShaderRef fragment_shader) {
     static constexpr std::string_view kRasterizerSource = BOOST_COMPUTE_STRINGIZE_SOURCE(
+        float4 weighted_sumf4(float4 a, float4 b, float4 c, float3 perspective) {
+            return a * perspective.x + b * perspective.y + c * perspective.z;
+        }
+
         float3 weighted_sumf3(float3 a, float3 b, float3 c, float3 perspective) {
             return a * perspective.x + b * perspective.y + c * perspective.z;
         }
@@ -44,8 +53,9 @@ Program Rasterizer::RasterizationKernel::GetProgram(const FragmentShader& fragme
         }
 
         __kernel void TriangleRasterization(
-            int2 view_size, __write_only image2d_t view, __global float* depth, int2 work_size,
-            __global WorkBatch* works, __global VertexInfo* points, __global int* numbers_triangles, int work_offset,
+            int2 view_size, __read_write image2d_t view, __global float* depth, int2 work_size,
+            __global WorkBatch* works, __global VertexInfo* points, __global int* numbers_triangles,
+            int work_offset
             // clang-format off
             <|FRAGMENT_SHADER_ARGS|>
             // clang-format on
@@ -93,7 +103,7 @@ Program Rasterizer::RasterizationKernel::GetProgram(const FragmentShader& fragme
                 const float3 pos_w = (float3)(point_a.pos.w, point_b.pos.w, point_c.pos.w);
                 const float3 perspective = barycentric * pos_w / dot(pos_w, barycentric);
                 const InterpolationParams params = {
-                    .color = weighted_sumf3(point_a.color, point_b.color, point_c.color, perspective),
+                    .color = weighted_sumf4(point_a.color, point_b.color, point_c.color, perspective),
                     .normal = weighted_sumf3(point_a.normal, point_b.normal, point_c.normal, perspective),
                     .tex_coords =
                         weighted_sumf2(point_a.tex_coords, point_b.tex_coords, point_c.tex_coords, perspective),
@@ -101,8 +111,16 @@ Program Rasterizer::RasterizationKernel::GetProgram(const FragmentShader& fragme
                 };
 
                 // clang-format off
-                const float3 color = CalculateFragmentColor(<|FRAGMENT_SHADER_CALL|>, &params);
+                bool discard = false;
+                const float4 color_4d = CalculateFragmentColor(<|FRAGMENT_SHADER_CALL|> &params, &discard);
                 // clang-format on
+
+                const float alpha = color_4d.w;
+                float3 color = color_4d.xyz;
+                if (alpha < 1.0f - kEps) {
+                    const float3 last_color = read_imagef(view, (int2)(i.x, i.y)).xyz;
+                    color = color * alpha + (1.0f - alpha) * last_color;
+                }
 
                 write_imagef(view, (int2)(i.x, i.y), (float4)(color, 1.0f));
                 depth[i.x * view_size.y + i.y] = z;
@@ -110,13 +128,14 @@ Program Rasterizer::RasterizationKernel::GetProgram(const FragmentShader& fragme
         }
     );
 
-    const auto& shader_args = fragment_shader.GetArgs();
+    const auto& shader_args = fragment_shader->GetArgs();
     return ProgramBuilder("Rasterizer", kRasterizerSource)
         .Define("TRAINGLES_IN_BATCH", kTrianglesInBatch)
         .Replace("FRAGMENT_SHADER_ARGS", shader_args.GetArgsDefenition())
         .Replace("FRAGMENT_SHADER_CALL", shader_args.GetArgsForward())
         .Include(GetVectorFunctionsProgram())
-        .Include(fragment_shader.GetProgram())
+        .Include(GetFragmentShaderDefenitions())
+        .Include(fragment_shader->GetProgram())
         .Include(GetRasterizerDefenitions())
         .Build();
 }
@@ -142,10 +161,14 @@ Rasterizer::DistributionKernel::DistributionKernel(
 )
     : indices_(context)
     , kernel_("RasterizerDistribution", GetProgram(), context) {
+    UpdateView(view, buffers);
+}
+
+void Rasterizer::DistributionKernel::UpdateView(ViewInfo view, const SharedBuffers& buffers) {
     kernel_.MutableArgs()
         .SetVal(KA_WORK_SIZE, GetWorkSize(view))
-        .SetVal(KA_WORK, buffers.work_batches)
-        .SetVal(KA_NUMBER_TRIANGLES, buffers.number_triangles);
+        .SetVal(KA_WORK, buffers.work_batches.GetBuffer())
+        .SetVal(KA_NUMBER_TRIANGLES, buffers.number_triangles.GetBuffer());
 }
 
 Program Rasterizer::DistributionKernel::GetProgram() {
@@ -211,9 +234,16 @@ void Rasterizer::DistributionKernel::Run(
 }
 
 Rasterizer::CleanupKernel::CleanupKernel(ViewInfo view, const SharedBuffers& buffers, AccelerationContext context)
-    : work_size_(GetWorkSize(view))
-    , kernel_("RasterizerCleanup", GetProgram(), context) {
-    kernel_.MutableArgs().SetVal(KA_WORK_SIZE, work_size_).SetVal(KA_NUMBER_TRIANGLES, buffers.number_triangles);
+    : kernel_("RasterizerCleanup", GetProgram(), context) {
+    UpdateView(view, buffers);
+}
+
+void Rasterizer::CleanupKernel::UpdateView(ViewInfo view, const SharedBuffers& buffers) {
+    work_size_ = GetWorkSize(view);
+
+    kernel_.MutableArgs()
+        .SetVal(KA_WORK_SIZE, work_size_)
+        .SetVal(KA_NUMBER_TRIANGLES, buffers.number_triangles.GetBuffer());
 }
 
 Program Rasterizer::CleanupKernel::GetProgram() {
@@ -233,7 +263,7 @@ void Rasterizer::CleanupKernel::Run() {
     kernel_.Run(work_size_, kLocalSize);
 }
 
-Rasterizer::Rasterizer(ViewInfo view, const FragmentShader& fragment_shader, AccelerationContext context)
+Rasterizer::Rasterizer(ViewInfo view, AnyFragmentShaderRef fragment_shader, AccelerationContext context)
     : context_(context)
     , shared_buffers_(CreateBuffers(view))
     , vertices_info_(context_)
@@ -242,12 +272,19 @@ Rasterizer::Rasterizer(ViewInfo view, const FragmentShader& fragment_shader, Acc
     , cleanup_kernel_(view, shared_buffers_, context) {
 }
 
-void Rasterizer::SetSceneInfo(const FragmentShader& shader, Vec3 view_pos, const std::vector<AnyLight>& lights) {
-    shader.FillSceneInfo(rasterization_kernel_.GetShaderArgs(), view_pos, lights);
+void Rasterizer::UpdateView(ViewInfo view) {
+    const auto work_size = GetWorkSize(view);
+    const auto buffer_size = work_size.x * work_size.y;
+    shared_buffers_.work_batches.Reserve(kNumberWorks * buffer_size);
+    shared_buffers_.number_triangles.Reserve(buffer_size);
+
+    rasterization_kernel_.UpdateView(view, shared_buffers_);
+    distribution_kernel_.UpdateView(view, shared_buffers_);
+    cleanup_kernel_.UpdateView(view, shared_buffers_);
 }
 
-void Rasterizer::SetMaterialInfo(const FragmentShader& shader, const Material& material) {
-    shader.FillMaterialInfo(rasterization_kernel_.GetShaderArgs(), material);
+Kernel::Args Rasterizer::GetShaderArgs() {
+    return rasterization_kernel_.GetShaderArgs();
 }
 
 void Rasterizer::DrawTriangles(
@@ -271,7 +308,7 @@ void Rasterizer::FillVerticesInfoBuffer(const std::vector<InterpVertex>& points)
 
         return VertexInfo{
             .pos = Vec4ToCl(position),
-            .color = Vec3ToCl(Vec4ToVec3(vertex.params.color)),
+            .color = Vec4ToCl(vertex.params.color),
             .normal = Vec3ToCl(vertex.params.normal),
             .tex_coords = Vec2ToCl(vertex.params.tex_coords),
             .frag_pos = Vec3ToCl(vertex.params.frag_pos),
@@ -282,11 +319,9 @@ void Rasterizer::FillVerticesInfoBuffer(const std::vector<InterpVertex>& points)
 Rasterizer::SharedBuffers Rasterizer::CreateBuffers(const ViewInfo& view) {
     const auto work_size = GetWorkSize(view);
     const auto buffer_size = work_size.x * work_size.y;
-
-    auto& ctx = context_.GetContext();
     return {
-        .work_batches = compute::buffer(ctx, kNumberWorks * buffer_size * sizeof(WorkBatch)),
-        .number_triangles = compute::buffer(ctx, buffer_size * sizeof(cl_int)),
+        .work_batches = DynamicBuffer<WorkBatch>(context_, kNumberWorks * buffer_size),
+        .number_triangles = DynamicBuffer<cl_int>(context_, buffer_size),
     };
 }
 
@@ -298,7 +333,7 @@ Program Rasterizer::GetRasterizerDefenitions() {
     static constexpr std::string_view kRasterizerDefenitionsSource = BOOST_COMPUTE_STRINGIZE_SOURCE(
         typedef struct {
             float4 pos;
-            float3 color;
+            float4 color;
             float3 normal;
             float2 tex_coords;
             float3 frag_pos;

@@ -132,11 +132,7 @@ std::string ArgsInfo::GetArgsDefenition() const {
     std::stringstream result;
     for (size_t i = 0; i < args_.size(); ++i) {
         const auto& arg = args_[i];
-        result << arg.type << " " << arg.name;
-
-        if (i + 1 < args_.size()) {
-            result << ", ";
-        }
+        result << ", " << arg.type << " " << arg.name;
     }
     return result.str();
 }
@@ -148,11 +144,7 @@ std::string ArgsInfo::GetArgsForward() const {
         if (arg.use_ptr) {
             result << "&";
         }
-        result << arg.name;
-
-        if (i + 1 < args_.size()) {
-            result << ", ";
-        }
+        result << arg.name << ", ";
     }
     return result.str();
 }

@@ -8,17 +8,31 @@
 
 namespace null_engine::multithread::detail {
 
-class FragmentShader {
+class NoopFragmentShader {
+public:
+    Program GetProgram() const;
+
+    ArgsInfo GetArgs() const;
+};
+
+class MainFragmentShader {
 public:
     static constexpr uint32_t kMaxNumberLights = 1;
 
-    explicit FragmentShader(AccelerationContext context);
+    struct ShadowsMaps {
+        compute::buffer depth_buffer;
+        cl_int buffer_offsets[kMaxNumberLights];
+    };
 
-    static Program GetProgram();
+    explicit MainFragmentShader(AccelerationContext context);
 
-    static ArgsInfo GetArgs();
+    Program GetProgram() const;
 
-    void FillSceneInfo(Kernel::Args kernel_args, Vec3 view_pos, const std::vector<AnyLight>& lights) const;
+    ArgsInfo GetArgs() const;
+
+    void FillSceneInfo(
+        Kernel::Args kernel_args, Vec3 view_pos, const std::vector<AnyLight>& lights, const ShadowsMaps& shadows_info
+    ) const;
 
     void FillMaterialInfo(Kernel::Args kernel_args, const Material& material) const;
 
@@ -48,5 +62,7 @@ private:
 
     compute::image2d empty_texture_;
 };
+
+Program GetFragmentShaderDefenitions();
 
 }  // namespace null_engine::multithread::detail
