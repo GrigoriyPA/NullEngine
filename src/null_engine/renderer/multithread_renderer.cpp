@@ -19,11 +19,11 @@ using namespace detail;
 Renderer::CleanupMainKernel::CleanupMainKernel(
     const RendererSettings& settings, const Buffer& buffer, AccelerationContext context
 )
-    : view_size_({.x = static_cast<cl_int>(settings.view_height), .y = static_cast<cl_int>(settings.view_width)})
+    : view_size_({.x = static_cast<cl_int>(settings.view_width), .y = static_cast<cl_int>(settings.view_height)})
     , kernel_("ClearBuffer", GetProgram(), context) {
     kernel_.MutableArgs()
         .SetVal(KA_VIEW_SIZE, view_size_)
-        .SetVal(KA_VIEW, buffer.rasterizer_buffer.colors)
+        .SetVal(KA_VIEW, *buffer.rasterizer_buffer.colors)
         .SetVal(KA_DEPTH, buffer.rasterizer_buffer.depth)
         .SetVal(KA_COLOR, Vec3ToCl(settings.background_color));
 }
@@ -89,11 +89,13 @@ void Renderer::SubscribeToTextures(InPort<GLuint>* observer_port) const {
 
 void Renderer::OnRenderEvent(const RenderEvent& render_event) {
     auto& queue = context_.GetQueue();
-    compute::opengl_enqueue_acquire_gl_objects(1, &main_buffer_.rasterizer_buffer.colors.get(), queue);
+    compute::opengl_enqueue_acquire_gl_objects(1, &main_buffer_.rasterizer_buffer.colors->get(), queue);
 
-    RenderScene(render_event.scene, render_event.camera);
+    const auto& scene = render_event.scene;
+    FillShadowsMap(scene);
+    RenderScene(scene, render_event.camera);
 
-    compute::opengl_enqueue_release_gl_objects(1, &main_buffer_.rasterizer_buffer.colors.get(), queue);
+    compute::opengl_enqueue_release_gl_objects(1, &main_buffer_.rasterizer_buffer.colors->get(), queue);
     queue.finish();
 
     out_texture_port_->Notify(main_buffer_.rendering_texture);
@@ -105,7 +107,7 @@ void Renderer::FillShadowsMap(const Scene& scene) {
 
     cl_int buffer_size = 0;
     for (size_t i = 0; i < lights.size(); ++i) {
-        shadows_info_.buffer_offsets[i] = buffer_size;
+        shadows_info_.offsets.offset[i] = buffer_size;
         if (const auto& shadow_info = lights[i].GetShadowInfo()) {
             buffer_size += shadow_info->shadow_width * shadow_info->shadow_height;
         }
@@ -121,13 +123,21 @@ void Renderer::FillShadowsMap(const Scene& scene) {
         }
 
         depth_rasterizer_.UpdateView({.width = shadow->shadow_width, .height = shadow->shadow_height});
-        RasterizerBuffer buffer = {.depth = shadows_map_.GetBuffer()};
+        RasterizerBuffer buffer = {
+            .depth = shadows_map_.GetBuffer(),
+            .depth_offset = shadows_info_.offsets.offset[i],
+        };
         RenderingContext context = {
             .rasterizer = depth_rasterizer_,
             .buffer = buffer,
             .view_pos = shadow->light_pos,
             .camera_transform = shadow->transform
         };
+        for (const auto& [object, instances] : scene) {
+            if (object.GetMaterial().shadow) {
+                RenderObject(object, instances, context);
+            }
+        }
     }
 }
 

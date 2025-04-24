@@ -14,8 +14,9 @@
 namespace null_engine::multithread::detail {
 
 struct RasterizerBuffer {
-    compute::opengl_texture colors;
+    std::optional<compute::opengl_texture> colors;
     compute::buffer depth;
+    cl_int depth_offset = 0;
 };
 
 class Rasterizer {
@@ -45,7 +46,9 @@ private:
     class RasterizationKernel {
         enum KernelArgs {
             KA_VIEW_SIZE,
+            KA_HAS_VIEW,
             KA_VIEW,
+            KA_DEPTH_OFFSET,
             KA_DEPTH,
             KA_WORK_SIZE,
             KA_WORK,
@@ -71,6 +74,7 @@ private:
 
     private:
         cl_int2 view_size_;
+        compute::image2d empty_texture_;
         Kernel kernel_;
     };
 
@@ -78,6 +82,8 @@ private:
         enum KernelArgs {
             KA_INDICES_SIZE,
             KA_INDICES,
+            KA_VIEW_SIZE,
+            KA_WORK_SHAPE,
             KA_WORK_SIZE,
             KA_WORK,
             KA_POINTS,

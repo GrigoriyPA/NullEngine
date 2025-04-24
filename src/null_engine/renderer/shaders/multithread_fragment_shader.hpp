@@ -20,8 +20,12 @@ public:
     static constexpr uint32_t kMaxNumberLights = 1;
 
     struct ShadowsMaps {
+        struct Offsets {
+            cl_int offset[kMaxNumberLights];
+        };
+
         compute::buffer depth_buffer;
-        cl_int buffer_offsets[kMaxNumberLights];
+        Offsets offsets;
     };
 
     explicit MainFragmentShader(AccelerationContext context);
@@ -45,6 +49,8 @@ private:
         KA_EMISSION_TEX,
         KA_SCENE,
         KA_MATERIAL,
+        KA_DEPTH_MAP,
+        KA_DEPTH_OFFSETS,
     };
 
     struct SceneInfo {
@@ -58,6 +64,7 @@ private:
         cl_int has_specular_tex;
         cl_int has_emission_tex;
         cl_float shininess;
+        cl_int shadow;
     };
 
     compute::image2d empty_texture_;

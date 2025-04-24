@@ -24,12 +24,13 @@ namespace multithread::detail {
 Rasterizer::RasterizationKernel::RasterizationKernel(
     ViewInfo view, const SharedBuffers& buffers, AnyFragmentShaderRef fragment_shader, AccelerationContext context
 )
-    : kernel_("TriangleRasterization", GetProgram(fragment_shader), context) {
+    : empty_texture_(context.GetContext(), 1, 1, compute::image_format(CL_RGBA, CL_UNSIGNED_INT8))
+    , kernel_("TriangleRasterization", GetProgram(fragment_shader), context) {
     UpdateView(view, buffers);
 }
 
 void Rasterizer::RasterizationKernel::UpdateView(ViewInfo view, const SharedBuffers& buffers) {
-    view_size_ = {.x = static_cast<cl_int>(view.height), .y = static_cast<cl_int>(view.width)};
+    view_size_ = {.x = static_cast<cl_int>(view.width), .y = static_cast<cl_int>(view.height)};
 
     kernel_.MutableArgs()
         .SetVal(KA_VIEW_SIZE, view_size_)
@@ -53,8 +54,8 @@ Program Rasterizer::RasterizationKernel::GetProgram(AnyFragmentShaderRef fragmen
         }
 
         __kernel void TriangleRasterization(
-            int2 view_size, __read_write image2d_t view, __global float* depth, int2 work_size,
-            __global WorkBatch* works, __global VertexInfo* points, __global int* numbers_triangles,
+            int2 view_size, int has_view, __read_write image2d_t view, int depth_offset, __global float* depth,
+            int2 work_size, __global WorkBatch* works, __global VertexInfo* points, __global int* numbers_triangles,
             int work_offset
             // clang-format off
             <|FRAGMENT_SHADER_ARGS|>
@@ -115,15 +116,16 @@ Program Rasterizer::RasterizationKernel::GetProgram(AnyFragmentShaderRef fragmen
                 const float4 color_4d = CalculateFragmentColor(<|FRAGMENT_SHADER_CALL|> &params, &discard);
                 // clang-format on
 
-                const float alpha = color_4d.w;
-                float3 color = color_4d.xyz;
-                if (alpha < 1.0f - kEps) {
-                    const float3 last_color = read_imagef(view, (int2)(i.x, i.y)).xyz;
-                    color = color * alpha + (1.0f - alpha) * last_color;
+                if (has_view) {
+                    const float alpha = color_4d.w;
+                    float3 color = color_4d.xyz;
+                    if (alpha < 1.0f - kEps) {
+                        const float3 last_color = read_imagef(view, (int2)(i.x, i.y)).xyz;
+                        color = color * alpha + (1.0f - alpha) * last_color;
+                    }
+                    write_imagef(view, (int2)(i.x, i.y), (float4)(color, 1.0f));
                 }
-
-                write_imagef(view, (int2)(i.x, i.y), (float4)(color, 1.0f));
-                depth[i.x * view_size.y + i.y] = z;
+                depth[depth_offset + i.x * view_size.y + i.y] = z;
             }
         }
     );
@@ -145,10 +147,16 @@ Kernel::Args Rasterizer::RasterizationKernel::GetShaderArgs() {
 }
 
 void Rasterizer::RasterizationKernel::Run(const compute::buffer& vertices_info_buffer, const RasterizerBuffer& buffer) {
-    kernel_.MutableArgs()
-        .SetVal(KA_VIEW, buffer.colors)
-        .SetVal(KA_DEPTH, buffer.depth)
-        .SetVal(KA_POINTS, vertices_info_buffer);
+    auto& args = kernel_.MutableArgs()
+                     .SetVal(KA_HAS_VIEW, static_cast<cl_int>(!!buffer.colors))
+                     .SetVal(KA_DEPTH_OFFSET, buffer.depth_offset)
+                     .SetVal(KA_DEPTH, buffer.depth)
+                     .SetVal(KA_POINTS, vertices_info_buffer);
+    if (buffer.colors) {
+        args.SetVal(KA_VIEW, *buffer.colors);
+    } else {
+        args.SetVal(KA_VIEW, empty_texture_);
+    }
 
     for (size_t i = 0; i < kNumberWorks; ++i) {
         kernel_.MutableArgs().SetVal(KA_WORK_OFFSET, static_cast<cl_int>(i));
@@ -166,6 +174,8 @@ Rasterizer::DistributionKernel::DistributionKernel(
 
 void Rasterizer::DistributionKernel::UpdateView(ViewInfo view, const SharedBuffers& buffers) {
     kernel_.MutableArgs()
+        .SetVal(KA_VIEW_SIZE, cl_int2{.x = static_cast<cl_int>(view.width), .y = static_cast<cl_int>(view.height)})
+        .SetVal(KA_WORK_SHAPE, kWorkShape)
         .SetVal(KA_WORK_SIZE, GetWorkSize(view))
         .SetVal(KA_WORK, buffers.work_batches.GetBuffer())
         .SetVal(KA_NUMBER_TRIANGLES, buffers.number_triangles.GetBuffer());
@@ -173,15 +183,17 @@ void Rasterizer::DistributionKernel::UpdateView(ViewInfo view, const SharedBuffe
 
 Program Rasterizer::DistributionKernel::GetProgram() {
     static constexpr std::string_view kRasterizerDistributionSource = BOOST_COMPUTE_STRINGIZE_SOURCE(
-        int2 get_coord(int2 work_size, const VertexInfo* point) {
+        int2 get_coord(int2 view_size, int2 work_shape, const VertexInfo* point) {
             const float4 position = point->pos;
-            return (int2)(fmax(0.0f, fmin(floor((float)work_size.x * (position.x + 1.0f) / 2.0f), work_size.x - 1)),
-                          fmax(0.0f, fmin(floor((float)work_size.y * (position.y + 1.0f) / 2.0f), work_size.y - 1)));
+            const int2 view_pos =
+                (int2)(fmax(0.0f, fmin(floor((float)view_size.x * (position.x + 1.0f) / 2.0f), view_size.x - 1)),
+                       fmax(0.0f, fmin(floor((float)view_size.y * (position.y + 1.0f) / 2.0f), view_size.y - 1)));
+            return (int2)(view_pos.x / work_shape.x, view_pos.y / work_shape.y);
         }
 
         __kernel void RasterizerDistribution(
-            int indices_size, __global int3* indices, int2 work_size, __global WorkBatch* works,
-            __global VertexInfo* points, __global int* numbers_triangles
+            int indices_size, __global int3* indices, int2 view_size, int2 work_shape, int2 work_size,
+            __global WorkBatch* works, __global VertexInfo* points, __global int* numbers_triangles
         ) {
             const int id = get_global_id(0);
             if (id >= indices_size) {
@@ -189,9 +201,9 @@ Program Rasterizer::DistributionKernel::GetProgram() {
             }
 
             int3 index = indices[id];
-            int2 a = get_coord(work_size, &points[index.x]);
-            int2 b = get_coord(work_size, &points[index.y]);
-            int2 c = get_coord(work_size, &points[index.z]);
+            int2 a = get_coord(view_size, work_shape, &points[index.x]);
+            int2 b = get_coord(view_size, work_shape, &points[index.y]);
+            int2 c = get_coord(view_size, work_shape, &points[index.z]);
 
             for (int i = min(a.x, min(b.x, c.x)); i <= max(a.x, max(b.x, c.x)); ++i) {
                 for (int j = min(a.y, min(b.y, c.y)); j <= max(a.y, max(b.y, c.y)); ++j) {
@@ -326,7 +338,11 @@ Rasterizer::SharedBuffers Rasterizer::CreateBuffers(const ViewInfo& view) {
 }
 
 cl_int2 Rasterizer::GetWorkSize(const ViewInfo& view) {
-    return {.x = static_cast<cl_int>(view.height / kWorkShape.x), .y = static_cast<cl_int>(view.width / kWorkShape.y)};
+    assert(view.widt > 0 && view.height > 0 && "Expected positive view size");
+    return {
+        .x = static_cast<cl_int>((view.width - 1) / kWorkShape.y + 1),
+        .y = static_cast<cl_int>((view.height - 1) / kWorkShape.x + 1)
+    };
 }
 
 Program Rasterizer::GetRasterizerDefenitions() {

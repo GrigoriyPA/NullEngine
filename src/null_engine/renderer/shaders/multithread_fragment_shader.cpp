@@ -38,16 +38,20 @@ Program MainFragmentShader::GetProgram() const {
             LightDescription lights[MAX_NUMBER_LIGHTS];
         } SceneInfo;
 
+        typedef struct { int offset[MAX_NUMBER_LIGHTS]; } DepthOffsets;
+
         typedef struct {
             int has_diffuse_tex;
             int has_specular_tex;
             int has_emission_tex;
             float shininess;
+            int shadow;
         } MaterialInfo;
 
         float4 CalculateFragmentColor(
             __read_only image2d_t diffuse_tex, __read_only image2d_t specular_tex, __read_only image2d_t emission_tex,
-            const SceneInfo* scene, const MaterialInfo* material, const InterpolationParams* params, bool* discard
+            const SceneInfo* scene, const MaterialInfo* material, const float* depth_map,
+            const DepthOffsets* depth_offsets, const InterpolationParams* params, bool* discard
         ) {
             float4 diffuse_color = params->color;
             const sampler_t sampler = CLK_NORMALIZED_COORDS_TRUE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_LINEAR;
@@ -75,6 +79,7 @@ Program MainFragmentShader::GetProgram() const {
                 .view_direction = normalize(scene->view_pos - params->frag_pos),
                 .normal = normalize(params->normal),
                 .diffuse_color = diffuse_color.xyz,
+                .shadow = material->shadow != 0
             };
 
             if (material->has_specular_tex) {
@@ -86,7 +91,8 @@ Program MainFragmentShader::GetProgram() const {
                 if (i == scene->number_lights) {
                     break;
                 }
-                result_color += CalculateLighting(&scene->lights[i], &light_settings);
+                const float* shadow_map = depth_map + depth_offsets->offset[i];
+                result_color += CalculateLighting(&scene->lights[i], &light_settings, shadow_map);
             }
 
             return (float4)(result_color, alpha);
@@ -107,7 +113,9 @@ ArgsInfo MainFragmentShader::GetArgs() const {
         .AddArg("__read_only image2d_t", "specular_tex")
         .AddArg("__read_only image2d_t", "emission_tex")
         .AddArg("SceneInfo", "scene", true)
-        .AddArg("MaterialInfo", "material", true);
+        .AddArg("MaterialInfo", "material", true)
+        .AddArg("__global float*", "depth_map")
+        .AddArg("DepthOffsets", "depth_offsets", true);
 }
 
 void MainFragmentShader::FillSceneInfo(
@@ -124,6 +132,8 @@ void MainFragmentShader::FillSceneInfo(
     }
 
     kernel_args.SetData(KA_SCENE, scene);
+    kernel_args.SetVal(KA_DEPTH_MAP, shadows_info.depth_buffer);
+    kernel_args.SetData(KA_DEPTH_OFFSETS, shadows_info.offsets.offset);
 }
 
 void MainFragmentShader::FillMaterialInfo(Kernel::Args kernel_args, const Material& material) const {
@@ -138,6 +148,7 @@ void MainFragmentShader::FillMaterialInfo(Kernel::Args kernel_args, const Materi
             .has_specular_tex = !!material.specular_tex,
             .has_emission_tex = !!material.emission_tex,
             .shininess = material.shininess,
+            .shadow = material.shadow,
         }
     );
 }

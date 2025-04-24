@@ -73,6 +73,7 @@ private:
 
     Vec3 inversed_direction_;
     LightStrength strength_;
+    cl_int2 shadow_size_ = {0, 0};
     std::optional<ShadowSettings> shadow_settings_;
     std::optional<ProjectiveTransform> shadow_space_;
 };
@@ -158,6 +159,7 @@ private:
     FloatType cut_out_;
     LightStrength strength_;
     AttenuationSettings attenuation_;
+    cl_int2 shadow_size_ = {0, 0};
     std::optional<ShadowSettings> shadow_settings_;
     std::optional<ProjectiveTransform> shadow_space_;
 };

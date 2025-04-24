@@ -124,6 +124,8 @@ Program GetLightUtilsProgram() {
             float3 position;
             float3 direction;
             float2 angle;
+            float4 shadow_space[4];
+            int2 shadow_size;
         } LightDescription;
 
         typedef struct {
@@ -133,7 +135,14 @@ Program GetLightUtilsProgram() {
             float3 diffuse_color;
             float3 specular_color;
             float shininess;
+            bool shadow;
         } LightingMaterialSettings;
+
+        typedef struct {
+            const float4* shadow_space;
+            int2 shadow_size;
+            const float* shadow_map;
+        } ShadowSettings;
 
         float3 GetSpecularColor(float3 light_dir, float strength, const LightingMaterialSettings* material) {
             if (fabs(material->shininess) < kEps) {
@@ -150,6 +159,43 @@ Program GetLightUtilsProgram() {
             const float distance = length(light_pos - material->frag_pos);
             return 1.0f / dot(settings, (float3)(1.0f, distance, distance * distance));
         }
+
+        float GetShadow(const ShadowSettings* shadow_info, const LightingMaterialSettings* material) {
+            const float kBias = 0.008f;
+            const float* shadow_map = shadow_info->shadow_map;
+            if (!material->shadow || !shadow_map) {
+                return 0.0f;
+            }
+            const float4* shadow_space = shadow_info->shadow_space;
+            const int2 shadow_size = shadow_info->shadow_size;
+
+            float4 frag_pos = (float4)(material->frag_pos, 1.0f);
+            frag_pos = (float4)(dot(shadow_space[0], frag_pos), dot(shadow_space[1], frag_pos),
+                                dot(shadow_space[2], frag_pos), dot(shadow_space[3], frag_pos));
+            frag_pos /= frag_pos.w;
+            if (frag_pos.z > 1.0f) {
+                return 0.0f;
+            }
+
+            float shadow = 0.0f;
+            const float2 tex_coords = (float2)((frag_pos.x + 1.0f) / 2.0f, (frag_pos.y + 1.0) / 2.0f);
+            const float2 texel_size = (float2)(1.0f / shadow_size.x, 1.0f / shadow_size.y);
+            for (int x = -1; x <= 1; ++x) {
+                for (int y = -1; y <= 1; ++y) {
+                    const float2 ratio = tex_coords + (float2)(x, y) * texel_size;
+                    const int2 coords = (int2)(ratio.x * shadow_size.x, ratio.y * shadow_size.y);
+                    if (coords.x < 0 || shadow_size.x <= coords.x || coords.y < 0 || shadow_size.y <= coords.y) {
+                        continue;
+                    }
+                    const float tex_depth = shadow_map[coords.x * shadow_size.y + coords.y];
+                    if (frag_pos.z - kBias > tex_depth) {
+                        shadow += 1.0f;
+                    }
+                }
+            }
+
+            return shadow / 9.0f;
+        }
     );
 
     return Program("LightUtils", kLightUtilsSource);
@@ -159,12 +205,24 @@ Program GetLightUtilsProgram() {
 
 Program GetLightsProgram() {
     static constexpr std::string_view kLightsSource = BOOST_COMPUTE_STRINGIZE_SOURCE(
-        float3 CalculateLighting(const LightDescription* light_desc, const LightingMaterialSettings* material_desc) {
+
+        float3 CalculateLighting(
+            const LightDescription* light_desc, const LightingMaterialSettings* material_desc, const float* shadow_map
+        ) {
+            const int2 shadow_size = light_desc->shadow_size;
+            ShadowSettings shadow_info = {
+                .shadow_space = light_desc->shadow_space,
+                .shadow_size = shadow_size,
+                .shadow_map = shadow_size.x > 0 && shadow_size.y > 0 ? shadow_map : NULL,
+            };
+
             switch (light_desc->light_type) {
                 case LT_AMBIENT:
                     return CalculateAmbientLight(light_desc->strength.x, material_desc);
                 case LT_DIRECT:
-                    return CalculateDirectLight(light_desc->direction, light_desc->strength, material_desc);
+                    return CalculateDirectLight(
+                        light_desc->direction, light_desc->strength, material_desc, &shadow_info
+                    );
                 case LT_POINT:
                     return CalculatePointLight(
                         light_desc->position, light_desc->strength, light_desc->attenuation, material_desc
@@ -172,7 +230,7 @@ Program GetLightsProgram() {
                 case LT_SPOT:
                     return CalculateSpotLight(
                         light_desc->position, light_desc->direction, light_desc->angle, light_desc->strength,
-                        light_desc->attenuation, material_desc
+                        light_desc->attenuation, material_desc, &shadow_info
                     );
                 default:
                     return (float3)(0.0f, 0.0f, 0.0f);
@@ -233,6 +291,13 @@ DirectLight::DirectLight(Vec3 direction, const LightStrength& strength)
 DirectLight& DirectLight::SetupShadow(ShadowSettings settings) {
     shadow_settings_ = settings;
     shadow_space_ = GetShadowSpaceTransform();
+
+    const auto size = shadow_settings_->size;
+    shadow_size_ = {
+        .x = static_cast<cl_int>(size.x() / shadow_settings_->resolution),
+        .y = static_cast<cl_int>(size.y() / shadow_settings_->resolution),
+    };
+
     return *this;
 }
 
@@ -252,31 +317,43 @@ Vec3 DirectLight::CalculateLighting(const LightingMaterialSettings& material, De
 }
 
 DirectLight::Program DirectLight::GetKernelProgram() {
-    static constexpr std::string_view kDirectLightSource = BOOST_COMPUTE_STRINGIZE_SOURCE(float3 CalculateDirectLight(
-        float3 inversed_direction, float3 strength, const LightingMaterialSettings* material
-    ) {
-        float3 color = strength.x * material->diffuse_color;
+    static constexpr std::string_view kDirectLightSource = BOOST_COMPUTE_STRINGIZE_SOURCE(
 
-        const float normal_diff = dot(inversed_direction, material->normal);
-        if (normal_diff < 0.0f) {
+        float3 CalculateDirectLight(
+            float3 inversed_direction, float3 strength, const LightingMaterialSettings* material,
+            const ShadowSettings* shadow_info
+        ) {
+            float3 color = strength.x * material->diffuse_color;
+
+            const float normal_diff = dot(inversed_direction, material->normal);
+            if (normal_diff < 0.0f) {
+                return color;
+            }
+
+            const float shadow = 1.0f - GetShadow(shadow_info, material);
+            color += shadow * strength.y * normal_diff * material->diffuse_color;
+            color += shadow * GetSpecularColor(inversed_direction, strength.z, material);
+
             return color;
         }
-
-        color += strength.y * normal_diff * material->diffuse_color;
-        color += GetSpecularColor(inversed_direction, strength.z, material);
-
-        return color;
-    });
+    );
 
     return ProgramBuilder("DirectLight", kDirectLightSource).Include(GetLightUtilsProgram()).Build();
 }
 
 DirectLight::LightDescription DirectLight::GetDescription() const {
-    return {
+    LightDescription result = {
         .light_type = LightDescription::LT_DIRECT,
         .strength = GetClStrength(strength_),
-        .direction = Vec3ToCl(inversed_direction_)
+        .direction = Vec3ToCl(inversed_direction_),
+        .shadow_size = shadow_size_,
     };
+
+    if (shadow_settings_) {
+        TransformToCl(*shadow_space_, result.shadow_space);
+    }
+
+    return result;
 }
 
 std::optional<DirectLight::ShadowInfo> DirectLight::GetShadowInfo() const {
@@ -285,10 +362,9 @@ std::optional<DirectLight::ShadowInfo> DirectLight::GetShadowInfo() const {
     }
 
     const auto position = shadow_settings_->position;
-    const auto size = shadow_settings_->size;
     return DirectLight::ShadowInfo{
-        .shadow_width = static_cast<uint64_t>(size.x() / shadow_settings_->resolution),
-        .shadow_height = static_cast<uint64_t>(size.y() / shadow_settings_->resolution),
+        .shadow_width = static_cast<uint64_t>(shadow_size_.x),
+        .shadow_height = static_cast<uint64_t>(shadow_size_.y),
         .transform = *shadow_space_,
         .light_pos = position
     };
@@ -431,6 +507,11 @@ SpotLight::SpotLight(const Settings& settings, const LightStrength& strength, co
 SpotLight& SpotLight::SetupShadow(ShadowSettings settings) {
     shadow_settings_ = settings;
     shadow_space_ = GetShadowSpaceTransform();
+
+    const cl_int size =
+        2.0 * std::tan(light_angle_ / 2) * shadow_settings_->max_distance / shadow_settings_->resolution;
+    shadow_size_ = {.x = size, .y = size};
+
     return *this;
 }
 
@@ -464,7 +545,7 @@ SpotLight::Program SpotLight::GetKernelProgram() {
 
         float3 CalculateSpotLight(
             float3 position, float3 inversed_direction, float2 angle, float3 strength, float3 attenuation_settings,
-            const LightingMaterialSettings* material
+            const LightingMaterialSettings* material, const ShadowSettings* shadow_info
         ) {
             float attenuation = GetAttenuation(position, attenuation_settings, material);
             float3 color = strength.x * material->diffuse_color * attenuation;
@@ -483,8 +564,9 @@ SpotLight::Program SpotLight::GetKernelProgram() {
             const float theta = dot(light_dir, inversed_direction);
             attenuation *= clamp((theta - angle.y) / (angle.x - angle.y), 0.0f, 1.0f);
 
-            color += strength.y * normal_diff * material->diffuse_color * attenuation;
-            color += GetSpecularColor(light_dir, strength.z, material) * attenuation;
+            const float shadow = 1.0f - GetShadow(shadow_info, material);
+            color += shadow * strength.y * normal_diff * material->diffuse_color * attenuation;
+            color += shadow * GetSpecularColor(light_dir, strength.z, material) * attenuation;
 
             return color;
         }
@@ -494,14 +576,21 @@ SpotLight::Program SpotLight::GetKernelProgram() {
 }
 
 SpotLight::LightDescription SpotLight::GetDescription() const {
-    return {
+    LightDescription result = {
         .light_type = LightDescription::LT_SPOT,
         .strength = GetClStrength(strength_),
         .attenuation = GetClAttenuation(attenuation_),
         .position = Vec3ToCl(position_),
         .direction = Vec3ToCl(inversed_direction_),
-        .angle = {.x = cut_in_, .y = cut_out_}
+        .angle = {.x = cut_in_, .y = cut_out_},
+        .shadow_size = shadow_size_,
     };
+
+    if (shadow_settings_) {
+        TransformToCl(*shadow_space_, result.shadow_space);
+    }
+
+    return result;
 }
 
 std::optional<SpotLight::ShadowInfo> SpotLight::GetShadowInfo() const {
@@ -509,11 +598,9 @@ std::optional<SpotLight::ShadowInfo> SpotLight::GetShadowInfo() const {
         return std::nullopt;
     }
 
-    const uint64_t size =
-        2.0 * std::tan(light_angle_ / 2) * shadow_settings_->max_distance / shadow_settings_->resolution;
     return SpotLight::ShadowInfo{
-        .shadow_width = size,
-        .shadow_height = size,
+        .shadow_width = static_cast<uint64_t>(shadow_size_.x),
+        .shadow_height = static_cast<uint64_t>(shadow_size_.y),
         .transform = *shadow_space_,
         .light_pos = position_,
     };

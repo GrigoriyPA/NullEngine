@@ -77,4 +77,15 @@ cl_float4 Vec4ToCl(Vec4 vector) {
     };
 }
 
+void TransformToCl(const ProjectiveTransform& transform, cl_float4 dst[4]) {
+    for (uint32_t i = 0; i < 4; ++i) {
+        dst[i] = {
+            .x = transform(i, 0),
+            .y = transform(i, 1),
+            .z = transform(i, 2),
+            .w = transform(i, 3),
+        };
+    }
+}
+
 }  // namespace null_engine::multithread::detail

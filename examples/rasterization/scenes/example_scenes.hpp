@@ -14,7 +14,6 @@
 
 #include "null_engine/scene/lights/scene_light.hpp"
 
-
 namespace null_engine::tests {
 
 class SceneInfo {

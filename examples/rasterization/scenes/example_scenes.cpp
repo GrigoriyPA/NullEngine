@@ -181,7 +181,7 @@ SceneInfo::Ptr SceneInfo::LoadMjolnir(const Settings& settings, LightType light_
                 SpotLight::ShadowSettings{
                     .min_distance = 1,
                     .max_distance = 15.0,
-                    .resolution = 0.03,
+                    .resolution = 0.01,
                 }
             );
             break;
@@ -297,7 +297,7 @@ SceneInfo& SceneInfo::AddSpotLight(
     );
     if (shadow) {
         light.SetupShadow(*shadow);
-        scene_.EmplaceObject(light.VisualizeShadowBox());
+        // scene_.EmplaceObject(light.VisualizeShadowBox());
     }
 
     scene_.AddLight(light);

@@ -26,6 +26,8 @@ struct LightDescription {
     cl_float3 position;
     cl_float3 direction;
     cl_float2 angle;
+    cl_float4 shadow_space[4];
+    cl_int2 shadow_size;
 };
 
 }  // namespace multithread::detail
