@@ -12,8 +12,6 @@
 #include <null_engine/util/geometry/vector.hpp>
 #include <numbers>
 
-#include "null_engine/scene/lights/scene_light.hpp"
-
 namespace null_engine::tests {
 
 class SceneInfo {
