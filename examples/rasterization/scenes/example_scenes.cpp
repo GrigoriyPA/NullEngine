@@ -29,7 +29,7 @@ constexpr const char* kCubePath = "cube.obj";
 constexpr const char* kMjolnirPath = "mjolnir.glb";
 constexpr const char* kVelorumPath = "system_velorum.glb";
 
-PerspectiveCamera CreatePerspectiveCamera(CameraOrientation orientation, uint64_t view_width, uint64_t view_height) {
+PerspectiveCamera CreatePerspectiveCamera(CameraOrientation orientation, Width view_width, Height view_height) {
     return PerspectiveCamera(
         orientation,
         {
@@ -58,7 +58,7 @@ SceneInfo::SceneInfo(const Settings& settings, CameraOrientation camera_orientat
     : acceleration_context_(settings.acceleration_context)
     , object_loader_({.verbose = true, .acceleration_context = acceleration_context_})
     , textures_(TEX_MAX)
-    , camera_(CreatePerspectiveCamera(camera_orientation, settings.view_width, settings.view_height)) {
+    , camera_(CreatePerspectiveCamera(camera_orientation, Width{settings.view_width}, Height{settings.view_height})) {
     SetupTextures();
 }
 

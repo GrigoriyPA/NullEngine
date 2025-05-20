@@ -9,21 +9,23 @@
 #include <null_engine/util/generic/validation.hpp>
 #include <vector>
 
+#include "null_engine/util/generic/types.hpp"
+
 namespace null_engine {
 
 namespace compute = boost::compute;
 
-Texture::Texture(uint64_t width, uint64_t height, const std::vector<Vec4>& colors)
+Texture::Texture(Width width, Height height, const std::vector<Vec4>& colors)
     : width_(width)
     , height_(height)
     , colors_(colors) {
     assert(colors_.size() == width_ * height_ && "Invalid texture initialization colors size");
 }
 
-Texture::Texture(uint64_t width, uint64_t height, const uint8_t* colors)
+Texture::Texture(Width width, Height height, const uint8_t* colors)
     : width_(width)
     , height_(height)
-    , colors_(width * height) {
+    , colors_(width_ * height_) {
     for (size_t i = 0; i < colors_.size(); ++i) {
         colors_[i] = Vec4(colors[4 * i], colors[4 * i + 1], colors[4 * i + 2], colors[4 * i + 3]) / 255.0;
     }
@@ -68,25 +70,25 @@ void Texture::ToDevice(multithread::AccelerationContext context) {
 }
 
 Texture::Uptr Texture::Monotonic(Vec4 color) {
-    return std::make_unique<Texture>(1, 1, std::vector{color});
+    return std::make_unique<Texture>(Width{1}, Height{1}, std::vector{color});
 }
 
 Texture::Uptr Texture::LoadFromFile(const std::filesystem::path& file) {
     sf::Image image;
     Ensure(image.loadFromFile(file.string()), fmt::format("Failed to load texture from file {}", file.string()));
 
-    return std::make_unique<Texture>(image.getSize().x, image.getSize().y, image.getPixelsPtr());
+    return std::make_unique<Texture>(Width{image.getSize().x}, Height{image.getSize().y}, image.getPixelsPtr());
 }
 
 Texture::Uptr Texture::LoadFromMemory(const void* data, size_t size) {
     sf::Image image;
     Ensure(image.loadFromMemory(data, size), "Failed to load texture from memory");
 
-    return std::make_unique<Texture>(image.getSize().x, image.getSize().y, image.getPixelsPtr());
+    return std::make_unique<Texture>(Width{image.getSize().x}, Height{image.getSize().y}, image.getPixelsPtr());
 }
 
 TextureView::TextureView(const Texture& texture, Vec4 outside_color)
-    : Base(texture.GetWidth(), texture.GetHeight(), texture.GetColors(), outside_color)
+    : Base(Width{texture.GetWidth()}, Height{texture.GetHeight()}, texture.GetColors(), outside_color)
     , texture_(&texture) {
 }
 

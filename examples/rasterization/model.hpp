@@ -3,6 +3,7 @@
 #include <null_engine/acceleration/acceleration_context.hpp>
 #include <null_engine/renderer/multithread_renderer.hpp>
 #include <null_engine/renderer/native_renderer.hpp>
+#include <null_engine/util/generic/types.hpp>
 
 #include "common.hpp"
 #include "scenes/example_scenes.hpp"
@@ -17,7 +18,7 @@ class Model {
     using AccelerationContext = multithread::AccelerationContext;
 
 public:
-    Model(uint64_t view_width, uint64_t view_height, MultithreadingMode multithreading_mode);
+    Model(Width view_width, Height view_height, MultithreadingMode multithreading_mode);
 
     void SubscribeToDrawEvents(InPort<DrawViewEvent>* observer_port) const;
 

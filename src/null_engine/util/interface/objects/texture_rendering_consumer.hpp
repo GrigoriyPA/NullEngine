@@ -3,6 +3,7 @@
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/OpenGL.hpp>
+#include <null_engine/util/generic/types.hpp>
 #include <null_engine/util/observer/ports.hpp>
 
 namespace null_engine {
@@ -13,7 +14,7 @@ class TextureRenderingConsumer {
 public:
     using TextureData = std::vector<uint8_t>;
 
-    TextureRenderingConsumer(uint64_t width, uint64_t height);
+    TextureRenderingConsumer(Width width, Height height);
 
     InPort<TextureData>* GetTexturePort();
 
@@ -30,7 +31,7 @@ class WindowRenderingConsumer : public TextureRenderingConsumer, public sf::Draw
     using Base = TextureRenderingConsumer;
 
 public:
-    WindowRenderingConsumer(uint64_t width, uint64_t height);
+    WindowRenderingConsumer(Width width, Height height);
 
 protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;

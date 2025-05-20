@@ -6,7 +6,7 @@
 
 namespace null_engine::example {
 
-Model::Model(uint64_t view_width, uint64_t view_height, MultithreadingMode multithreading_mode)
+Model::Model(Width view_width, Height view_height, MultithreadingMode multithreading_mode)
     : acceleration_context_(
           multithreading_mode == MultithreadingMode::Enabled
               ? std::optional<AccelerationContext>(AccelerationContext::Create())

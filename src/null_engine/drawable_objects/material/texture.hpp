@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <memory>
 #include <null_engine/acceleration/acceleration_context.hpp>
+#include <null_engine/util/generic/types.hpp>
 #include <null_engine/util/geometry/vector.hpp>
 #include <null_engine/util/interface/helpers/constants.hpp>
 #include <optional>
@@ -16,9 +17,9 @@ public:
     using Uptr = std::unique_ptr<Texture>;
     using Buffer = boost::compute::image2d;
 
-    Texture(uint64_t width, uint64_t height, const std::vector<Vec4>& colors);
+    Texture(Width width, Height height, const std::vector<Vec4>& colors);
 
-    Texture(uint64_t width, uint64_t height, const uint8_t* colors);
+    Texture(Width width, Height height, const uint8_t* colors);
 
     Texture(const Texture& other) = delete;
 
@@ -52,7 +53,7 @@ class BufferView {
 public:
     BufferView() = default;
 
-    BufferView(uint64_t width, uint64_t height, const T* data, T outside_value)
+    BufferView(Width width, Height height, const T* data, T outside_value)
         : width_(width)
         , height_(height)
         , data_(data)

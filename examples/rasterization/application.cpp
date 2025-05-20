@@ -22,7 +22,7 @@ class Application::Impl {
 public:
     Impl()
         : window_(sf::VideoMode(kViewWidth, kViewHeight), "Rasterisation example")
-        , model_(kViewWidth, kViewHeight, kMultithreadingMode)
+        , model_(Width{kViewWidth}, Height{kViewHeight}, kMultithreadingMode)
         , controller_(window_, &model_, kMouseControlMode)
         , view_(window_) {
         model_.SubscribeToDrawEvents(view_.GetDrawEventsPort());

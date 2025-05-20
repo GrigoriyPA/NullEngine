@@ -23,7 +23,8 @@ View::View(sf::RenderWindow& window)
     : window_(window)
     , assetes_(LoadAssets())
     , in_draw_event_port_(std::bind(&View::OnDrawEvent, this, std::placeholders::_1)) {
-    auto renderer_view = std::make_unique<native::WindowRenderingConsumer>(window_.getSize().x, window_.getSize().y);
+    auto renderer_view =
+        std::make_unique<native::WindowRenderingConsumer>(Width{window_.getSize().x}, Height{window_.getSize().y});
     out_texture_port_->Subscribe(renderer_view->GetTexturePort(), {});
     interface_.AddObject(std::move(renderer_view));
 

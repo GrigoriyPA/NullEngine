@@ -9,12 +9,9 @@ namespace null_engine {
 
 namespace native {
 
-TextureRenderingConsumer::TextureRenderingConsumer(uint64_t width, uint64_t height)
+TextureRenderingConsumer::TextureRenderingConsumer(Width width, Height height)
     : in_texture_port_(std::bind(&TextureRenderingConsumer::OnRenderedTexture, this, std::placeholders::_1)) {
-    Ensure(
-        texture_.create(width, height),
-        fmt::format("Failed to create window rendering consumer with texture size ({}, {})", width, height)
-    );
+    Ensure(texture_.create(width, height), "Failed to create window rendering consumer");
 }
 
 InPort<TextureRenderingConsumer::TextureData>* TextureRenderingConsumer::GetTexturePort() {
@@ -31,7 +28,7 @@ void TextureRenderingConsumer::OnRenderedTexture(const TextureData& texture) {
     }
 }
 
-WindowRenderingConsumer::WindowRenderingConsumer(uint64_t width, uint64_t height)
+WindowRenderingConsumer::WindowRenderingConsumer(Width width, Height height)
     : Base(width, height) {
     sprite_.setTexture(GetTexture());
 }
