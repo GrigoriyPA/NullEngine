@@ -1,0 +1,13 @@
+{
+    "dependencies": [
+        "opengl",
+        "sfml",
+        "fmt",
+        "folly",
+        "eigen3",
+        "opencl",
+        "boost-compute",
+        "assimp"
+    ],
+    "builtin-baseline": "1020f61b2ff71083e993a9946b9de2041933e94c"
+}

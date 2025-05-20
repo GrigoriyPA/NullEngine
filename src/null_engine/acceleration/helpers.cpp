@@ -1,0 +1,91 @@
+#include "helpers.hpp"
+
+#include <fmt/core.h>
+
+#include <boost/compute/utility/dim.hpp>
+#include <null_engine/util/generic/validation.hpp>
+
+namespace null_engine::multithread::detail {
+
+namespace {
+
+constexpr cl_int kMaxLocalWorkSize = 256;
+
+}  // anonymous namespace
+
+void BuildProgram(compute::program& program) {
+    try {
+        program.build();
+    } catch (const std::exception& error) {
+        Ensure(false, fmt::format("Failed to build program, {}, build log:\n{}", error.what(), program.build_log()));
+    }
+}
+
+void RunKernel(
+    compute::command_queue& queue, const compute::kernel& kernel, cl_int global_work_size, cl_int local_work_size
+) {
+    assert(local_work_size <= kMaxLocalWorkSize && "Loacal work size too large");
+
+    if (const cl_int remainder = global_work_size % local_work_size) {
+        global_work_size += local_work_size - remainder;
+    }
+
+    queue.enqueue_nd_range_kernel(
+        kernel, compute::dim(0), compute::dim(global_work_size), compute::dim(local_work_size)
+    );
+}
+
+void RunKernel(
+    compute::command_queue& queue, const compute::kernel& kernel, cl_int2 global_work_size, cl_int2 local_work_size
+) {
+    assert(local_work_size.x * local_work_size.y <= kMaxLocalWorkSize && "Loacal work size too large");
+
+    if (const cl_int remainder = global_work_size.x % local_work_size.x) {
+        global_work_size.x += local_work_size.x - remainder;
+    }
+    if (const cl_int remainder = global_work_size.y % local_work_size.y) {
+        global_work_size.y += local_work_size.y - remainder;
+    }
+
+    queue.enqueue_nd_range_kernel(
+        kernel, compute::dim(0, 0), compute::dim(global_work_size.x, global_work_size.y),
+        compute::dim(local_work_size.x, local_work_size.y)
+    );
+}
+
+cl_float2 Vec2ToCl(Vec2 vector) {
+    return {
+        .x = vector.x(),
+        .y = vector.y(),
+    };
+}
+
+cl_float3 Vec3ToCl(Vec3 vector) {
+    return {
+        .x = static_cast<cl_float>(vector.x()),
+        .y = static_cast<cl_float>(vector.y()),
+        .z = static_cast<cl_float>(vector.z()),
+    };
+}
+
+cl_float4 Vec4ToCl(Vec4 vector) {
+    return {
+        .x = static_cast<cl_float>(vector.x()),
+        .y = static_cast<cl_float>(vector.y()),
+        .z = static_cast<cl_float>(vector.z()),
+        .w = static_cast<cl_float>(vector.w()),
+    };
+}
+
+void TransformToCl(const ProjectiveTransform& transform, cl_float4 dst[4]) {
+    for (uint32_t i = 0; i < 4; ++i) {
+        dst[i] = {
+            .x = transform(i, 0),
+            .y = transform(i, 1),
+            .z = transform(i, 2),
+            .w = transform(i, 3),
+        };
+    }
+}
+
+}  // namespace null_engine::multithread::detail

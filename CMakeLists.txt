@@ -1,0 +1,36 @@
+cmake_minimum_required(VERSION 3.24)
+
+set(PROJECT_NAME null-engine)
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/contrib/vcpkg/scripts/buildsystems/vcpkg.cmake)
+
+project(${PROJECT_NAME})
+
+find_package(OpenGL REQUIRED)
+find_package(SFML COMPONENTS system window graphics CONFIG REQUIRED)
+find_package(assimp CONFIG REQUIRED)
+find_package(folly REQUIRED)
+find_package(Eigen3 CONFIG REQUIRED)
+find_package(OpenCL CONFIG REQUIRED)
+find_package(Boost REQUIRED COMPONENTS compute)
+
+add_library(${PROJECT_NAME} STATIC
+    src/null_engine/null_engine.hpp
+)
+
+set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+
+include_directories(${PROJECT_SOURCE_DIR}/src)
+
+target_link_libraries(${PROJECT_NAME}
+    null-engine-acceleration
+    null-engine-drawable-objects
+    null-engine-renderer
+    null-engine-scene
+)
+
+enable_testing()
+
+add_subdirectory(src/null_engine)
+add_subdirectory(examples)
