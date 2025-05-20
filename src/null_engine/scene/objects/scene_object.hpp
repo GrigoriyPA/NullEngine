@@ -88,7 +88,7 @@ public:
     Iterator end() const;
 
 private:
-    Observer<Transform>::Uptr transform_ = Observer<Transform>::Make();
+    BufferedInPort<Transform>::Uptr transform_ = BufferedInPort<Transform>::Make();
     std::vector<Transform> instances_;
     std::vector<VerticesObject> objects_;
     std::vector<SceneObject> children_;

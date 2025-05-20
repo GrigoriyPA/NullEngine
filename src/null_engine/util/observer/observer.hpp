@@ -7,16 +7,16 @@
 namespace null_engine {
 
 template <typename Event>
-class Observer {
+class BufferedInPort {
 public:
-    using Uptr = std::unique_ptr<Observer>;
+    using Uptr = std::unique_ptr<BufferedInPort>;
 
-    Observer()
-        : in_event_port_(std::bind(&Observer::OnUpdateState, this, std::placeholders::_1)) {
+    BufferedInPort()
+        : in_event_port_(std::bind(&BufferedInPort::OnUpdateState, this, std::placeholders::_1)) {
     }
 
-    static Observer::Uptr Make() {
-        return std::make_unique<Observer>();
+    static BufferedInPort::Uptr Make() {
+        return std::make_unique<BufferedInPort>();
     }
 
     InPort<Event>* GetInPort() {

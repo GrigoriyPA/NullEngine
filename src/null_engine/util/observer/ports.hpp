@@ -38,14 +38,18 @@ public:
     }
 
 private:
-    void OnSubscribed(OutPort<Event>* out_port, const Event& event) {
-        DoUnsubscribe();
-        subscribed_port_ = out_port;
+    void SetupSubscription(OutPort<Event>* out_port, const Event& event) {
+        UpdateSubscriptionPort(out_port);
         OnEvent(event);
     }
 
     void ResetSubscription() {
         subscribed_port_ = nullptr;
+    }
+
+    void UpdateSubscriptionPort(OutPort<Event>* out_port) {
+        DoUnsubscribe();
+        subscribed_port_ = out_port;
     }
 
     void DoUnsubscribe() {
@@ -65,7 +69,9 @@ public:
 
     OutPort() = default;
     OutPort(const OutPort<Event>& other) = delete;
+    OutPort(OutPort<Event>&& other) = delete;
     OutPort& operator=(const OutPort<Event>& other) = delete;
+    OutPort& operator=(OutPort<Event>&& other) = delete;
 
     static OutPort::Uptr Make() {
         return std::make_unique<OutPort>();
@@ -73,7 +79,7 @@ public:
 
     void Subscribe(InPort<Event>* in_port, const Event& event) {
         if (subscriptions_.emplace(in_port).second) {
-            in_port->OnSubscribed(this, event);
+            in_port->SetupSubscription(this, event);
         }
     }
 

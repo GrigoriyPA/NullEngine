@@ -11,8 +11,6 @@
 namespace null_engine::example {
 
 class Model {
-    friend class Controller;
-
     using NativeRenderer = native::Renderer;
     using MultithreadRenderer = multithread::Renderer;
     using AccelerationContext = multithread::AccelerationContext;
@@ -24,11 +22,11 @@ public:
 
     void DoRendering();
 
-private:
     void MoveCamera(const CameraChange& camera_change);
 
     void Refresh(float delta_time);
 
+private:
     void OnNativeRenderedTexture(const TextureData& texture);
 
     void OnMultithreadRenderedTexture(GLuint texture_id);

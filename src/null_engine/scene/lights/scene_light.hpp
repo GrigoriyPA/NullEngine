@@ -29,7 +29,7 @@ private:
 
     AnyMovableLight light_;
     bool enabled_ = true;
-    Observer<Transform> transform_;
+    BufferedInPort<Transform> transform_;
     InPort<SceneLightEvent> in_events_port_;
 };
 
