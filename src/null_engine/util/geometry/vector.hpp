@@ -9,13 +9,13 @@
 
 namespace null_engine {
 
-using Vec2 = Eigen::Vector2<FloatType>;
-using Vec3 = Eigen::Vector3<FloatType>;
-using Vec4 = Eigen::Vector4<FloatType>;
+using Vec2 = Eigen::Vector2<float>;
+using Vec3 = Eigen::Vector3<float>;
+using Vec4 = Eigen::Vector4<float>;
 
-FloatType OrientedArea(Vec2 left, Vec2 right);
+float OrientedArea(Vec2 left, Vec2 right);
 
-FloatType OrientedArea(Vec2 point_a, Vec2 point_b, Vec2 point_c);
+float OrientedArea(Vec2 point_a, Vec2 point_b, Vec2 point_c);
 
 Vec3 VectorProd(Vec3 left, Vec3 right);
 
@@ -23,7 +23,7 @@ Vec3 Horizon(Vec3 vector);
 
 Vec3 Vec4ToVec3(Vec4 vector);
 
-Vec4 Vec3ToVec4(Vec3 vector, FloatType w);
+Vec4 Vec3ToVec4(Vec3 vector, float w);
 
 namespace multithread::detail {
 

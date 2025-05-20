@@ -8,7 +8,7 @@ namespace null_engine::native::detail {
 
 struct RasterizerBuffer {
     std::vector<uint8_t> colors;
-    std::vector<FloatType> depth;
+    std::vector<float> depth;
 };
 
 class Rasterizer {
@@ -47,7 +47,7 @@ private:
 
     bool CheckPointPosition(int64_t x, int64_t y) const;
 
-    bool CheckPointDepth(int64_t x, int64_t y, FloatType z, RasterizerBuffer& buffer) const;
+    bool CheckPointDepth(int64_t x, int64_t y, float z, RasterizerBuffer& buffer) const;
 
     void UpdateViewPixel(const VertexInfo& vertex_info, RasterizerBuffer& buffer, const AnyFragmentShaderRef& shader)
         const;

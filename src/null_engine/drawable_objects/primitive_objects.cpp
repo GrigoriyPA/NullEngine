@@ -52,7 +52,7 @@ VerticesObject CreateCube() {
     return cube;
 }
 
-VerticesObject CreateNormalsVisualization(const VerticesObject& object, Vec4 color, FloatType scale) {
+VerticesObject CreateNormalsVisualization(const VerticesObject& object, Vec4 color, float scale) {
     VerticesObject result(2 * object.GetNumberVertices(), VerticesObject::Type::Lines);
 
     for (uint64_t i = 0; const auto& vertex : object.GetVertices()) {

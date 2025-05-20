@@ -4,7 +4,7 @@
 
 int main() {
     try {
-        null_engine::tests::Application application;
+        null_engine::example::Application application;
         application.Run();
     } catch (...) {
         null_engine::HandleException();

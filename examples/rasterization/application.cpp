@@ -2,18 +2,19 @@
 
 #include <SFML/Window/Event.hpp>
 
+#include "common.hpp"
 #include "controller.hpp"
 #include "model.hpp"
 #include "view.hpp"
 
-namespace null_engine::tests {
+namespace null_engine::example {
 
 namespace {
 
-constexpr uint64_t kViewWidth = 800;
-constexpr uint64_t kViewHeight = 800;
-constexpr bool kMultithreadRendering = true;
-constexpr bool kEnableMouseControl = true;
+constexpr uint64_t kViewWidth = 1400;
+constexpr uint64_t kViewHeight = 900;
+constexpr auto kMultithreadingMode = MultithreadingMode::Enabled;
+constexpr auto kMouseControlMode = MouseControlMode::Enabled;
 
 }  // anonymous namespace
 
@@ -21,8 +22,8 @@ class Application::Impl {
 public:
     Impl()
         : window_(sf::VideoMode(kViewWidth, kViewHeight), "Rasterisation example")
-        , model_(kViewWidth, kViewHeight, kMultithreadRendering)
-        , controller_(window_, &model_, kEnableMouseControl)
+        , model_(kViewWidth, kViewHeight, kMultithreadingMode)
+        , controller_(window_, &model_, kMouseControlMode)
         , view_(window_) {
         model_.SubscribeToDrawEvents(view_.GetDrawEventsPort());
     }
@@ -61,4 +62,4 @@ void Application::Run() {
     impl_->Run();
 }
 
-}  // namespace null_engine::tests
+}  // namespace null_engine::example

@@ -2,11 +2,15 @@
 
 #include <iostream>
 
-namespace null_engine::tests {
+#include "common.hpp"
 
-Model::Model(uint64_t view_width, uint64_t view_height, bool multithread_rendering)
+namespace null_engine::example {
+
+Model::Model(uint64_t view_width, uint64_t view_height, MultithreadingMode multithreading_mode)
     : acceleration_context_(
-          multithread_rendering ? std::optional<AccelerationContext>(AccelerationContext::Create()) : std::nullopt
+          multithreading_mode == MultithreadingMode::Enabled
+              ? std::optional<AccelerationContext>(AccelerationContext::Create())
+              : std::nullopt
       )
     , scene_info_(SceneInfo::LoadMjolnir(
           {.view_width = view_width, .view_height = view_height, .acceleration_context = acceleration_context_}
@@ -16,7 +20,7 @@ Model::Model(uint64_t view_width, uint64_t view_height, bool multithread_renderi
     , in_texture_id_port_(std::bind(&Model::OnMultithreadRenderedTexture, this, std::placeholders::_1)) {
     native_renderer_.SubscribeToTextures(&in_texture_port_);
 
-    if (multithread_rendering) {
+    if (multithreading_mode == MultithreadingMode::Enabled) {
         multithread_renderer_ =
             std::make_unique<MultithreadRenderer>(RendererSettings{view_width, view_height}, *acceleration_context_);
         multithread_renderer_->SubscribeToTextures(&in_texture_id_port_);
@@ -54,7 +58,7 @@ void Model::MoveCamera(const CameraChange& camera_change) {
     scene_info_->OnCameraEvent(camera_change);
 }
 
-void Model::Refresh(FloatType delta_time) {
+void Model::Refresh(float delta_time) {
     current_delta_time_ = delta_time;
     scene_info_->OnRefreshEvent(delta_time);
 }
@@ -69,4 +73,4 @@ void Model::OnMultithreadRenderedTexture(GLuint texture_id) {
     out_draw_event_port_->Notify({.delta_time = current_delta_time_, .render_texture = current_texture_id_});
 }
 
-}  // namespace null_engine::tests
+}  // namespace null_engine::example

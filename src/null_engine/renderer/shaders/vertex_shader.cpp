@@ -20,7 +20,7 @@ InterpolationParams& InterpolationParams::operator-=(const InterpolationParams& 
     return *this;
 }
 
-InterpolationParams& InterpolationParams::operator*=(FloatType scale) {
+InterpolationParams& InterpolationParams::operator*=(float scale) {
     color *= scale;
     normal *= scale;
     tex_coords *= scale;
@@ -28,7 +28,7 @@ InterpolationParams& InterpolationParams::operator*=(FloatType scale) {
     return *this;
 }
 
-InterpolationParams& InterpolationParams::operator/=(FloatType scale) {
+InterpolationParams& InterpolationParams::operator/=(float scale) {
     assert(!Equal(scale, 0.0) && "Division by zero");
 
     color /= scale;
@@ -50,13 +50,13 @@ InterpVertex& InterpVertex::operator-=(const InterpVertex& other) {
     return *this;
 }
 
-InterpVertex& InterpVertex::operator*=(FloatType scale) {
+InterpVertex& InterpVertex::operator*=(float scale) {
     position *= scale;
     params *= scale;
     return *this;
 }
 
-InterpVertex& InterpVertex::operator/=(FloatType scale) {
+InterpVertex& InterpVertex::operator/=(float scale) {
     assert(!Equal(scale, 0.0) && "Division by zero");
 
     position /= scale;

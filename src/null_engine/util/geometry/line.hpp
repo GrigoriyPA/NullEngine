@@ -8,9 +8,9 @@ class Line2 {
 public:
     Line2(Vec2 point_a, Vec2 point_b);
 
-    Vec2 IntersectHorizontal(FloatType y) const;
+    Vec2 IntersectHorizontal(float y) const;
 
-    Vec2 IntersectVertical(FloatType x) const;
+    Vec2 IntersectVertical(float x) const;
 
 private:
     Vec2 point_;

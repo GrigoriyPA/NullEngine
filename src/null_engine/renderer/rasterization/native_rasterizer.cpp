@@ -209,7 +209,7 @@ bool Rasterizer::CheckPointPosition(int64_t x, int64_t y) const {
     return 0 <= x && x < view_width_ && 0 <= y && y < view_height_;
 }
 
-bool Rasterizer::CheckPointDepth(int64_t x, int64_t y, FloatType z, RasterizerBuffer& buffer) const {
+bool Rasterizer::CheckPointDepth(int64_t x, int64_t y, float z, RasterizerBuffer& buffer) const {
     if (z <= -1.0 || 1.0 <= z) {
         return false;
     }

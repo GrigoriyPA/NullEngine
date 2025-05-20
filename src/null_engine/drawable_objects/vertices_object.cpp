@@ -264,7 +264,7 @@ VerticesObject& VerticesObject::GenerateNormals(bool clockwise) {
         const auto& point_a = vertices_[id_a].position;
 
         auto normal = -(VectorProd(point_b - point_a, point_c - point_a)).normalized();
-        vertices_[id_a].params.normal += normal * static_cast<FloatType>(clockwise ? 1 : -1);
+        vertices_[id_a].params.normal += normal * static_cast<float>(clockwise ? 1 : -1);
 
         ++traingles_per_vertex[id_a];
     };

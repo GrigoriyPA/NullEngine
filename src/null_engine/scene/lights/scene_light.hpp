@@ -1,6 +1,6 @@
 #pragma once
 
-#include <null_engine/util/mvc/observer.hpp>
+#include <null_engine/util/observer/observer.hpp>
 
 #include "light_interface.hpp"
 
@@ -10,11 +10,11 @@ enum class SceneLightEvent { TurnOn, TurnOf };
 
 class SceneLight {
 public:
-    using Ptr = std::unique_ptr<SceneLight>;
+    using Uptr = std::unique_ptr<SceneLight>;
 
     explicit SceneLight(const AnyMovableLight& light);
 
-    static SceneLight::Ptr Make(const AnyMovableLight& light);
+    static SceneLight::Uptr Make(const AnyMovableLight& light);
 
     InPort<Transform>* GetTransformPort();
 

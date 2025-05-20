@@ -15,7 +15,7 @@ class AmbientLight {
     using Program = multithread::detail::Program;
 
 public:
-    explicit AmbientLight(FloatType strength);
+    explicit AmbientLight(float strength);
 
     Vec3 CalculateLighting(const LightingMaterialSettings& material, DepthBuffer depth) const;
 
@@ -28,13 +28,13 @@ public:
     static Program GetKernelProgram();
 
 private:
-    FloatType strength_;
+    float strength_;
 };
 
 struct LightStrength {
-    FloatType ambient;
-    FloatType diffuse;
-    FloatType specular;
+    float ambient;
+    float diffuse;
+    float specular;
 };
 
 class DirectLight {
@@ -47,7 +47,7 @@ public:
     struct ShadowSettings {
         Vec3 position;
         Vec3 size;
-        FloatType resolution;
+        float resolution;
     };
 
     DirectLight(Vec3 direction, const LightStrength& strength);
@@ -60,7 +60,7 @@ public:
 
     std::optional<ShadowInfo> GetShadowInfo() const;
 
-    VerticesObject VisualizeLight(Vec3 position, Vec4 color = kWhite, FloatType scale = 1.0) const;
+    VerticesObject VisualizeLight(Vec3 position, Vec4 color = kWhite, float scale = 1.0) const;
 
     VerticesObject VisualizeShadowBox() const;
 
@@ -79,9 +79,9 @@ private:
 };
 
 struct AttenuationSettings {
-    FloatType constant = 1.0;
-    FloatType linear = 0.0;
-    FloatType quadratic = 0.0;
+    float constant = 1.0;
+    float linear = 0.0;
+    float quadratic = 0.0;
 };
 
 class PointLight {
@@ -99,7 +99,7 @@ public:
 
     std::optional<ShadowInfo> GetShadowInfo() const;
 
-    VerticesObject VisualizeLight(Vec4 color = kWhite, FloatType scale = 1.0) const;
+    VerticesObject VisualizeLight(Vec4 color = kWhite, float scale = 1.0) const;
 
     void ApplyTransform(const Transform& transform);
 
@@ -121,14 +121,14 @@ public:
     struct Settings {
         Vec3 position = Vec3(0.0, 0.0, 0.0);
         Vec3 direction = Vec3(0.0, 0.0, 1.0);
-        FloatType light_angle;
-        FloatType light_angle_ratio = 1.1;
+        float light_angle;
+        float light_angle_ratio = 1.1;
     };
 
     struct ShadowSettings {
-        FloatType min_distance;
-        FloatType max_distance;
-        FloatType resolution;
+        float min_distance;
+        float max_distance;
+        float resolution;
     };
 
     SpotLight(const Settings& settings, const LightStrength& strength, const AttenuationSettings& attenuation = {});
@@ -141,7 +141,7 @@ public:
 
     std::optional<ShadowInfo> GetShadowInfo() const;
 
-    VerticesObject VisualizeLight(Vec4 color = kWhite, FloatType scale = 1.0) const;
+    VerticesObject VisualizeLight(Vec4 color = kWhite, float scale = 1.0) const;
 
     VerticesObject VisualizeShadowBox() const;
 
@@ -154,9 +154,9 @@ private:
 
     Vec3 position_;
     Vec3 inversed_direction_;
-    FloatType light_angle_;
-    FloatType cut_in_;
-    FloatType cut_out_;
+    float light_angle_;
+    float cut_in_;
+    float cut_out_;
     LightStrength strength_;
     AttenuationSettings attenuation_;
     cl_int2 shadow_size_ = {0, 0};

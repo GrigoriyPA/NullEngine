@@ -7,11 +7,11 @@
 
 namespace null_engine {
 
-FloatType OrientedArea(Vec2 left, Vec2 right) {
+float OrientedArea(Vec2 left, Vec2 right) {
     return left.y() * right.x() - left.x() * right.y();
 }
 
-FloatType OrientedArea(Vec2 point_a, Vec2 point_b, Vec2 point_c) {
+float OrientedArea(Vec2 point_a, Vec2 point_b, Vec2 point_c) {
     return OrientedArea(point_b - point_a, point_c - point_a);
 }
 
@@ -34,7 +34,7 @@ Vec3 Vec4ToVec3(Vec4 vector) {
     return Vec3(vector.x(), vector.y(), vector.z());
 }
 
-Vec4 Vec3ToVec4(Vec3 vector, FloatType w) {
+Vec4 Vec3ToVec4(Vec3 vector, float w) {
     return Vec4(vector.x(), vector.y(), vector.z(), w);
 }
 

@@ -1,21 +1,21 @@
 #pragma once
 
 #include <null_engine/util/geometry/matrix.hpp>
-#include <null_engine/util/mvc/ports.hpp>
+#include <null_engine/util/observer/ports.hpp>
 
 namespace null_engine {
 
 struct CameraChange {
     struct Move {
-        FloatType direct = 0.0;
-        FloatType horizon = 0.0;
-        FloatType vertical = 0.0;
+        float direct = 0.0;
+        float horizon = 0.0;
+        float vertical = 0.0;
     };
 
     struct Rotation {
-        FloatType yaw = 0.0;
-        FloatType pitch = 0.0;
-        FloatType roll = 0.0;
+        float yaw = 0.0;
+        float pitch = 0.0;
+        float roll = 0.0;
     };
 
     Move move;
@@ -51,13 +51,13 @@ public:
 private:
     void Move(Vec3 translation);
 
-    void Rotate(Vec3 axis, FloatType angle);
+    void Rotate(Vec3 axis, float angle);
 
     void OnCameraChange(const CameraChange& cmaera_change);
 
     CameraOrientation orientation_;
     InPort<CameraChange> in_change_port_;
-    OutPort<Transform>::Ptr out_transform_port_ = OutPort<Transform>::Make();
+    OutPort<Transform>::Uptr out_transform_port_ = OutPort<Transform>::Make();
 };
 
 class DirectCamera : public CameraBase {
@@ -65,9 +65,9 @@ class DirectCamera : public CameraBase {
 
 public:
     struct Settings {
-        FloatType width;
-        FloatType height;
-        FloatType depth;
+        float width;
+        float height;
+        float depth;
     };
 
     DirectCamera(const CameraOrientation& orientation, const Settings& settings);
@@ -83,10 +83,10 @@ class PerspectiveCamera : public CameraBase {
 
 public:
     struct Settings {
-        FloatType fov;
-        FloatType ratio;
-        FloatType min_distance;
-        FloatType max_distance;
+        float fov;
+        float ratio;
+        float min_distance;
+        float max_distance;
     };
 
     PerspectiveCamera(const CameraOrientation& orientation, const Settings& settings);

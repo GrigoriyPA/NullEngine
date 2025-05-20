@@ -13,7 +13,7 @@ namespace null_engine {
 
 class Texture {
 public:
-    using Ptr = std::unique_ptr<Texture>;
+    using Uptr = std::unique_ptr<Texture>;
     using Buffer = boost::compute::image2d;
 
     Texture(uint64_t width, uint64_t height, const std::vector<Vec4>& colors);
@@ -34,11 +34,11 @@ public:
 
     void ToDevice(multithread::AccelerationContext context);
 
-    static Texture::Ptr Monotonic(Vec4 color);
+    static Texture::Uptr Monotonic(Vec4 color);
 
-    static Texture::Ptr LoadFromFile(const std::filesystem::path& file);
+    static Texture::Uptr LoadFromFile(const std::filesystem::path& file);
 
-    static Texture::Ptr LoadFromMemory(const void* data, size_t size);
+    static Texture::Uptr LoadFromMemory(const void* data, size_t size);
 
 private:
     uint64_t width_;

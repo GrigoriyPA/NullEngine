@@ -27,22 +27,22 @@ Vec3 GetSpecularColor(Vec3 light_dir, const LightStrength& settings, const Light
     }
 
     const auto normal_diff =
-        std::max<FloatType>((light_dir + material.view_direction).normalized().dot(material.normal), 0.0);
+        std::max<float>((light_dir + material.view_direction).normalized().dot(material.normal), 0.0);
     const auto spec = std::pow(normal_diff, material.shininess);
     return settings.specular * spec * material.specular_color;
 }
 
-FloatType GetAttenuation(
+float GetAttenuation(
     const Vec3& light_pos, const AttenuationSettings& settings, const LightingMaterialSettings& material
 ) {
     const auto distance = (light_pos - material.frag_pos).norm();
     return 1.0 / (settings.constant + settings.linear * distance + settings.quadratic * distance * distance);
 }
 
-FloatType GetShadow(
+float GetShadow(
     const ProjectiveTransform& shadow_space, const ILight::DepthBuffer& depth, const LightingMaterialSettings& material
 ) {
-    static constexpr FloatType kBias = 0.01;
+    static constexpr float kBias = 0.01;
 
     if (!material.shadow) {
         return 0.0;
@@ -54,12 +54,12 @@ FloatType GetShadow(
         return 0.0;
     }
 
-    FloatType shadow = 0.0;
+    float shadow = 0.0;
     const Vec2 tex_coords((frag_pos.x() + 1.0) / 2.0, (1.0 - frag_pos.y()) / 2.0);
     const Vec2 texel_size = depth.GetTexelSize();
     for (int32_t x = -1; x <= 1; ++x) {
         for (int32_t y = -1; y <= 1; ++y) {
-            const FloatType tex_depth = depth.GetData(tex_coords + Vec2(x * texel_size.x(), y * texel_size.y()));
+            const float tex_depth = depth.GetData(tex_coords + Vec2(x * texel_size.x(), y * texel_size.y()));
             if (frag_pos.z() - kBias > tex_depth) {
                 shadow += 1.0;
             }
@@ -74,7 +74,7 @@ Transform GetOrientationTransform(Vec3 direction) {
     return Basis(horizon, VectorProd(horizon, direction).normalized(), direction.normalized());
 }
 
-VerticesObject VisualizeDirectedLight(Vec3 position, Vec3 direction, Vec4 color, FloatType scale) {
+VerticesObject VisualizeDirectedLight(Vec3 position, Vec3 direction, Vec4 color, float scale) {
     auto result = CreateDirectLightVisualization(color);
 
     const auto horizon = Horizon(direction);
@@ -250,7 +250,7 @@ Program GetLightsProgram() {
 
 }  // namespace multithread::detail
 
-AmbientLight::AmbientLight(FloatType strength)
+AmbientLight::AmbientLight(float strength)
     : strength_(strength) {
 }
 
@@ -370,7 +370,7 @@ std::optional<DirectLight::ShadowInfo> DirectLight::GetShadowInfo() const {
     };
 }
 
-VerticesObject DirectLight::VisualizeLight(Vec3 position, Vec4 color, FloatType scale) const {
+VerticesObject DirectLight::VisualizeLight(Vec3 position, Vec4 color, float scale) const {
     return VisualizeDirectedLight(position, -inversed_direction_, color, scale);
 }
 
@@ -476,7 +476,7 @@ std::optional<PointLight::ShadowInfo> PointLight::GetShadowInfo() const {
     return std::nullopt;
 }
 
-VerticesObject PointLight::VisualizeLight(Vec4 color, FloatType scale) const {
+VerticesObject PointLight::VisualizeLight(Vec4 color, float scale) const {
     auto result = CreatePointLightVisualization(color);
 
     result.ApplyTransform(Translation(position_) * Scale(scale));
@@ -606,7 +606,7 @@ std::optional<SpotLight::ShadowInfo> SpotLight::GetShadowInfo() const {
     };
 }
 
-VerticesObject SpotLight::VisualizeLight(Vec4 color, FloatType scale) const {
+VerticesObject SpotLight::VisualizeLight(Vec4 color, float scale) const {
     return VisualizeDirectedLight(position_, -inversed_direction_, color, scale);
 }
 

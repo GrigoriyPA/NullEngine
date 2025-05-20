@@ -56,7 +56,7 @@ private:
     Rasterizer rasterizer_;
     DepthFragmentShader depth_fragment_shader_;
     MainFragmentShader main_fragment_shader_;
-    OutPort<TextureData>::Ptr out_texture_port_ = OutPort<TextureData>::Make();
+    OutPort<TextureData>::Uptr out_texture_port_ = OutPort<TextureData>::Make();
 };
 
 }  // namespace null_engine::native

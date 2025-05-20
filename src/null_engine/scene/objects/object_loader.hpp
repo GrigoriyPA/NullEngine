@@ -29,7 +29,7 @@ public:
     SceneObject LoadFromFile(const std::filesystem::path& file);
 
 private:
-    TextureView AddTexture(Texture::Ptr texture);
+    TextureView AddTexture(Texture::Uptr texture);
 
     TextureView GetMonotonicTexture(aiColor4D color);
 
@@ -49,7 +49,7 @@ private:
     Assimp::Importer importer_;
     std::vector<Material> materials_;
     std::vector<VerticesObject> meshes_;
-    std::vector<Texture::Ptr> textures_;
+    std::vector<Texture::Uptr> textures_;
     std::unordered_map<std::string, size_t> textures_cache_;
     std::optional<AccelerationContext> acceleration_context_;
 };

@@ -4,9 +4,9 @@
 #include <null_engine/util/interface/objects/fps_display.hpp>
 #include <null_engine/util/interface/objects/texture_rendering_consumer.hpp>
 
-#include "events.hpp"
+#include "common.hpp"
 
-namespace null_engine::tests {
+namespace null_engine::example {
 
 namespace {
 
@@ -56,4 +56,4 @@ void View::OnDrawEvent(const DrawViewEvent& draw_event) const {
     window_.display();
 }
 
-}  // namespace null_engine::tests
+}  // namespace null_engine::example

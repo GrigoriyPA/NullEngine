@@ -9,7 +9,7 @@ KeyboardControl::KeyboardControl(const KeyboardSettings& settings)
     , in_refresh_port_(std::bind(&KeyboardControl::OnRefresh, this, std::placeholders::_1)) {
 }
 
-InPort<FloatType>* KeyboardControl::GetRefreshPort() {
+InPort<float>* KeyboardControl::GetRefreshPort() {
     return &in_refresh_port_;
 }
 
@@ -17,7 +17,7 @@ void KeyboardControl::SubscribeOnCameraChange(InPort<CameraChange>* observer_por
     out_camera_change_port_->Subscribe(observer_port, {});
 }
 
-void KeyboardControl::OnRefresh(FloatType delta_time) const {
+void KeyboardControl::OnRefresh(float delta_time) const {
     CameraChange change;
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::E)) {

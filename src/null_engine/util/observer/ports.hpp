@@ -21,7 +21,9 @@ public:
     }
 
     InPort(const InPort<Event>& other) = delete;
+    InPort(InPort<Event>&& other) = delete;
     InPort& operator=(const InPort<Event>& other) = delete;
+    InPort& operator=(InPort<Event>&& other) = delete;
 
     bool HasSubscription() const {
         return subscribed_port_ != nullptr;
@@ -42,7 +44,7 @@ private:
         OnEvent(event);
     }
 
-    void OnUnsubscribed() {
+    void ResetSubscription() {
         subscribed_port_ = nullptr;
     }
 
@@ -59,13 +61,13 @@ private:
 template <typename Event>
 class OutPort {
 public:
-    using Ptr = std::unique_ptr<OutPort>;
+    using Uptr = std::unique_ptr<OutPort>;
 
     OutPort() = default;
     OutPort(const OutPort<Event>& other) = delete;
     OutPort& operator=(const OutPort<Event>& other) = delete;
 
-    static OutPort::Ptr Make() {
+    static OutPort::Uptr Make() {
         return std::make_unique<OutPort>();
     }
 
@@ -79,7 +81,7 @@ public:
         const auto it = subscriptions_.find(in_port);
         if (it != subscriptions_.end()) {
             subscriptions_.erase(it);
-            in_port->OnUnsubscribed();
+            in_port->ResetSubscription();
         }
     }
 
@@ -91,7 +93,7 @@ public:
 
     ~OutPort() {
         for (const auto in_port : subscriptions_) {
-            in_port->OnUnsubscribed();
+            in_port->ResetSubscription();
         }
     }
 

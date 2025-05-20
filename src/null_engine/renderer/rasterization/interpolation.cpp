@@ -4,14 +4,14 @@
 
 namespace null_engine::native::detail {
 
-Interpolation::Interpolation(FloatType z, FloatType w, const InterpolationParams& params)
+Interpolation::Interpolation(float z, float w, const InterpolationParams& params)
     : z_(z)
     , w_(w)
     , params_(params) {
     params_ *= w_;
 }
 
-FloatType Interpolation::GetZ() const {
+float Interpolation::GetZ() const {
     return z_;
 }
 
@@ -45,19 +45,19 @@ Interpolation operator-(Interpolation left, const Interpolation& right) {
     return left;
 }
 
-Interpolation& Interpolation::operator*=(FloatType scale) {
+Interpolation& Interpolation::operator*=(float scale) {
     z_ *= scale;
     w_ *= scale;
     params_ *= scale;
     return *this;
 }
 
-Interpolation operator*(Interpolation left, FloatType scale) {
+Interpolation operator*(Interpolation left, float scale) {
     left *= scale;
     return left;
 }
 
-Interpolation& Interpolation::operator/=(FloatType scale) {
+Interpolation& Interpolation::operator/=(float scale) {
     assert(!Equal(scale, 0.0) && "Division by zero");
 
     z_ /= scale;
@@ -66,7 +66,7 @@ Interpolation& Interpolation::operator/=(FloatType scale) {
     return *this;
 }
 
-Interpolation operator/(Interpolation left, FloatType scale) {
+Interpolation operator/(Interpolation left, float scale) {
     left /= scale;
     return left;
 }

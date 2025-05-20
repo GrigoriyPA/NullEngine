@@ -9,13 +9,20 @@ namespace null_engine {
 
 namespace native {
 
-TextureRenderingConsumer::TextureRenderingConsumer(sf::Texture& texture)
-    : texture_(texture)
-    , in_texture_port_(std::bind(&TextureRenderingConsumer::OnRenderedTexture, this, std::placeholders::_1)) {
+TextureRenderingConsumer::TextureRenderingConsumer(uint64_t width, uint64_t height)
+    : in_texture_port_(std::bind(&TextureRenderingConsumer::OnRenderedTexture, this, std::placeholders::_1)) {
+    Ensure(
+        texture_.create(width, height),
+        fmt::format("Failed to create window rendering consumer with texture size ({}, {})", width, height)
+    );
 }
 
 InPort<TextureRenderingConsumer::TextureData>* TextureRenderingConsumer::GetTexturePort() {
     return &in_texture_port_;
+}
+
+const sf::Texture& TextureRenderingConsumer::GetTexture() const {
+    return texture_;
 }
 
 void TextureRenderingConsumer::OnRenderedTexture(const TextureData& texture) {
@@ -25,13 +32,8 @@ void TextureRenderingConsumer::OnRenderedTexture(const TextureData& texture) {
 }
 
 WindowRenderingConsumer::WindowRenderingConsumer(uint64_t width, uint64_t height)
-    : Base(texture_) {
-    Ensure(
-        texture_.create(width, height),
-        fmt::format("Failed to create window rendering consumer with texture size ({}, {})", width, height)
-    );
-
-    sprite_.setTexture(texture_);
+    : Base(width, height) {
+    sprite_.setTexture(GetTexture());
 }
 
 void WindowRenderingConsumer::draw(sf::RenderTarget& target, sf::RenderStates states) const {

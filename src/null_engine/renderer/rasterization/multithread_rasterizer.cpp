@@ -338,7 +338,9 @@ Rasterizer::SharedBuffers Rasterizer::CreateBuffers(const ViewInfo& view) {
 }
 
 cl_int2 Rasterizer::GetWorkSize(const ViewInfo& view) {
-    assert(view.widt > 0 && view.height > 0 && "Expected positive view size");
+    if (view.width == 0 || view.height == 0) {
+        return {0, 0};
+    }
     return {
         .x = static_cast<cl_int>((view.width - 1) / kWorkShape.y + 1),
         .y = static_cast<cl_int>((view.height - 1) / kWorkShape.x + 1)

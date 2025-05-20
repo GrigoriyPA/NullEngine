@@ -13,13 +13,13 @@ struct ShadowInfo {
     Vec3 light_pos;
 };
 
-class DepthBuffer : public BufferView<FloatType> {
-    using Base = BufferView<FloatType>;
+class DepthBuffer : public BufferView<float> {
+    using Base = BufferView<float>;
 
 public:
     DepthBuffer() = default;
 
-    DepthBuffer(const ShadowInfo& shadow_info, const FloatType* depth);
+    DepthBuffer(const ShadowInfo& shadow_info, const float* depth);
 };
 
 }  // namespace null_engine::detail

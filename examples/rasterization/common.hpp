@@ -5,13 +5,16 @@
 #include <variant>
 #include <vector>
 
-namespace null_engine::tests {
+namespace null_engine::example {
 
 using TextureData = std::vector<uint8_t>;
 
 struct DrawViewEvent {
-    FloatType delta_time;
+    float delta_time;
     std::variant<TextureData, GLuint> render_texture;
 };
 
-}  // namespace null_engine::tests
+enum class MultithreadingMode { Enabled, Disabled };
+enum class MouseControlMode { Enabled, Disabled };
+
+}  // namespace null_engine::example

@@ -53,7 +53,7 @@ public:
 
     Scene& AddLight(const AnyMovableLight& light);
 
-    Scene& AddLight(SceneLight::Ptr light);
+    Scene& AddLight(SceneLight::Uptr light);
 
     Iterator begin() const;
 
@@ -61,7 +61,7 @@ public:
 
 private:
     std::vector<SceneObject> objects_;
-    std::vector<SceneLight::Ptr> lights_;
+    std::vector<SceneLight::Uptr> lights_;
 };
 
 }  // namespace null_engine

@@ -86,7 +86,7 @@ Scene& Scene::AddLight(const AnyMovableLight& light) {
     return *this;
 }
 
-Scene& Scene::AddLight(SceneLight::Ptr light) {
+Scene& Scene::AddLight(SceneLight::Uptr light) {
     lights_.emplace_back(std::move(light));
     return *this;
 }

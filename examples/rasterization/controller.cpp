@@ -1,10 +1,12 @@
 #include "controller.hpp"
 
-namespace null_engine::tests {
+#include "common.hpp"
 
-Controller::Controller(sf::RenderWindow& window, Model* model, bool enable_mouse_control)
+namespace null_engine::example {
+
+Controller::Controller(sf::RenderWindow& window, Model* model, MouseControlMode mouse_control_mode)
     : model_(model)
-    , enable_mouse_control_(enable_mouse_control)
+    , mouse_control_mode_(mouse_control_mode)
     , mouse_control_(window)
     , keyboard_control_({})
     , in_mouse_change_port_(std::bind(&Controller::OnMouseChange, this, std::placeholders::_1))
@@ -14,12 +16,12 @@ Controller::Controller(sf::RenderWindow& window, Model* model, bool enable_mouse
 }
 
 void Controller::AddEvent(const sf::Event& event) {
-    if (enable_mouse_control_) {
+    if (mouse_control_mode_ == MouseControlMode::Enabled) {
         mouse_control_.GetEventsPort()->OnEvent(event);
     }
 }
 
-void Controller::AddRefresh(FloatType delta_time) {
+void Controller::AddRefresh(float delta_time) {
     keyboard_control_.GetRefreshPort()->OnEvent(delta_time);
     model_->Refresh(delta_time);
 }
@@ -39,4 +41,4 @@ void Controller::OnKeyboardChange(const KeyboardChange& change) const {
     });
 }
 
-}  // namespace null_engine::tests
+}  // namespace null_engine::example

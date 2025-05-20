@@ -199,7 +199,7 @@ Renderer::Buffer Renderer::CreateBuffer() {
     auto& ctx = context_.GetContext();
     result.rasterizer_buffer = {
         .colors = compute::opengl_texture(ctx, GL_TEXTURE_2D, 0, result.rendering_texture, CL_MEM_WRITE_ONLY),
-        .depth = compute::buffer(ctx, view_width_ * view_height_ * sizeof(FloatType))
+        .depth = compute::buffer(ctx, view_width_ * view_height_ * sizeof(float))
     };
 
     return result;

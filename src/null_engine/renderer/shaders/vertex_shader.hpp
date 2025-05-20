@@ -17,9 +17,9 @@ public:
 
     InterpolationParams& operator-=(const InterpolationParams& other);
 
-    InterpolationParams& operator*=(FloatType scale);
+    InterpolationParams& operator*=(float scale);
 
-    InterpolationParams& operator/=(FloatType scale);
+    InterpolationParams& operator/=(float scale);
 };
 
 class InterpVertex {
@@ -31,9 +31,9 @@ public:
 
     InterpVertex& operator-=(const InterpVertex& other);
 
-    InterpVertex& operator*=(FloatType scale);
+    InterpVertex& operator*=(float scale);
 
-    InterpVertex& operator/=(FloatType scale);
+    InterpVertex& operator/=(float scale);
 };
 
 std::vector<InterpVertex> ConvertObjectVerices(

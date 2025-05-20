@@ -8,7 +8,7 @@ struct Material {
     std::optional<TextureView> diffuse_tex;
     std::optional<TextureView> specular_tex;
     std::optional<TextureView> emission_tex;
-    FloatType shininess = 1.0;
+    float shininess = 1.0;
     bool shadow = true;
 };
 

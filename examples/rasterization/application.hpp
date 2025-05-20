@@ -2,7 +2,7 @@
 
 #include <memory>
 
-namespace null_engine::tests {
+namespace null_engine::example {
 
 class Application {
 public:
@@ -20,4 +20,4 @@ private:
     std::unique_ptr<Impl> impl_;
 };
 
-}  // namespace null_engine::tests
+}  // namespace null_engine::example

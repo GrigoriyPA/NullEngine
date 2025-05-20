@@ -6,16 +6,16 @@
 
 namespace null_engine {
 
-inline bool Equal(FloatType left, FloatType right) {
+inline bool Equal(float left, float right) {
     return std::abs(right - left) <= kEps;
 }
 
-inline bool Less(FloatType left, FloatType right) {
+inline bool Less(float left, float right) {
     return left <= right && !Equal(left, right);
 }
 
-FloatType Module(FloatType left, FloatType right);
+float Module(float value, float modulus);
 
-FloatType Clamp(FloatType value, FloatType min_value, FloatType max_value);
+float Clamp(float value, float min_value, float max_value);
 
 }  // namespace null_engine

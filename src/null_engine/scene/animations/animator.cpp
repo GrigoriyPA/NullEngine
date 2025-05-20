@@ -27,7 +27,7 @@ AnimatorRegistry::AnimatorRegistry()
     : in_time_port_(std::bind(&AnimatorRegistry::OnRefresh, this, std::placeholders::_1)) {
 }
 
-InPort<FloatType>* AnimatorRegistry::GetRefreshPort() {
+InPort<float>* AnimatorRegistry::GetRefreshPort() {
     return &in_time_port_;
 }
 
@@ -36,7 +36,7 @@ void AnimatorRegistry::AddAnimator(std::unique_ptr<TimedAnimator> animator) {
     animators_.emplace_back(std::move(animator));
 }
 
-void AnimatorRegistry::OnRefresh(FloatType delta_time) const {
+void AnimatorRegistry::OnRefresh(float delta_time) const {
     out_time_port_->Notify(delta_time);
 }
 

@@ -2,19 +2,19 @@
 
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <null_engine/util/geometry/constants.hpp>
-#include <null_engine/util/mvc/ports.hpp>
+#include <null_engine/util/observer/ports.hpp>
 
 namespace null_engine {
 
 struct CenteringMouseSettings {
-    FloatType sensitivity = 0.001;
+    float sensitivity = 0.001;
 };
 
 class CenteringMouseControl {
 public:
     struct CameraChange {
-        FloatType yaw_rotation = 0.0;
-        FloatType pitch_rotation = 0.0;
+        float yaw_rotation = 0.0;
+        float pitch_rotation = 0.0;
     };
 
     explicit CenteringMouseControl(sf::RenderWindow& window, const CenteringMouseSettings& settings = {});
@@ -33,7 +33,7 @@ private:
     int32_t window_width_;
     int32_t window_height_;
     InPort<sf::Event> in_events_port_;
-    OutPort<CameraChange>::Ptr out_camera_change_port_ = OutPort<CameraChange>::Make();
+    OutPort<CameraChange>::Uptr out_camera_change_port_ = OutPort<CameraChange>::Make();
 };
 
 }  // namespace null_engine

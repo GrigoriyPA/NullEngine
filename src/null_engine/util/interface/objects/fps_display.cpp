@@ -16,7 +16,7 @@ FPSDisplay::FPSDisplay(FPSDisplaySettings settings, const sf::Font& font)
     SetFPS(0);
 }
 
-InPort<FloatType>* FPSDisplay::GetRefreshPort() {
+InPort<float>* FPSDisplay::GetRefreshPort() {
     return &in_refresh_port_;
 }
 
@@ -29,18 +29,18 @@ void FPSDisplay::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     target.draw(display_text_, states);
 }
 
-void FPSDisplay::OnRefresh(FloatType delta_time) {
+void FPSDisplay::OnRefresh(float delta_time) {
     spent_time_ += delta_time;
     number_flips_++;
 
     if (spent_time_ >= update_period_) {
-        SetFPS(static_cast<FloatType>(number_flips_) / spent_time_);
+        SetFPS(static_cast<float>(number_flips_) / spent_time_);
         spent_time_ = 0.0;
         number_flips_ = 0;
     }
 }
 
-void FPSDisplay::SetFPS(FloatType fps) {
+void FPSDisplay::SetFPS(float fps) {
     display_text_.setString(fmt::format("FPS: {:.3f}", fps));
 }
 

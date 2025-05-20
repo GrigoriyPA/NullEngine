@@ -142,7 +142,7 @@ const std::vector<SceneObject>& SceneObject::GetChildren() const {
 }
 
 Transform SceneObject::GetTransform() const {
-    return transform_->GetState().value_or(Ident());
+    return transform_->GetLastData().value_or(Ident());
 }
 
 SceneObject& SceneObject::AddObject(const VerticesObject& object) {

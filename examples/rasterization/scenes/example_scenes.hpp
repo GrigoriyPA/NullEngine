@@ -12,7 +12,7 @@
 #include <null_engine/util/geometry/vector.hpp>
 #include <numbers>
 
-namespace null_engine::tests {
+namespace null_engine::example {
 
 class SceneInfo {
     using AccelerationContext = multithread::AccelerationContext;
@@ -21,7 +21,7 @@ class SceneInfo {
     static constexpr AttenuationSettings kDefaultLightAttenuation = {.constant = 1.0, .quadratic = 0.05};
 
 public:
-    using Ptr = std::unique_ptr<SceneInfo>;
+    using Uptr = std::unique_ptr<SceneInfo>;
 
     enum Textures {
         TEX_DIFFUSE,
@@ -49,17 +49,17 @@ public:
             {.position = Vec3(0.0, 0.0, -3.0), .direction = Vec3(0.0, -1.0, 1.0), .horizon = Vec3(1.0, 0.0, 0.0)}
     );
 
-    static SceneInfo::Ptr SimpleQuad(const Settings& settings);
+    static SceneInfo::Uptr SimpleQuad(const Settings& settings);
 
-    static SceneInfo::Ptr SimpleCubes(const Settings& settings);
+    static SceneInfo::Uptr SimpleCubes(const Settings& settings);
 
-    static SceneInfo::Ptr LoadCube(const Settings& settings);
+    static SceneInfo::Uptr LoadCube(const Settings& settings);
 
-    static SceneInfo::Ptr LoadMjolnir(const Settings& settings, LightType light_type = LightType::Spot);
+    static SceneInfo::Uptr LoadMjolnir(const Settings& settings, LightType light_type = LightType::Spot);
 
-    static SceneInfo::Ptr LoadVelorum(const Settings& settings);
+    static SceneInfo::Uptr LoadVelorum(const Settings& settings);
 
-    void OnRefreshEvent(FloatType delta_time);
+    void OnRefreshEvent(float delta_time);
 
     void OnCameraEvent(const CameraChange& camera_change);
 
@@ -71,7 +71,7 @@ public:
 
     SceneObject LoadObject(const std::string& path, Transform instance);
 
-    SceneInfo& AddAmbientLight(FloatType strength = 0.6);
+    SceneInfo& AddAmbientLight(float strength = 0.6);
 
     SceneInfo& AddDirectLight(
         Vec3 direction = Vec3(2.0, -1.0, 3.0), LightStrength strength = kDefaultLightStrength,
@@ -90,11 +90,11 @@ public:
     );
 
     SceneInfo& SetRotationAnimation(
-        SceneObject& object, Vec3 axis = Vec3(0.0, 1.0, 0.0), FloatType speed = std::numbers::pi / 5.0
+        SceneObject& object, Vec3 axis = Vec3(0.0, 1.0, 0.0), float speed = std::numbers::pi / 5.0
     );
 
     SceneInfo& SetTranslationAnimation(
-        SceneObject& object, Vec3 start = Vec3(0.0, 0.0, 0.0), Vec3 end = Vec3(0.0, 0.0, 3.0), FloatType speed = 0.2
+        SceneObject& object, Vec3 start = Vec3(0.0, 0.0, 0.0), Vec3 end = Vec3(0.0, 0.0, 3.0), float speed = 0.2
     );
 
 private:
@@ -103,9 +103,9 @@ private:
     std::optional<AccelerationContext> acceleration_context_;
     ObjectLoader object_loader_;
     AnimatorRegistry animator_registry_;
-    std::vector<Texture::Ptr> textures_;
+    std::vector<Texture::Uptr> textures_;
     Scene scene_;
     PerspectiveCamera camera_;
 };
 
-}  // namespace null_engine::tests
+}  // namespace null_engine::example

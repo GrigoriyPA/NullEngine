@@ -6,26 +6,26 @@ namespace null_engine {
 
 class RotationAnimation : public TimedAnimator {
 public:
-    RotationAnimation(Vec3 axis, FloatType rotation_speed);
+    RotationAnimation(Vec3 axis, float rotation_speed);
 
 private:
-    void OnRefresh(FloatType delta_time);
+    void OnRefresh(float delta_time);
 
     Vec3 axis_;
-    FloatType rotation_speed_;
+    float rotation_speed_;
 };
 
 class TranslationAnimation : public TimedAnimator {
 public:
-    TranslationAnimation(Vec3 start, Vec3 end, FloatType speed);
+    TranslationAnimation(Vec3 start, Vec3 end, float speed);
 
 private:
-    void OnRefresh(FloatType delta_time);
+    void OnRefresh(float delta_time);
 
     Vec3 start_;
     Vec3 end_;
-    FloatType period_;
-    FloatType time_ = 0.0;
+    float period_;
+    float time_ = 0.0;
 };
 
 }  // namespace null_engine

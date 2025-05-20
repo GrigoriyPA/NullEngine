@@ -43,7 +43,7 @@ void CameraBase::Move(Vec3 translation) {
     orientation_.position += translation;
 }
 
-void CameraBase::Rotate(Vec3 axis, FloatType angle) {
+void CameraBase::Rotate(Vec3 axis, float angle) {
     const auto transform = Rotation(axis, angle).linear();
 
     orientation_.direction = transform * orientation_.direction;

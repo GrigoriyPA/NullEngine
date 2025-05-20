@@ -23,7 +23,7 @@ struct TriangleClippingResult {
 
 class Clipper {
     struct ClippingPoint {
-        FloatType scalar_prod;
+        float scalar_prod;
         uint64_t index;
     };
 

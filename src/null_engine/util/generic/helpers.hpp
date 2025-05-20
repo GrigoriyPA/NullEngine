@@ -1,22 +1,21 @@
 #pragma once
 
-#include <functional>
 #include <vector>
 
 namespace null_engine {
 
 template <typename Value>
-void SwapRemove(std::vector<Value>& velues, int64_t index) {
-    assert(index < velues.size() && "Invalid index for remove");
+void SwapRemove(std::vector<Value>& values, int64_t index) {
+    assert(index < values.size() && "Invalid index for remove");
 
-    if (index + 1 < velues.size()) {
-        std::swap(velues[index], velues.back());
+    if (index + 1 < values.size()) {
+        std::swap(values[index], values.back());
     }
-    velues.pop_back();
+    values.pop_back();
 }
 
-template <typename Value>
-void SortValues(Value& a, Value& b, Value& c, std::function<bool(const Value&, const Value&)> less) {
+template <typename Value, typename Comparator>
+void SortValues(Value& a, Value& b, Value& c, Comparator less) {
     if (less(a, b)) {
         std::swap(a, b);
     }

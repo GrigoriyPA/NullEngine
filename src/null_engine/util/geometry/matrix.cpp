@@ -24,11 +24,11 @@ Transform Scale(Vec3 scale) {
     }));
 }
 
-Transform Scale(FloatType scale_x, FloatType scale_y, FloatType scale_z) {
+Transform Scale(float scale_x, float scale_y, float scale_z) {
     return Scale(Vec3(scale_x, scale_y, scale_z));
 }
 
-Transform Scale(FloatType scale) {
+Transform Scale(float scale) {
     return Scale(scale, scale, scale);
 }
 
@@ -41,19 +41,19 @@ Transform Translation(Vec3 translation) {
     }));
 }
 
-Transform Translation(FloatType translation_x, FloatType translation_y, FloatType translation_z) {
+Transform Translation(float translation_x, float translation_y, float translation_z) {
     return Translation(Vec3(translation_x, translation_y, translation_z));
 }
 
-Transform Rotation(Vec3 axis, FloatType angle) {
+Transform Rotation(Vec3 axis, float angle) {
     axis.normalize();
 
-    const FloatType x = axis.x();
-    const FloatType y = axis.y();
-    const FloatType z = axis.z();
-    const FloatType c = cos(angle);
-    const FloatType ic = 1.0 - c;
-    const FloatType s = sin(angle);
+    const float x = axis.x();
+    const float y = axis.y();
+    const float z = axis.z();
+    const float c = cos(angle);
+    const float ic = 1.0 - c;
+    const float s = sin(angle);
 
     return Transform(Mat3({
         {c + x * x * ic, x * y * ic - z * s, x * z * ic + y * s},
@@ -70,17 +70,15 @@ Transform Basis(Vec3 x, Vec3 y, Vec3 z) {
     }));
 }
 
-ProjectiveTransform BoxProjection(FloatType width, FloatType height, FloatType depth) {
+ProjectiveTransform BoxProjection(float width, float height, float depth) {
     return Translation(0.0, 0.0, -1.0) * Scale(2.0 / width, 2.0 / height, 2.0 / depth);
 }
 
-ProjectiveTransform PerspectiveProjection(
-    FloatType fov, FloatType ratio, FloatType min_distance, FloatType max_distance
-) {
+ProjectiveTransform PerspectiveProjection(float fov, float ratio, float min_distance, float max_distance) {
     assert(Less(0.0, min_distance) && "Min projection distance should be positive");
     assert(Less(min_distance, max_distance) && "Min and max projection distances invalid");
 
-    const FloatType t = tan(fov / 2.0);
+    const float t = tan(fov / 2.0);
     assert(Less(0.0, t) && "Invalid fov, value should be in interval (0; PI)");
 
     ProjectiveTransform transform(

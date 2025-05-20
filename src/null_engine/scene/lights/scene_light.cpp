@@ -7,7 +7,7 @@ SceneLight::SceneLight(const AnyMovableLight& light)
     , in_events_port_(std::bind(&SceneLight::OnEvent, this, std::placeholders::_1)) {
 }
 
-SceneLight::Ptr SceneLight::Make(const AnyMovableLight& light) {
+SceneLight::Uptr SceneLight::Make(const AnyMovableLight& light) {
     return std::make_unique<SceneLight>(light);
 }
 
@@ -25,7 +25,7 @@ bool SceneLight::Enabled() const {
 
 AnyLight SceneLight::GetLight() const {
     auto result = light_;
-    if (const auto& transform = transform_.GetState()) {
+    if (const auto& transform = transform_.GetLastData()) {
         result.ApplyTransform(*transform);
     }
     return result;

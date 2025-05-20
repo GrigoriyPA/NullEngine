@@ -67,18 +67,18 @@ void Texture::ToDevice(multithread::AccelerationContext context) {
     queue.enqueue_write_image(*image_buffer_, origin, region, pixels.data(), 0, 0);
 }
 
-Texture::Ptr Texture::Monotonic(Vec4 color) {
+Texture::Uptr Texture::Monotonic(Vec4 color) {
     return std::make_unique<Texture>(1, 1, std::vector{color});
 }
 
-Texture::Ptr Texture::LoadFromFile(const std::filesystem::path& file) {
+Texture::Uptr Texture::LoadFromFile(const std::filesystem::path& file) {
     sf::Image image;
     Ensure(image.loadFromFile(file.string()), fmt::format("Failed to load texture from file {}", file.string()));
 
     return std::make_unique<Texture>(image.getSize().x, image.getSize().y, image.getPixelsPtr());
 }
 
-Texture::Ptr Texture::LoadFromMemory(const void* data, size_t size) {
+Texture::Uptr Texture::LoadFromMemory(const void* data, size_t size) {
     sf::Image image;
     Ensure(image.loadFromMemory(data, size), "Failed to load texture from memory");
 

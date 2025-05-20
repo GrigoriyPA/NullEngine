@@ -38,7 +38,7 @@ struct LightingMaterialSettings {
     Vec3 normal;
     Vec3 diffuse_color = Vec3(0.0, 0.0, 0.0);
     Vec3 specular_color = Vec3(0.0, 0.0, 0.0);
-    FloatType shininess = 0.0;
+    float shininess = 0.0;
     bool shadow = true;
 };
 

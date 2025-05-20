@@ -8,7 +8,7 @@ VerticesObject CreateQuad(bool generate_normals);
 
 VerticesObject CreateCube();
 
-VerticesObject CreateNormalsVisualization(const VerticesObject& object, Vec4 color, FloatType scale = 1.0);
+VerticesObject CreateNormalsVisualization(const VerticesObject& object, Vec4 color, float scale = 1.0);
 
 VerticesObject CreateDirectLightVisualization(Vec4 color);
 

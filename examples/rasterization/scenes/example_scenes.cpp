@@ -13,7 +13,7 @@
 #include <null_engine/util/interface/helpers/constants.hpp>
 #include <numbers>
 
-namespace null_engine::tests {
+namespace null_engine::example {
 
 namespace {
 
@@ -34,7 +34,7 @@ PerspectiveCamera CreatePerspectiveCamera(CameraOrientation orientation, uint64_
         orientation,
         {
             .fov = std::numbers::pi * 0.3,
-            .ratio = static_cast<FloatType>(view_width) / static_cast<FloatType>(view_height),
+            .ratio = static_cast<float>(view_width) / static_cast<float>(view_height),
             .min_distance = 0.1,
             .max_distance = 250.0,
         }
@@ -62,7 +62,7 @@ SceneInfo::SceneInfo(const Settings& settings, CameraOrientation camera_orientat
     SetupTextures();
 }
 
-SceneInfo::Ptr SceneInfo::SimpleQuad(const Settings& settings) {
+SceneInfo::Uptr SceneInfo::SimpleQuad(const Settings& settings) {
     auto result = std::make_unique<SceneInfo>(
         settings,
         CameraOrientation{
@@ -87,7 +87,7 @@ SceneInfo::Ptr SceneInfo::SimpleQuad(const Settings& settings) {
     return result;
 }
 
-SceneInfo::Ptr SceneInfo::SimpleCubes(const Settings& settings) {
+SceneInfo::Uptr SceneInfo::SimpleCubes(const Settings& settings) {
     auto result = std::make_unique<SceneInfo>(
         settings,
         CameraOrientation{
@@ -119,7 +119,7 @@ SceneInfo::Ptr SceneInfo::SimpleCubes(const Settings& settings) {
     return result;
 }
 
-SceneInfo::Ptr SceneInfo::LoadCube(const Settings& settings) {
+SceneInfo::Uptr SceneInfo::LoadCube(const Settings& settings) {
     auto result = std::make_unique<SceneInfo>(
         settings,
         CameraOrientation{
@@ -134,7 +134,7 @@ SceneInfo::Ptr SceneInfo::LoadCube(const Settings& settings) {
     return result;
 }
 
-SceneInfo::Ptr SceneInfo::LoadMjolnir(const Settings& settings, LightType light_type) {
+SceneInfo::Uptr SceneInfo::LoadMjolnir(const Settings& settings, LightType light_type) {
     auto result = std::make_unique<SceneInfo>(settings);
 
     const auto plane_instansce =
@@ -177,7 +177,8 @@ SceneInfo::Ptr SceneInfo::LoadMjolnir(const Settings& settings, LightType light_
             const Vec3 position(-4.0, 2.0, -4.0);
             const Vec3 direction(1.0, -1.7, 1.0);
             result->AddSpotLight(
-                position, direction, kDefaultLightStrength, {.constant = 1.0, .quadratic = 0.01},
+                position, direction, {.ambient = 0.6, .diffuse = 0.8, .specular = 0.8},
+                {.constant = 1.0, .quadratic = 0.01},
                 SpotLight::ShadowSettings{
                     .min_distance = 1,
                     .max_distance = 15.0,
@@ -191,7 +192,7 @@ SceneInfo::Ptr SceneInfo::LoadMjolnir(const Settings& settings, LightType light_
     return result;
 }
 
-SceneInfo::Ptr SceneInfo::LoadVelorum(const Settings& settings) {
+SceneInfo::Uptr SceneInfo::LoadVelorum(const Settings& settings) {
     const Vec3 direction(1.0, -1.0, -1.0);
     auto result = std::make_unique<SceneInfo>(
         settings,
@@ -205,7 +206,7 @@ SceneInfo::Ptr SceneInfo::LoadVelorum(const Settings& settings) {
     return result;
 }
 
-void SceneInfo::OnRefreshEvent(FloatType delta_time) {
+void SceneInfo::OnRefreshEvent(float delta_time) {
     animator_registry_.GetRefreshPort()->OnEvent(delta_time);
 }
 
@@ -252,7 +253,7 @@ void SceneInfo::SetupTextures() {
     }
 }
 
-SceneInfo& SceneInfo::AddAmbientLight(FloatType strength) {
+SceneInfo& SceneInfo::AddAmbientLight(float strength) {
     scene_.AddLight(AmbientLight(strength));
     return *this;
 }
@@ -309,18 +310,18 @@ SceneInfo& SceneInfo::AddSpotLight(
     return *this;
 }
 
-SceneInfo& SceneInfo::SetRotationAnimation(SceneObject& object, Vec3 axis, FloatType speed) {
+SceneInfo& SceneInfo::SetRotationAnimation(SceneObject& object, Vec3 axis, float speed) {
     auto animator = std::make_unique<RotationAnimation>(axis, speed);
     animator->SubscribeOnAnimation(object.GetTransformPort());
     animator_registry_.AddAnimator(std::move(animator));
     return *this;
 }
 
-SceneInfo& SceneInfo::SetTranslationAnimation(SceneObject& object, Vec3 start, Vec3 end, FloatType speed) {
+SceneInfo& SceneInfo::SetTranslationAnimation(SceneObject& object, Vec3 start, Vec3 end, float speed) {
     auto animator = std::make_unique<TranslationAnimation>(start, end, speed);
     animator->SubscribeOnAnimation(object.GetTransformPort());
     animator_registry_.AddAnimator(std::move(animator));
     return *this;
 }
 
-}  // namespace null_engine::tests
+}  // namespace null_engine::example

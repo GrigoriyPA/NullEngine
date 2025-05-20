@@ -8,9 +8,9 @@ class Interpolation {
     using InterpolationParams = null_engine::detail::InterpolationParams;
 
 public:
-    Interpolation(FloatType z, FloatType w, const InterpolationParams& params);
+    Interpolation(float z, float w, const InterpolationParams& params);
 
-    FloatType GetZ() const;
+    float GetZ() const;
     InterpolationParams GetParams() const;
 
     Interpolation& operator+=(const Interpolation& other);
@@ -19,15 +19,15 @@ public:
     Interpolation& operator-=(const Interpolation& other);
     friend Interpolation operator-(Interpolation left, const Interpolation& right);
 
-    Interpolation& operator*=(FloatType scale);
-    friend Interpolation operator*(Interpolation left, FloatType scale);
+    Interpolation& operator*=(float scale);
+    friend Interpolation operator*(Interpolation left, float scale);
 
-    Interpolation& operator/=(FloatType scale);
-    friend Interpolation operator/(Interpolation left, FloatType scale);
+    Interpolation& operator/=(float scale);
+    friend Interpolation operator/(Interpolation left, float scale);
 
 private:
-    FloatType z_;
-    FloatType w_;
+    float z_;
+    float w_;
     InterpolationParams params_;
 };
 

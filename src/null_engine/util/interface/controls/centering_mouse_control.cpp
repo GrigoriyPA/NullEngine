@@ -28,8 +28,8 @@ void CenteringMouseControl::OnEvent(const sf::Event& event) const {
     }
 
     out_camera_change_port_->Notify(
-        {.yaw_rotation = static_cast<FloatType>(event.mouseMove.x - window_width_ / 2) * settings_.sensitivity,
-         .pitch_rotation = static_cast<FloatType>(event.mouseMove.y - window_height_ / 2) * settings_.sensitivity}
+        {.yaw_rotation = static_cast<float>(event.mouseMove.x - window_width_ / 2) * settings_.sensitivity,
+         .pitch_rotation = static_cast<float>(event.mouseMove.y - window_height_ / 2) * settings_.sensitivity}
     );
 
     CenteringMouse();

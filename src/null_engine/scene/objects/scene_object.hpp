@@ -1,7 +1,7 @@
 #pragma once
 
 #include <null_engine/drawable_objects/vertices_object.hpp>
-#include <null_engine/util/mvc/observer.hpp>
+#include <null_engine/util/observer/observer.hpp>
 #include <vector>
 
 namespace null_engine {
@@ -88,7 +88,7 @@ public:
     Iterator end() const;
 
 private:
-    Observer<Transform>::Ptr transform_ = Observer<Transform>::Make();
+    Observer<Transform>::Uptr transform_ = Observer<Transform>::Make();
     std::vector<Transform> instances_;
     std::vector<VerticesObject> objects_;
     std::vector<SceneObject> children_;

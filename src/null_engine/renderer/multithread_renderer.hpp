@@ -105,7 +105,7 @@ private:
     MainFragmentShader::ShadowsMaps shadows_info_;
     Rasterizer main_rasterizer_;
     Rasterizer depth_rasterizer_;
-    OutPort<GLuint>::Ptr out_texture_port_ = OutPort<GLuint>::Make();
+    OutPort<GLuint>::Uptr out_texture_port_ = OutPort<GLuint>::Make();
 };
 
 }  // namespace null_engine::multithread

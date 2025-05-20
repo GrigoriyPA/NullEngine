@@ -12,14 +12,14 @@ Line2::Line2(Vec2 point_a, Vec2 point_b)
     direction_.normalize();
 }
 
-Vec2 Line2::IntersectHorizontal(FloatType y) const {
+Vec2 Line2::IntersectHorizontal(float y) const {
     assert(!Equal(direction_.y(), 0.0) && "Can not intersect two horizontal lines");
 
     const auto distance = (y - point_.y()) / direction_.y();
     return point_ + direction_ * distance;
 }
 
-Vec2 Line2::IntersectVertical(FloatType x) const {
+Vec2 Line2::IntersectVertical(float x) const {
     assert(!Equal(direction_.x(), 0.0) && "Can not intersect two vertical lines");
 
     const auto distance = (x - point_.x()) / direction_.x();

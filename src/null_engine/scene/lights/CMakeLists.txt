@@ -13,6 +13,5 @@ target_link_libraries(${TARGET_NAME}
     null-engine-scene-animations
     null-engine-util-geometry
     null-engine-util-interface-helpers
-    null-engine-util-mvc
     OpenCL::OpenCL
 )

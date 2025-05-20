@@ -76,7 +76,7 @@ SceneObject ObjectLoader::LoadFromFile(const std::filesystem::path& file) {
     return BuildSceneObject(scene->mRootNode);
 }
 
-TextureView ObjectLoader::AddTexture(Texture::Ptr texture) {
+TextureView ObjectLoader::AddTexture(Texture::Uptr texture) {
     if (acceleration_context_) {
         texture->ToDevice(*acceleration_context_);
     }
@@ -131,7 +131,7 @@ std::optional<TextureView> ObjectLoader::LoadTexture(
         return TextureView(*textures_[it->second]);
     }
 
-    Texture::Ptr texture;
+    Texture::Uptr texture;
     if (path[0] == '*') {
         const auto* texture_data = scene->mTextures[std::stoi(path.substr(1, path.size() - 1))];
         texture = Texture::LoadFromMemory(

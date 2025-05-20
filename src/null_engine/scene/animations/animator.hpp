@@ -1,7 +1,7 @@
 #pragma once
 
 #include <null_engine/util/geometry/matrix.hpp>
-#include <null_engine/util/mvc/ports.hpp>
+#include <null_engine/util/observer/ports.hpp>
 
 namespace null_engine {
 
@@ -15,11 +15,11 @@ public:
 
 private:
     Transform current_transform_ = Ident();
-    OutPort<Transform>::Ptr out_transform_port_ = OutPort<Transform>::Make();
+    OutPort<Transform>::Uptr out_transform_port_ = OutPort<Transform>::Make();
 };
 
 class TimedAnimator : public Animator {
-    using InTimePort = InPort<FloatType>;
+    using InTimePort = InPort<float>;
 
 public:
     explicit TimedAnimator(InTimePort::EventsHandler refresh_handler);
@@ -34,16 +34,16 @@ class AnimatorRegistry {
 public:
     AnimatorRegistry();
 
-    InPort<FloatType>* GetRefreshPort();
+    InPort<float>* GetRefreshPort();
 
     void AddAnimator(std::unique_ptr<TimedAnimator> animator);
 
 private:
-    void OnRefresh(FloatType delta_time) const;
+    void OnRefresh(float delta_time) const;
 
     std::vector<std::unique_ptr<TimedAnimator>> animators_;
-    InPort<FloatType> in_time_port_;
-    OutPort<FloatType>::Ptr out_time_port_ = OutPort<FloatType>::Make();
+    InPort<float> in_time_port_;
+    OutPort<float>::Uptr out_time_port_ = OutPort<float>::Make();
 };
 
 }  // namespace null_engine
