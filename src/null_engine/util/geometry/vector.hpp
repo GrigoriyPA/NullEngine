@@ -5,8 +5,6 @@
 #include <Eigen/Dense>
 #include <null_engine/acceleration/program.hpp>
 
-#include "constants.hpp"
-
 namespace null_engine {
 
 using Vec2 = Eigen::Vector2<float>;
