@@ -1,6 +1,7 @@
 #include "clipping.hpp"
 
 #include <null_engine/util/generic/helpers.hpp>
+#include <null_engine/util/geometry/constants.hpp>
 
 namespace null_engine::detail {
 
